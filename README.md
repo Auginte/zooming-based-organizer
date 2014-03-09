@@ -9,7 +9,7 @@ Development Environment
 
  * Scala (2.10.2): http://www.scala-lang.org/
  * SBT (0.13.0): http://www.scala-sbt.org/
- * ScalaTest (1.9.1): http://www.scalatest.org/
+ * ScalaTest (2.10): http://www.scalatest.org/
  * SCCT (0.2) http://mtkopone.github.io/scct/
  * IntelliJ IDEA (13): http://www.jetbrains.com/idea/
 
