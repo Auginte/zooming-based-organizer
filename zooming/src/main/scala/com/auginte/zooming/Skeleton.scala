@@ -50,69 +50,49 @@ class Skeleton(scaleFactor: Int) extends Debugable {
   private val gridSize = scaleFactor
   private val scaleLog10 = Math.log10(scaleFactor)
 
+
+  //
   // High abstraction functions
+  //
 
   def root: Node = _root
 
-  def getNode(from: Node, x: Double, y: Double, scale: Double): Node = {
-    d(s"getNode $from ${x}x${y}x${scale}")
-    val (_x, _y) = getNormalised(Position(from, x, y, scale))
-    d(s"Normalised: ${_x}x${_y}")
+  /**
+   * Gets (creates if needed) closest node.
+   *
+   * Position is owned by node, if distance is no longer than gridSize.
+   * If it is longer, position is related to other nodes.
+   * For example:
+   * {{{
+   *   val gridSize = 100
+   *   (0, 0), (99, -99) will be of the same node
+   *   (12345, 678) will be divided to node (23, 6) child of (1, 0)
+   * }}}
+   *
+   * Nodes are devided by long distances and large scale differences.
+   *
+   * @param parent from which node perspective position is needed
+   * @param x relative position to node
+   * @param y relative position to node
+   * @param scale size of new element
+   * @return best node for relative transaltion and scaling
+   */
+  def getNode(parent: Node, x: Double, y: Double, scale: Double): Node = {
+    d(s"getNode $parent ${x}x${y}x${scale}")
     if (needOtherNode(x, y, scale)) {
-      d(s"from $from down ${x}x${y}x${scale}")
-      getNode(Position(from, x, y, scale))
+      d(s"from $parent down ${x}x${y}x${scale}")
+      getNode(Position(parent, x, y, scale))
     }
     else {
-      d(s"Return $from")
-      from
+      d(s"Return $parent")
+      parent
     }
   }
 
-  /**
-   * @deprecated negative position in translation
-   */
-  private def getNormalised(position: Position): (Double, Double) = {
-    def absoluteSign(node: Node, sum: Double, param: Node => Double): Double =
-      node.parent match {
-        case Some(parent) => {
-          d(s"  normalising $node: $sum")
-          absoluteSign(parent, sum / gridSize + param(parent), param)
-        }
-        case None => sum
-      }
 
-    val (node, _x, _y) = (position.node, position.x, position.y)
-    val absoluteX = absoluteSign(node, _x, node => node.x)
-    val absoluteY = absoluteSign(node, _y, node => node.y)
-
-    val x: Double = if (isSameSign(absoluteX, _x)) _x else gridSize - _x
-    val y: Double = if (isSameSign(absoluteY, _y)) _y else gridSize - _y
-
-    d(s"normalised (${_x}, ${_y}) -> ($x, $y)")
-
-    (x, y)
-  }
-
-  /**
-   * @deprecated debug only
-   */
-  def absoluteSign(node: Node, sum: Double, param: Node => Double): Double =
-    node.parent match {
-      case Some(parent) => {
-        var p = parent
-        println(s"$node -> $p: $sum")
-        absoluteSign(parent, sum / gridSize + param(parent), param)
-      }
-      case None => sum
-    }
-
-  @inline
-  private def isSameSign(a: Double, b: Double) =
-    (a >= 0 && b >= 0) || (a < 0 && b < 0)
-
-  /**
-   * Optimisation for close nodes
-   */
+  //
+  // High level best node search function
+  //
 
   @inline
   private def needOtherNode(x: Double, y: Double, scale: Double): Boolean = {
@@ -120,100 +100,123 @@ class Skeleton(scaleFactor: Int) extends Debugable {
       Math.log10(scale.abs).abs >= scaleLog10
   }
 
+  /**
+   * Abstract algorythm for best node search
+   *
+   * @param position node, translation and scaling datastore
+   * @return
+   */
   private def getNode(position: Position): Node = {
-    val translated = getTranslatedNode(position)
+    val cleaned = clearTolerance(position)
+    d(s"Cleaned: $cleaned")
+    val translated = getTranslatedNode(cleaned)
     d(s"Translated: $translated")
     val scaled = getScaledNode(translated)
     d(s"Scaled: $scaled")
-    scaled.node
+    scaled.parent
   }
 
-
-  private def getTranslatedNode(position: Position): Position = {
-    def getAbsolute(pos: Position): Position = {
-      pos
-    }
-
-    def diveUp(child: Node, x: Double, y: Double): Node = {
-      d(s"DiveUp $child | ${x}x${y}")
-      val _x = (x - child.x)
-      val _y = (y - child.y)
-      d(s"\tdiveUp ($x - ${child.x}, $y - ${child.y}) = ${_x}x${_y}")
-      if (x.abs >= gridSize && y.abs >= gridSize) {
-        diveUp(getParent(child), _x / gridSize, _y / gridSize)
-      } else if (x.abs >= gridSize && y.abs < gridSize) {
-        diveUp(getParent(child), _x / gridSize, _y)
-      } else if (x.abs < gridSize && y.abs >= gridSize) {
-        diveUp(getParent(child), _x, _y / gridSize)
+  /**
+   * Part of translation data is ignored, because node owns area around him.
+   *
+   * Tolerance part must be removed for situation like:
+   * {{{
+   *   val parent = (1, -2)
+   *   val translation = (-0.9, 1.1)
+   *   val toleranceValues = (0.9, 0.1)
+   *   val cleared = (1 + 0, -2 + 1) = (1, -1)
+   * }}}
+   */
+  private def clearTolerance(pos: Position): Position = {
+    def clearTolerance(pos: Position, scale: Double): Position =
+      if (isLarger(pos.scale * scale)) {
+        d(s"Tolerance:No need: $pos")
+        pos
+      } else if (isSmaller(pos.scale * scale)) {
+        d(s"Tolerance:Smaller: $pos")
+        clearTolerance(pos, scale * gridSize)
       } else {
-        d(s"\tdived up ${_x}x${_y}")
-        child
+        def clear(value: Double) =
+          (value * scale / gridSize).toInt * gridSize / scale
+
+        d(s"Tolerance:Applying: $pos | $scale")
+        Position(pos.parent, clear(pos.x), clear(pos.y), pos.scale)
       }
-    }
 
-    def getDistance(child: Node, parent: Node, value: Double = 1): Double = {
-      d(s"getDistance $child -> $parent | $value")
-      if (child != parent) {
-        child.parent match {
-          case Some(node) if (node == parent) => {
-            d(s"getDistance REACHED parent [${value}] ${node}")
-            value * gridSize
-          }
-          case Some(node) if (node != parent) => {
-            d(s"getDistance NOT parent [${value}] ${node}")
-            getDistance(node, parent, (value * gridSize).floor)
-          }
-          case _ => {
-            d(s"getDistance node-NONE [${value}] ${child.parent}")
-            value
-          }
-        }
+    clearTolerance(pos, 1)
+  }
+
+  /**
+   * Updating position, so there are no translation outside gridSize boundaries.
+   *
+   * For long translations, parent nodes are created and
+   * child nodes are picked from new parents (if needed).
+   *
+   * Scaling will be unchanged.
+   */
+  private def getTranslatedNode(position: Position): Position = {
+    def diveUp(parent: Node, x: Double, y: Double, scale: Double): Position = {
+      d(s"DiveUp $parent | ${x}x${y} s {$scale}")
+      if (x.abs >= gridSize || y.abs >= gridSize) {
+        val _x = (x / gridSize) + parent.x
+        val _y = (y / gridSize) + parent.y
+        d(s"\tdiveUp ($x/$gridSize + ${parent.x}, $y/$gridSize + ${parent.y}) = ${_x}x${_y}")
+        diveUp(getParent(parent), _x, _y, scale * gridSize)
       } else {
-        d(s"getDistance child-PARENT [${value}] ${child}")
-        value
+        d(s"\tdived up $parent ${x}x${y} s $scale")
+        Position(parent, x, y, scale)
       }
     }
 
     def diveDown(position: Position, distance: Double): Position = {
       d(s"DiveDown $position | $distance")
-
       val Position(parent, x, y, scale) = position
-      val _x = if (x.abs >= gridSize) floor(x / distance) % gridSize else x
-      val _y = if (y.abs >= gridSize) floor(y / distance) % gridSize else y
-      val _distance = distance / gridSize
       if (distance >= gridSize) {
-        val child = getChild(parent, _x.toInt, _y.toInt)
-        val newPosition = Position(child, x, y, scale)
-        d(s"DiveDown NEW (${_x}x${_y}/${_distance}: ${newPosition}")
+        val child = getChild(parent, floor(x).toInt, floor(y).toInt)
+        val _x = (x * gridSize) - (child.x * gridSize) // Higher precision
+        val _y = (y * gridSize) - (child.y * gridSize) // Higher precision
+        val _distance = distance / gridSize
+        val newPosition = Position(child, _x, _y, scale)
+        d(s"DiveDown NEW ${newPosition} (${_x}x${_y})")
         diveDown(newPosition, _distance)
       } else {
-        d(s"DiveDown SAME (${x}x${y}/${distance}) -> (${_x}x${_y}/${_distance}")
-        Position(parent, _x, _y, scale)
+        d(s"DiveDown SAME (${x}x${y}/${distance}) -> (${x}x${y}/${scale}")
+        Position(parent, x.round, y.round, scale)
       }
     }
 
-    val parent = diveUp(position.node, position.x, position.y)
+    val Position(node, x, y, scale) = position
+    val absolute = diveUp(node, x, y, 1)
+    val parent = absolute.parent
     d(s"parent = $parent")
-    val distance = getDistance(position.node, parent)
-    d(s"distance = $distance (${position.node} -> ${parent}")
-    val translated = diveDown(Position(parent, position.x, position.y, position.scale), distance)
+    val (_x, _y) = (absolute.x, absolute.y)
+    d(s"absolute = ${_x}x${_y}")
+    val distance = absolute.scale;
+    d(s"distance = $distance (${position.parent} -> ${parent}")
+    val translated = diveDown(Position(parent, _x, _y, scale), distance)
     d(s"translated = $translated")
     translated
   }
 
+  /**
+   * Updating position, so there are no scaling outside gridSize boundaries.
+   *
+   * For larger elements, direct nodes directly above will be picked up.
+   * For smaller elements, child with best position will be picked up.
+   */
   private def getScaledNode(pos: Position): Position =
     if (isLarger(pos.scale)) {
       d(s"Scale:Larger: $pos")
-      val parent = getParent(pos.node)
-      val x = pos.x / gridSize + pos.node.x
-      val y = pos.y / gridSize + pos.node.y
+      val parent = getParent(pos.parent)
+      val x = pos.x / gridSize + pos.parent.x
+      val y = pos.y / gridSize + pos.parent.y
       val scale = pos.scale / gridSize
       getScaledNode(Position(parent, x, y, scale))
     } else if (isSmaller(pos.scale)) {
       d(s"Scale:Smaller: $pos")
       val childX = floor(pos.x % gridSize).toInt
       val childY = floor(pos.y % gridSize).toInt
-      val child = getChild(pos.node, childX, childY)
+      val child = getChild(pos.parent, childX, childY)
       d(s" child=${child}")
       val x = (pos.x - childX) * gridSize
       val y = (pos.y - childY) * gridSize
@@ -233,10 +236,16 @@ class Skeleton(scaleFactor: Int) extends Debugable {
 
   private def floor(a: Double): Double = if (a >= 0) a.floor else a.ceil
 
-  private def sign(a: Double): Int = if (a >= 0) 1 else -1
 
-  // Creating new nodes
+  //
+  // Low level node pick up function
+  //
 
+  /**
+   * Finds or creates (if needed) parent node directly above
+   *
+   * Root node is also updated
+   */
   private def getParent(from: Node): Node = from.parent match {
     case Some(node) => node
     case None => {
@@ -247,6 +256,11 @@ class Skeleton(scaleFactor: Int) extends Debugable {
     }
   }
 
+  /**
+   * Finds or crates (if needed) child with spcified relative position
+   *
+   * Relative position should not go out of gridSize boundaries
+   */
   private def getChild(from: Node, x: Int, y: Int): Node =
     from.getChild(x, y) match {
       case Some(node) => node
@@ -257,9 +271,28 @@ class Skeleton(scaleFactor: Int) extends Debugable {
       }
     }
 
-  // Utilities
 
-  private case class Position(node: Node, x: Double, y: Double, scale: Double)
+  //
+  // Utilities
+  //
+
+  /**
+   * Position data container
+   *
+   * Node owns gridSize are around him.
+   * For example:
+   * {{{
+   *   val gridSize = 100
+   *   val withinRoot = Position(root, 99, 0.12, 1)
+   *   val outsideRoot = Position(root, 123, 4567, 1)
+   * }}}
+   *
+   * @param parent node, from which relative position is calculated
+   * @param x relative position from node
+   * @param y relative position from node
+   * @param scale scaling of element
+   */
+  private case class Position(parent: Node, x: Double, y: Double, scale: Double)
 
 }
 
@@ -293,4 +326,6 @@ trait Debugable {
 //FIXME: debug
 object Debug {
   var on: Boolean = false
+
+  def print(text: String): Unit = if (on) println(s"==========$text==========")
 }

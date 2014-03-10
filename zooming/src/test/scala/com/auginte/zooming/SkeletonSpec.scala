@@ -144,9 +144,9 @@ class SkeletonSpec extends UnitSpec {
         assertXY(n2, 0, 1)
         assertXY(n3, 4, 9)
         assertXY(n4, 45, 9)
-        assertXY(n5, 1, 9)
-        assertXY(n6, 2, 9)
-        assertXY(n7, 2, 9)
+        assertXY(n5, 46, 18)
+        assertXY(n6, 47, 18)
+        assertXY(n7, 47, 18)
         assertXY(n8, 99, 23)
       }
       "create moved child for negative translated elements" in {
@@ -199,9 +199,9 @@ class SkeletonSpec extends UnitSpec {
         assertXY(n2, 0, -1)
         assertXY(n3, -4, -9)
         assertXY(n4, -45, -9)
-        assertXY(n5, -1, -9)
-        assertXY(n6, -2, -9)
-        assertXY(n7, -2, -9)
+        assertXY(n5, -46, -18)
+        assertXY(n6, -47, -18)
+        assertXY(n7, -47, -18)
         assertXY(n8, -99, -23)
       }
       "create moved child for translated elements with different signs" in {
@@ -240,7 +240,6 @@ class SkeletonSpec extends UnitSpec {
         assertXY(n7, -4, -4)
         assertXY(n8, 1, -7)
         assertXY(n9, 6, -6)
-
       }
       "create moved child for translated smaller elements" in {
         val (root, skeleton) = rootSkeletonPair()
