@@ -290,7 +290,7 @@ class SkeletonSpec extends UnitSpec {
         assertXY(n8, 99, 0)
         assertXY(r1, 0, 0)
         assertXY(r2, 0, 0)
-        assertXY(r3, 0, 0)
+        assertXY(r3, 0, -98)
         assertXY(r4, 1, 0)
         assertXY(r5, 0, 98)
         assertXY(r6, 0, 76)
