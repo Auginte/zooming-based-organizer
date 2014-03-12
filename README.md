@@ -36,6 +36,9 @@ Known Issues
  * Panel not fills whole window. (Linux, Awesome WM)
    - Solution: `wmname LG3D` before running jar
    - For more: http://www.minecraftforum.net/topic/127416-minecraft-and-awesome-window-manager/
+ * After gen-idea, no compiler library found
+   - Project settings -> Libraries -> *scala-library* -> Classes: Add from ~/.sbt/boot/*/scala-*
+   - Project settings -> Facets -> Compiler library: Choose *scaka-library*
 
 References
 ------------------

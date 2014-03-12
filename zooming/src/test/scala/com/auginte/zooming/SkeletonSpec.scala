@@ -11,8 +11,6 @@ import com.auginte.test.UnitSpec
  */
 class SkeletonSpec extends UnitSpec {
 
-  implicit def a(a: Int) = a.toString()
-
   "Skeleton" when {
     "exporting hierarchy" should {
       "provide root element" in {
@@ -309,7 +307,11 @@ class SkeletonSpec extends UnitSpec {
     }
   }
 
+
+  //
   // Helpers
+  //
+
   def standardSkeleton() = new Skeleton(100)
 
   def rootSkeletonPair() = {
