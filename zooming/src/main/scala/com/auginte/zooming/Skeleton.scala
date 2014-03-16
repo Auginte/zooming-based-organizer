@@ -41,6 +41,14 @@ package com.auginte.zooming
  *   |,                    ||==================||             V
  * }}}
  *
+ * For better understanding:
+    - For position: Try counting connections between nodes.
+      Child-FirstParent, ..., PreParent-LastParent.
+      E.g. 123456: LastParent - 56 - PreParent - 34 - Parent(root) - 12 - Child
+    - For scaling. Try counting connections between nodes
+      E.g. 100000: root - 00 - 00 - 00 - destination
+      E.g  1 / 10000: root - 00 - 00 - 00 - destination
+ *
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
@@ -137,7 +145,7 @@ class Skeleton(scaleFactor: Int) extends Debugable {
         clearTolerance(pos, scale * gridSize)
       } else {
         def clear(value: Double) =
-          (value * scale / gridSize).toInt * gridSize / scale
+          floor(value * scale / gridSize) * gridSize / scale
 
         d(s"Tolerance:Applying: $pos | $scale")
         Position(pos.parent, clear(pos.x), clear(pos.y), pos.scale)

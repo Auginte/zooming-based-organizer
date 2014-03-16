@@ -28,8 +28,8 @@ class SkeletonSpec extends UnitSpec {
         assert(n21.parent.get === root)
         assert(n22.parent.get === root)
         assert(n22.parent.get === root)
-        assert(n22.parent.get != n1)
-        assert(n22.parent.get != n21)
+        assert(n22.parent.get !== n1)
+        assert(n22.parent.get !== n21)
       }
     }
     "suggesting node from absolute coordinates" should {
@@ -53,10 +53,10 @@ class SkeletonSpec extends UnitSpec {
         val n9 = skeleton.getNode(root, 0, -101, 1)
         val n10 = skeleton.getNode(root, 0, -101, 101)
         val n11 = skeleton.getNode(root, 0, -101, 1 / 101.0)
-        assert(n8 != root)
-        assert(n9 != root)
-        assert(n10 != root)
-        assert(n11 != root)
+        assert(n8 !== root)
+        assert(n9 !== root)
+        assert(n10 !== root)
+        assert(n11 !== root)
       }
       "create child for smaller" in {
         val (root, skeleton) = rootSkeletonPair()
@@ -68,8 +68,8 @@ class SkeletonSpec extends UnitSpec {
         assert(n2.parent.get === root)
         assert(n3.parent.get === n2)
         assert(n4.parent.get === n3)
-        assert(n4.parent.get != n2)
-        assert(n4.parent.get != root)
+        assert(n4.parent.get !== n2)
+        assert(n4.parent.get !== root)
         assertXY(n1, 0, 0)
         assertXY(n2, 1, 2)
         assertXY(n3, 1, 2)
@@ -85,8 +85,8 @@ class SkeletonSpec extends UnitSpec {
         assert(root.parent.get === n2)
         assert(n2.parent.get === n3)
         assert(n3.parent.get === n4)
-        assert(n2.parent.get != n4)
-        assert(root.parent.get != n4)
+        assert(n2.parent.get !== n4)
+        assert(root.parent.get !== n4)
         assertXY(n1, 0, 0)
         assertXY(n2, 0, 0)
         assertXY(n3, 0, 0)
@@ -123,10 +123,10 @@ class SkeletonSpec extends UnitSpec {
         assert(r2.parent.get === r1)
         assert(r3.parent.get === r1)
         assert(r4.parent.get === r1)
-        assert(r2 != r3)
-        assert(r3 != r4)
-        assert(root != r2)
-        assert(root != r1)
+        assert(r2 !== r3)
+        assert(r3 !== r4)
+        assert(root !== r2)
+        assert(root !== r1)
         //  r1,r2,root--n1--r3-----------+
         //  |               |            |
         //  n2          n3  |  n5 n6 n4  |
@@ -178,10 +178,10 @@ class SkeletonSpec extends UnitSpec {
         assert(r2.parent.get === r1)
         assert(r3.parent.get === r1)
         assert(r4.parent.get === r1)
-        assert(r2 != r3)
-        assert(r3 != r4)
-        assert(root != r2)
-        assert(root != r1)
+        assert(r2 !== r3)
+        assert(r3 !== r4)
+        assert(root !== r2)
+        assert(root !== r1)
         //  +----------+-----------------
         //  |  n8      |                |
         //  +----------r4---------------+
@@ -248,8 +248,8 @@ class SkeletonSpec extends UnitSpec {
         //   r3   root_    r4   r6
         //   /   /  |  \    \    \
         //  n5  n1  n2  n3  n4   n6
-        //                  / \
-        //                n7  n8
+        //   / \
+        // n7  n8
         val n1 = skeleton.getNode(root, -123 / 100.0, 0, 1 / 100.0)
         val n2 = skeleton.getNode(root, 99 / 100.0, 234 / 100.0, 1 / 112.0)
         val n3 = skeleton.getNode(root, 9967 / 100.0, -9934 / 100.0, 1 / 134.0)
@@ -293,7 +293,106 @@ class SkeletonSpec extends UnitSpec {
         assertXY(r5, 0, 98)
         assertXY(r6, 0, 76)
       }
-      "create moved parent for translated larger elements" in (pending)
+      "create moved child for translated larger elements" in {
+        val (root, skeleton) = rootSkeletonPair()
+        //   _____ r4_______
+        //  /      |        \
+        // n6  ____r3____    n5
+        //    /    |     \
+        //   n4  __r2__  n3
+        //      /  |   \
+        //     n2  r1  n1
+        //         |
+        //         r
+        val n1 = skeleton.getNode(root, 10001, 10001, 100)
+        val n2 = skeleton.getNode(root, -123456, -987654, 101)
+        val n3 = skeleton.getNode(root, 12345678, -87654321, 12345)
+        val n4 = skeleton.getNode(root, -123456, 12345678, 12345)
+        val n5 = skeleton.getNode(root, 1234567890, 0, 1234567)
+        val r1 = root.parent.getOrElse(invalid)
+        val r2 = r1.parent.getOrElse(invalid)
+        val r3 = r2.parent.getOrElse(invalid)
+        val r4 = r3.parent.getOrElse(invalid)
+        val n6 = skeleton.getNode(r1, -12345678, 123456, 10000)
+        assert(r1 !== r2)
+        assert(r2 !== r3)
+        assert(r3 !== r4)
+        assert(root.parent.get === r1)
+        assert(r1.parent.get === r2)
+        assert(r2.parent.get === r3)
+        assert(r3.parent.get === r4)
+        assert(n1.parent.get === r2)
+        assert(n2.parent.get === r2)
+        assert(n3.parent.get === r3)
+        assert(n4.parent.get === r3)
+        assert(n5.parent.get === r4)
+        assert(n6.parent.get === r4)
+        assertXY(r1, 0, 0)
+        assertXY(r2, 0, 0)
+        assertXY(r3, 0, 0)
+        assertXY(r4, 0, 0)
+        assertXY(n1, 1, 1)
+        assertXY(n2, -12, -98)
+        assertXY(n3, 12, -87)
+        assertXY(n4, 0, 12)
+        assertXY(n5, 12, 0)
+        assertXY(n6, -12, 0)
+      }
+      "create moved parent for translated larger elements" in {
+        val (root, skeleton) = rootSkeletonPair()
+        //  r4_____________________  
+        //  |   \          \       \
+        //  r3  r31____     r32__   n5
+        //  |    \     \    \    \
+        //  r2    r21  r22   n3   n4
+        //  |      \    \
+        //  r1      n1   n2
+        //  |       |
+        //  r       n11
+        //          |
+        //          n111
+        //          |
+        //          n1111
+        val r1 = skeleton.getNode(root, 1234, 1, 100)
+        val n1 = skeleton.getNode(root, 1234567890, 87654321, 100)
+        val n11 = skeleton.getNode(root, 1234567890, 87654321, 1)
+        val n111 = skeleton.getNode(root, 1234567890, 87654321, 1 / 100.0)
+        val n1111 = skeleton.getNode(root, 1234567890, 87654321, 1 / 10000.0)
+        val n2 = skeleton.getNode(root, 1299887766, 87654322, 100)
+        val n3 = skeleton.getNode(root, 1434000000, 1221000000, 10000)
+        val n4 = skeleton.getNode(n1, 2230000, 12120000, 100)
+        val n5 = skeleton.getNode(n2, 1000000, 1000000, 10000)
+        val List(r2, r3, r4) = parents(r1)
+        val List(r21, r31, _) = parents(n1)
+        val List(r22, _, _) = parents(n2)
+        val List(r32, _) = parents(n3)
+        assertParents(root, r1, r2, r3, r4)
+        assertParents(n1, r21, r31, r4)
+        assertParents(n11, n1, r21, r31, r4)
+        assertParents(n111, n11, n1, r21, r31, r4)
+        assertParents(n1111, n111, n11, n1, r21, r31, r4)
+        assertParents(n2, r22, r31, r4)
+        assertParents(n3, r32, r4)
+        assertParents(n4, r32, r4)
+        assertParents(n5, r4)
+        assertXY(root, 0, 0)
+        assertXY(r1, 0, 0)
+        assertXY(r2, 0, 0)
+        assertXY(r3, 0, 0)
+        assertXY(r4, 0, 0)
+        assertXY(r31, 12, 0)
+        assertXY(r21, 34, 87)
+        assertXY(n1, 56, 65)
+        assertXY(n11, 78, 43)
+        assertXY(n111, 90, 21)
+        assertXY(n1111, 0, 0)
+        assertXY(r22, 99, 87)
+        assertXY(n2, 88, 65)
+        assertXY(r32, 14, 12)
+        assertXY(n3, 34, 21)
+        assertXY(n4, 23 + 34, 12 + 87)
+        assertXY(n5, 1 + 12, 1)
+      }
       "create multilevel hierarchy for large scales" in (pending)
       "create multilevel hierarchy for large translations" in (pending)
     }
@@ -319,15 +418,46 @@ class SkeletonSpec extends UnitSpec {
     (skeleton.root, skeleton)
   }
 
-  def assertXY(node: Node, x: Int, y: Int): Unit = {
-    val stack = Thread.currentThread().getStackTrace()
-    val element = stack(2)
-    assert(
-      node.x == x && node.y == y,
-      s"Expeced ${x}x${y}, but actual ${node.x}x${node.y} in ${node}\n" +
-        s"\t at ${this.getClass.getCanonicalName}" +
-        s"(${element.getFileName}:${element.getLineNumber})\n\t"
-    )
+  def assertXY(node: Node, x: Int, y: Int): Unit =
+    assert(node.x == x && node.y == y,
+      s"Expeced ${x}x${y}, but actual ${node.x}x${node.y} in ${node}\n")
+
+
+  def assertParents(node: Node, parents: Node*): Unit = {
+    def formatError(message: String): String = {
+      message + s" Expected $node with parents " + parents.mkString(" -> ")
+    }
+
+    def assertParents(node: Node, parents: Seq[Node]): Unit = {
+      parents match {
+        case Seq(parent) => node.parent match {
+          case Some(nodeParent) => assert(nodeParent === parent,
+            formatError(s"Last $nodeParent != $parent"))
+          case None => fail(formatError("Not enough parents. " +
+            s"Last $node !-> " + parents.mkString("->")))
+        }
+        case parent +: tail => node.parent match {
+          case Some(nodeParent) => {
+            assert(nodeParent === parent,
+              formatError(s"Last $node !-> " + parents.mkString("->")))
+            assertParents(nodeParent, tail)
+          }
+          case None => fail(formatError("Not enough parents. " +
+            s"Last $node !-> " + parents.mkString("->"))
+          )
+        }
+      }
+    }
+
+    assertParents(node, parents)
+  }
+
+  def parents(node: Node): List[Node] = {
+    def parents(node: Node, xs: List[Node]): List[Node] = node.parent match {
+      case Some(parent) => parents(parent, parent :: xs)
+      case None => xs.reverse
+    }
+    parents(node, List())
   }
 
   object invalid extends Node(-1, -1) {
