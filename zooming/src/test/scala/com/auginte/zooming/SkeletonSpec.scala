@@ -17,7 +17,7 @@ class SkeletonSpec extends UnitSpec {
         val root: Node = standardSkeleton().root
       }
       "iterate hierarchy from root" in {
-        val s = new Skeleton(100)
+        val s = standardSkeleton()
         val root = s.root
         val n1 = s.getNode(root, 0, 0, 201)
         val n2 = s.getNode(root, 0, 0, 0.009)
@@ -30,6 +30,33 @@ class SkeletonSpec extends UnitSpec {
         assert(n22.parent.get === root)
         assert(n22.parent.get !== n1)
         assert(n22.parent.get !== n21)
+      }
+      "provide textual representation of coordinates" in {
+        // r3(12, 9) <- r2(34, 0) <- r1(56, 1)
+        val r3 = new Node(12, 9)
+        val r2 = r3.addChild(34, 0)
+        val r1 = r2.addChild(56, 1)
+        assert(r1.isChildOf(r2))
+        assert(r1.isChildOf(r3))
+        assert(!r1.isChildOf(r1))
+        assert(!r2.isChildOf(r1))
+        assert(!r3.isChildOf(r1))
+        assert(!r3.isChildOf(r2))
+        assertResult(("123456", "90001", "1000000")) {
+          standardSkeleton().getCoordinates(r3, r1)
+        }
+        assertResult(("1234", "900", "10000")) {
+          standardSkeleton().getCoordinates(r3, r2)
+        }
+        assertResult(("3456", "1", "10000")) {
+          standardSkeleton().getCoordinates(r2, r1)
+        }
+        intercept[IllegalArgumentException] {
+          standardSkeleton().getCoordinates(r1, r3)
+        }
+        intercept[IllegalArgumentException] {
+          standardSkeleton().getCoordinates(r1, r1)
+        }
       }
     }
     "suggesting node from absolute coordinates" should {
@@ -340,7 +367,7 @@ class SkeletonSpec extends UnitSpec {
       }
       "create moved parent for translated larger elements" in {
         val (root, skeleton) = rootSkeletonPair()
-        //  r4_____________________  
+        //  r4_____________________
         //  |   \          \       \
         //  r3  r31____     r32__   n5
         //  |    \     \    \    \
@@ -393,7 +420,24 @@ class SkeletonSpec extends UnitSpec {
         assertXY(n4, 23 + 34, 12 + 87)
         assertXY(n5, 1 + 12, 1)
       }
-      "create multilevel hierarchy for large scales" in (pending)
+      "create multilevel hierarchy for large scales" in {
+        val (oldRoot, skeleton) = rootSkeletonPair()
+        val deep = 123 // 12345 in ~11 s.
+        for (i <- 1 to deep) {
+          skeleton.getNode(skeleton.root, 0, 0, 100)
+        }
+        val top = skeleton.root
+        var parent = skeleton.root
+        for (i <- 1 to deep) {
+          parent = skeleton.getNode(parent, 0, 0, 1 / 100.0)
+        }
+        assert(parent === oldRoot)
+        assert(top === skeleton.root)
+        val scale = "1" + ("00" * (deep + 1))
+        assertResult(("0", "0", scale)) {
+          skeleton.getCoordinates(top, parent)
+        }
+      }
       "create multilevel hierarchy for large translations" in (pending)
     }
     "comparing absolute distance between nodes" should {

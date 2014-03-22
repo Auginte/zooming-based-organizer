@@ -46,6 +46,18 @@ class Node(val x: Int, val y: Int) {
     s"[{$id}: ${x}x${y} of $parentId]"
   }
 
+  def isChildOf(distantParent: Node): Boolean = {
+    def isChild(child: Node, end: Boolean): Boolean = {
+      if (end) return child eq distantParent
+      child.parent match {
+        case Some(parent) if (parent eq distantParent) => isChild(parent, true)
+        case Some(parent) => isChild(parent, false)
+        case None => isChild(child, true)
+      }
+    }
+    if (this eq distantParent) false else isChild(this, false)
+  }
+
   def hierarchyAsString(indent: Int = 0): String = children.foldLeft {
     def repeat(part: String, times: Int): String = {
       val buffer = new StringBuilder

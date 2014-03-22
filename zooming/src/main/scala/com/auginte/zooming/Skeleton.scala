@@ -52,11 +52,10 @@ package com.auginte.zooming
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Skeleton(scaleFactor: Int) extends Debugable {
+class Skeleton(val gridSize: Int) extends Debugable {
   private var _root = new Node(0, 0)
 
-  private val gridSize = scaleFactor
-  private val scaleLog10 = Math.log10(scaleFactor)
+  private val scaleLog10 = Math.log10(gridSize)
 
 
   //
@@ -97,6 +96,48 @@ class Skeleton(scaleFactor: Int) extends Debugable {
     }
   }
 
+  /**
+   * Textual representation of coordinate difference between nodes.
+   * Scale is approximated to gridSize
+   *
+   * For example:
+   * {{{
+   *   r3(12, 9) <- r2(34, 0) <- r1(56, 1)
+   *   ("123456", "90001", "1000000")
+   * }}}
+   *
+   * @throws IllegalArgumentException When there are no child-parent relation
+   */
+  def getCoordinates(parent: Node, child: Node): TextualCoordinates = {
+    require(child.isChildOf(parent), s"Not parent-child: $parent $child")
+    d(s"getCoordinates $parent - $child")
+
+    type TC = TextualCoordinates
+    val originalChild = child
+
+    val scale = gridSize.toString().substring(1)
+    val format = (number: Int) => number.formatted("%0" + scale.length + "d")
+    val leaveLastZero = (s: String) => if (s.length > 0) s else "0"
+    val strip = (s: String) => leaveLastZero(s.dropWhile(_ == '0'))
+    val stripped = (c: TC) => (strip(c._1), strip(c._2), c._3)
+    val newCoordinates = (node: Node, c: TC) =>
+      (format(node.x) + c._1, format(node.y) + c._2, c._3 + scale)
+
+    def appended(child: Node, coordinates: TC, end: Boolean): TC = {
+      d(s" appended $child: $coordinates")
+      if (end) {
+        require(child eq parent, s"Not parent-child: $parent $originalChild")
+        return stripped(coordinates)
+      }
+      child.parent match {
+        case Some(node) =>
+          appended(node, newCoordinates(node, coordinates), node eq parent)
+        case None => appended(child, coordinates, true)
+      }
+    }
+
+    appended(child, (format(child.x), format(child.y), "1" + scale), false)
+  }
 
   //
   // High level best node search function
@@ -228,7 +269,7 @@ class Skeleton(scaleFactor: Int) extends Debugable {
       d(s" child=${child}")
       val x = (pos.x - childX) * gridSize
       val y = (pos.y - childY) * gridSize
-      val scale = pos.scale * scaleFactor
+      val scale = pos.scale * gridSize
       getScaledNode(Position(child, x, y, scale))
     } else {
       d(s"Scale:Equal: $pos")
@@ -305,15 +346,15 @@ class Skeleton(scaleFactor: Int) extends Debugable {
 }
 
 trait Debugable {
-  protected val DEBUG_MAX_I = 2000
+  protected val DEBUG_MAX_I = 2000000
   private var debugI = 0
 
   def d(text: String = ""): Unit = {
     if (Debug.on) debugString(text)
     debugI += 1
-    if (debugI > DEBUG_MAX_I) {
-      throw new InfinityRecursion
-    }
+//    if (debugI > DEBUG_MAX_I) {
+    //      throw new InfinityRecursion
+    //    }
   }
 
   protected def debugString(text: String) = {
