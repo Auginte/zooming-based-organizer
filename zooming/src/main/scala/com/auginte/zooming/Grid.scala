@@ -1,7 +1,7 @@
 package com.auginte.zooming
 
 /**
- * Helper for maintaining hierarchy of nodes from absolute positions.
+ * Class to ensure infinity scaling and translation.
  *
  * Example with grid size 100:
  * {{{
@@ -52,7 +52,7 @@ package com.auginte.zooming
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Skeleton(val gridSize: Int) extends Debugable {
+class Grid(val gridSize: Int) extends Debugable {
   private var _root = new Node(0, 0)
 
   private val scaleLog10 = Math.log10(gridSize)
