@@ -438,7 +438,26 @@ class SkeletonSpec extends UnitSpec {
           skeleton.getCoordinates(top, parent)
         }
       }
-      "create multilevel hierarchy for large translations" in (pending)
+      "create multilevel hierarchy for large translations" in {
+        val (oldRoot, skeleton) = rootSkeletonPair()
+        //  root
+        //  :
+        //  |______            r2         (0,0)
+        //  |\____ \____       r1         (0,0)          (1, 0)     (99, 49)
+        //  | ....  ..... .... translated (0,0) (50, 25) (0, 50) .. (50, 75)
+        //
+        val deep = 100 * 2 - 1 // 100*100*2-1 in ~4 s. (99,49)<-(99,99)<-(50,75)
+        var translated = oldRoot
+        for (i <- 1 to deep) {
+          translated = skeleton.getNode(translated, 5000, 2500, 1)
+        }
+        val r1 = translated.parent.getOrElse(invalid)
+        val r2 = r1.parent.getOrElse(invalid)
+        assert(r2 === skeleton.root)
+        assertResult(("9950", "4975", "1000000")) {
+          skeleton.getCoordinates(skeleton.root, translated)
+        }
+      }
     }
     "comparing absolute distance between nodes" should {
       "give zero for same elements" in (pending)
