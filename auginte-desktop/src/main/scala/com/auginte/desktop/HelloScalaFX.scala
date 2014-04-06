@@ -4,7 +4,7 @@ import scalafx.application.JFXApp
 import scalafx.scene.shape.Rectangle
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene._
-import scalafx.scene.control.{Button, Label}
+import scalafx.scene.control.Button
 import scalafx.scene.layout.{HBox, BorderPane}
 import scalafx.Includes._
 import scalafx.event.ActionEvent
@@ -23,11 +23,11 @@ object HelloScalaFX extends JFXApp {
     prefHeight = 400.0
 
     content = List(
-      Label("Hello"),
       Rectangle(50, 50, 50, 50)
     )
   }
   view1.stylesheets add "css/view.css"
+  view1.stylesheets add "css/controls.css"
   view1.styleClass.add("view")
 
   val exitButton = new Button("Exit") {

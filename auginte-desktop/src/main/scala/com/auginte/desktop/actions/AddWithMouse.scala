@@ -2,8 +2,8 @@ package com.auginte.desktop.actions
 
 import scalafx.scene.input.MouseEvent
 import com.auginte.desktop.RichNode
+import com.auginte.desktop.Label
 import javafx.{collections => jfxc}
-import scalafx.scene.control.Label
 import javafx.{scene => jfxs}
 import scalafx.Includes._
 
@@ -15,7 +15,7 @@ import scalafx.Includes._
 trait AddWithMouse extends RichNode {
   def content: jfxc.ObservableList[jfxs.Node]
 
-  mouseEvents += {
+  mouseClickEvents += {
     (e: MouseEvent) => if (e.clickCount > 1) {
       val element = new Label("Test")
       element.setTranslateX(e.x)

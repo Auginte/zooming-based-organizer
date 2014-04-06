@@ -15,7 +15,7 @@ import javafx.event.EventHandler
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait RichNode extends Node {
-  val mouseEvents = new Events[MouseEvent, jfxi.MouseEvent](e => new MouseEvent(e), h => onMouseClicked = h)
+  val mouseClickEvents = new Events[MouseEvent, jfxi.MouseEvent](e => new MouseEvent(e), h => onMouseClicked = h)
 
   /**
    * Class to store multiple event listeners.
