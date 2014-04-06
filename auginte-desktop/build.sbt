@@ -1,7 +1,8 @@
 // Use from main project
 // mainClass in(Compile, run) := Some("com.auginte.desktop.HelloScalaFX")
 
-libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10.0"
+// Replaced by ScalaFx
+//libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10.0"
 
 // Add dependency on ScalaFX library, for use with JavaFX 2.2/Java 7
 libraryDependencies += "org.scalafx" %% "scalafx" % "1.0.0-R8"
