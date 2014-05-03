@@ -1,10 +1,13 @@
 package com.auginte.desktop
 
-import scalafx.scene.layout.Pane
-import scalafx.scene.input.ScrollEvent
-import com.auginte.desktop.actions.{EditingControl, AddWithMouse}
-import scalafx.scene.input.MouseEvent
+import scalafx.scene.input.{ScrollEvent, MouseEvent}
+import com.auginte.desktop.operations.{AddWithMouse}
 import scalafx.Includes._
+import com.auginte.desktop.rich.RichSPane
+import javafx.scene.layout.{Pane => jp}
+import scalafx.scene.{input => sfxi}
+import javafx.scene.{input => jfxi, control => jfxc, Node}
+import javafx.{scene => jfxs}
 
 /**
  * JavaFX panel with Infinity zooming layout.
@@ -12,10 +15,17 @@ import scalafx.Includes._
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class View extends Pane with RichNode with AddWithMouse with EditingControl {
+class View extends RichSPane with AddWithMouse[jp]  {
+  val contextMenu = initContextMenu()
 
-  //FIMXE: Debug info
-  onScroll = ((e: ScrollEvent) => println("Wheel", e.getDeltaX, e.getDeltaY))
-  mouseClickEvents += ((e: MouseEvent) => println("Clicked", e.x, e.y))
+  private def initContextMenu() = {
+    val contextMenu = new ContextMenu()
+    contextMenu.layoutX <== (width - contextMenu.width) / 2
+    contextMenu.layoutY <== height - contextMenu.height
+    content += contextMenu
+    contextMenu.hide()
+    contextMenu
+  }
 
+  def remove(element: Node): Unit = content.remove(element)
 }

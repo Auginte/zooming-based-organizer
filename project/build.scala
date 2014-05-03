@@ -7,7 +7,7 @@ object AuginteBuild extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
   val buildVersion      = "0.5.0-SNAPSHOT"
-  val buildScalaVersion = "2.10.3"
+  val buildScalaVersion = "2.10.2"
   val buildMainClass = "com.auginte.desktop.HelloScalaFX"
   
   // Settings
@@ -32,14 +32,14 @@ object AuginteBuild extends sbt.Build {
   lazy val root = Project(
     id = "auginte",
     base = file("."),
-    settings = assemblySettings ++ buildSettings ++ scalaDocSettings 
+    settings = Project.defaultSettings ++ assemblySettings ++ buildSettings ++ scalaDocSettings 
     ) aggregate(
     auginteZooming,
     auginteTransformation,
     auginteDistribution,
     auginteDesktop,
     augitenteTest
-    ) dependsOn (auginteDesktop)
+    )
 
   lazy val auginteZooming = Project(id = "auginte-zooming",
     base = file("auginte-zooming")) dependsOn (augitenteTest % "test->test")
@@ -51,7 +51,7 @@ object AuginteBuild extends sbt.Build {
     base = file("auginte-distribution"))
 
   lazy val auginteDesktop = Project(id = "auginte-desktop",
-    base = file("auginte-desktop"))
+    base = file("auginte-desktop")) dependsOn (augitenteTest % "test->test")
 
   lazy val augitenteTest = Project(id = "auginte-test",
     base = file("auginte-test"))
