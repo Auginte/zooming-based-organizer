@@ -1,10 +1,5 @@
 package com.auginte.desktop.events
 
-import scalafx.scene.{input => sfxi}
-import javafx.scene.{input => jfxi}
-import javafx.scene.{control => jfxc}
-import javafx.{scene => jfxs}
-import com.auginte.desktop.rich.RichNode
 import com.auginte.desktop.HaveOperations
 
 /**

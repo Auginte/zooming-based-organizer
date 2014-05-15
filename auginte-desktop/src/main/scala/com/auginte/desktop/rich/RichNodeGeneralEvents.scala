@@ -5,7 +5,6 @@ import javafx.scene.{input => jfxi}
 import javafx.scene.{control => jfxc}
 import javafx.{scene => jfxs}
 import scalafx.{scene => sfxs}
-import com.auginte.desktop.nodes.Event
 
 /**
  * Mouse and key events.
@@ -35,4 +34,10 @@ trait RichNodeGeneralEvents[D <: jfxs.Node] extends RichNodeDelegating[D] {
   lazy val mouseReleased = new Event[sfxi.MouseEvent, jfxi.MouseEvent](d.onMouseReleasedProperty(), new sfxi.MouseEvent(_))
 
   def mouseReleased_=(f: sfxi.MouseEvent => Any): Unit = mouseClicked.replace(f)
+
+
+
+  lazy val mouseDragged = new Event[sfxi.MouseEvent, jfxi.MouseEvent](d.onMouseDraggedProperty(), new sfxi.MouseEvent(_))
+
+  def mouseDragged_=(f: sfxi.MouseEvent => Any): Unit = mouseDragged.replace(f)
 }

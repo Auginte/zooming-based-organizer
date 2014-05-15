@@ -5,14 +5,7 @@ import akka.actor.Actor
 import javafx.collections.ListChangeListener
 import javafx.collections.ListChangeListener.Change
 import javafx.scene.Node
-import scalafx.scene.{input => sfxi}
-import javafx.scene.{input => jfxi}
-import javafx.scene.{control => jfxc}
-import javafx.{scene => jfxs}
-import com.auginte.desktop.rich.RichNode
-import com.auginte.desktop.events.{DeleteElement, ShowContextMenu}
-import scalafx.concurrent.Task
-import javafx.{concurrent => jfxcn}
+import com.auginte.desktop.events.{MoveElement, DeleteElement, ShowContextMenu}
 import scalafx.application.Platform
 
 /**
@@ -45,6 +38,12 @@ class View extends Actor {
     case DeleteElement(element) => {
       Platform.runLater {
         v.remove(element)
+      }
+    }
+    case MoveElement(element, diffX, diffY) => {
+      Platform.runLater {
+        element.setTranslateX(element.getTranslateX + diffX)
+        element.setTranslateY(element.getTranslateY + diffY)
       }
     }
     case _ => Unit

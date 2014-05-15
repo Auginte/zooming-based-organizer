@@ -1,4 +1,4 @@
-package com.auginte.desktop.nodes
+package com.auginte.desktop.rich
 
 import javafx.beans.property.ObjectProperty
 import javafx.event.EventHandler

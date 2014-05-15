@@ -1,15 +1,14 @@
 package com.auginte.desktop.nodes
 
 import scalafx.scene.input.{KeyCode, KeyEvent, MouseEvent}
-import javafx.scene.{text => jfxt}
-import javafx.scene.{control => jfxc}
+import javafx.scene.{layout => jfxl}
+import javafx.scene.{text => jfxt, control => jfxc}
 import com.auginte.desktop.{actors => act, HaveOperations}
 import scalafx.scene.{control => sfxc}
 import com.auginte.desktop.events.{DeleteElement, ShowContextMenu}
-import com.auginte.desktop.actors.ViewableNode
+import com.auginte.desktop.actors.{DragableNode, ViewableNode}
 import com.auginte.desktop.rich.RichJPane
 import javafx.scene.input.MouseButton
-import javafx.scene.{input => jfxi}
 import scalafx.geometry.Pos
 import scalafx.event.ActionEvent
 
@@ -18,7 +17,8 @@ import scalafx.event.ActionEvent
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Label(val _text: String) extends RichJPane with ViewableNode with HaveOperations {
+class Label(val _text: String) extends RichJPane
+with ViewableNode with HaveOperations with DragableNode[jfxl.Pane] {
   private val label = new jfxc.Label(_text)
   private val textArea = new jfxc.TextArea()
   private var editMode = false
