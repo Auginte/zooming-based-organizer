@@ -15,9 +15,7 @@ trait ViewableNode {
    */
   private var viewReference: Option[ActorRef] = None
 
-  protected[actors] def setView(actorForView: a.View): Unit = {
-    viewReference = Some(actorForView.self)
-  }
+  protected[actors] def setView(actorForView: a.View): Unit = viewReference = Some(actorForView.self)
 
   /**
    * Reference to [[com.auginte.desktop.actors.View]]

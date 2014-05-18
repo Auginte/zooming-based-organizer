@@ -14,10 +14,10 @@ class GridSpec extends UnitSpec {
   "Grid" when {
     "exporting hierarchy" should {
       "provide root element" in {
-        val root: Node = standadGrid().root
+        val root: Node = standardGrid().root
       }
       "iterate hierarchy from root" in {
-        val s = standadGrid()
+        val s = standardGrid()
         val root = s.root
         val n1 = s.getNode(root, 0, 0, 201)
         val n2 = s.getNode(root, 0, 0, 0.009)
@@ -43,19 +43,19 @@ class GridSpec extends UnitSpec {
         assert(!r3.isChildOf(r1))
         assert(!r3.isChildOf(r2))
         assertResult(("123456", "90001", "1000000")) {
-          standadGrid().getCoordinates(r3, r1)
+          standardGrid().getCoordinates(r3, r1)
         }
         assertResult(("1234", "900", "10000")) {
-          standadGrid().getCoordinates(r3, r2)
+          standardGrid().getCoordinates(r3, r2)
         }
         assertResult(("3456", "1", "10000")) {
-          standadGrid().getCoordinates(r2, r1)
+          standardGrid().getCoordinates(r2, r1)
         }
         intercept[IllegalArgumentException] {
-          standadGrid().getCoordinates(r1, r3)
+          standardGrid().getCoordinates(r1, r3)
         }
         intercept[IllegalArgumentException] {
-          standadGrid().getCoordinates(r1, r1)
+          standardGrid().getCoordinates(r1, r1)
         }
       }
     }
@@ -474,10 +474,12 @@ class GridSpec extends UnitSpec {
   // Helpers
   //
 
-  def standadGrid() = new Grid(100)
+  def standardGrid() = new Grid() {
+    override val gridSize = 100
+  }
 
   def rootGridPair() = {
-    val grid = standadGrid()
+    val grid = standardGrid()
     (grid.root, grid)
   }
 

@@ -52,11 +52,15 @@ package com.auginte.zooming
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Grid(val gridSize: Int) extends Debugable {
+abstract class Grid extends Debugable {
   private var _root = new Node(0, 0)
 
-  private val scaleLog10 = Math.log10(gridSize)
+  /**
+   * Distance between nodes.
+   */
+  val gridSize: Int = 100
 
+  private lazy val scaleLog10 = Math.log10(gridSize)
 
   //
   // High abstraction functions

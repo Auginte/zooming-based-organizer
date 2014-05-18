@@ -21,11 +21,14 @@ trait AddWithMouse[D <: jfxs.Node] extends RichNode[D] {
   def content: jfxc.ObservableList[jfxs.Node]
 
   mouseClicked += {
-    (e: MouseEvent) => if (e.clickCount > 1) {
-      val element = new Label("Test")
-      element.setTranslateX(e.x)
-      element.setTranslateY(e.y)
-      content.add(element)
-    }
+    (e: MouseEvent) => if (e.clickCount > 1) insertElement(createNewElement, e.x, e.y)
+  }
+
+  protected def createNewElement: jfxs.Node = new Label("Test")
+
+  protected def insertElement(element: jfxs.Node, x: Double, y: Double): Unit = {
+    element.setTranslateX(x)
+    element.setTranslateY(y)
+    content.add(element)
   }
 }

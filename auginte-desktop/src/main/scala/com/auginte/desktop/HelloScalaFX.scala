@@ -12,6 +12,7 @@ import scalafx.application.Platform
 import akka.actor.{Props, ActorSystem}
 import scalafx.stage.WindowEvent
 import com.auginte.desktop.{actors => act}
+import com.auginte.desktop.zooming.Grid
 
 object HelloScalaFX extends JFXApp {
   val akka = ActorSystem("auginte")
@@ -30,12 +31,15 @@ object HelloScalaFX extends JFXApp {
   view1.stylesheets add "css/controls.css"
   view1.styleClass.add("view")
 
+  val grid1 = new Grid()
+
   val exitButton = new Button("Exit") {
     onAction = (e: ActionEvent) => quit()
   }
 
   val viewActor = akka.actorOf(Props[act.View], "view1")
   viewActor ! view1
+  viewActor ! grid1
   stage.onCloseRequest = ((e: WindowEvent) => quit())
 
   def quit(): Unit = {

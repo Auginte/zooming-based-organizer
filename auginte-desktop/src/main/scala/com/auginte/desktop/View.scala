@@ -8,6 +8,7 @@ import javafx.scene.layout.{Pane => jp}
 import scalafx.scene.{input => sfxi}
 import javafx.scene.{input => jfxi, control => jfxc, Node}
 import javafx.{scene => jfxs}
+import com.auginte.desktop.actors.Container
 
 /**
  * JavaFX panel with Infinity zooming layout.
@@ -15,7 +16,7 @@ import javafx.{scene => jfxs}
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class View extends RichSPane with AddWithMouse[jp]  {
+class View extends RichSPane with Container[jp]  {
   val contextMenu = initContextMenu()
 
   private def initContextMenu() = {

@@ -38,7 +38,4 @@ trait MouseMove2D[D <: jfxs.Node] extends RichNode[D] {
     d.setTranslateX(d.getTranslateX + diffX)
     d.setTranslateY(d.getTranslateY + diffY)
   }
-
-
-//  mouseMoved += ((e: MouseEvent) => println(e.x, e.y))
 }
