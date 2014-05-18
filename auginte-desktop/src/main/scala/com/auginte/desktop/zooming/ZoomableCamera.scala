@@ -3,10 +3,10 @@ package com.auginte.desktop.zooming
 import com.auginte.zooming.Distance
 
 /**
- * Functionality for infinity-zooming enabled element.
+ * Zooming related functionality for containers.
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait ZoomableNode {
+trait ZoomableCamera {
   var transformation: Distance = new Distance()
 }

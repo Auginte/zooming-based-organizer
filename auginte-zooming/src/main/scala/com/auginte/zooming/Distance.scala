@@ -5,4 +5,4 @@ package com.auginte.zooming
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-final case class Distance(x: Double, y: Double, scale: Double)
+final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1)

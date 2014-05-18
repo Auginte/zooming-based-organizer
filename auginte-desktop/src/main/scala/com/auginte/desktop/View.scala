@@ -9,6 +9,7 @@ import scalafx.scene.{input => sfxi}
 import javafx.scene.{input => jfxi, control => jfxc, Node}
 import javafx.{scene => jfxs}
 import com.auginte.desktop.actors.Container
+import com.auginte.desktop.zooming.ZoomableCamera
 
 /**
  * JavaFX panel with Infinity zooming layout.
@@ -16,7 +17,8 @@ import com.auginte.desktop.actors.Container
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class View extends RichSPane with Container[jp]  {
+class View extends RichSPane
+with Container[jp] with ZoomableCamera {
   val contextMenu = initContextMenu()
 
   private def initContextMenu() = {

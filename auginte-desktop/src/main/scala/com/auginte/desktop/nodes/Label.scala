@@ -11,6 +11,7 @@ import com.auginte.desktop.rich.RichJPane
 import javafx.scene.input.MouseButton
 import scalafx.geometry.Pos
 import scalafx.event.ActionEvent
+import com.auginte.desktop.zooming.ZoomableNode
 
 /**
  * Editable Label
@@ -18,7 +19,7 @@ import scalafx.event.ActionEvent
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class Label(val _text: String) extends RichJPane
-with ViewableNode with HaveOperations with DragableNode[jfxl.Pane] {
+with ViewableNode with HaveOperations with DragableNode[jfxl.Pane] with ZoomableNode {
   private val label = new jfxc.Label(_text)
   private val textArea = new jfxc.TextArea()
   private var editMode = false
