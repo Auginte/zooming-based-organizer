@@ -2,9 +2,15 @@ package com.auginte.desktop.actors
 
 import com.auginte.desktop
 import akka.actor.Actor
-import com.auginte.desktop.events.{InsertElement, ShowContextMenu, MoveElement, DeleteElement}
+import com.auginte.desktop.events._
 import scalafx.application.Platform
 import language.implicitConversions
+import com.auginte.desktop.events.InsertElement
+import com.auginte.desktop.events.ShowContextMenu
+import com.auginte.desktop.events.DeleteElement
+import com.auginte.desktop.events.MoveElement
+import javafx.{scene => jfxs}
+import scala.collection.JavaConversions._
 
 /**
  * Actor for asynchronous actions with View object.
@@ -61,6 +67,14 @@ class View extends Actor {
           Platform.runLater {
             element.setTranslateX(element.getTranslateX + diffX)
             element.setTranslateY(element.getTranslateY + diffY)
+          }
+        }
+        case MoveView(view, diffX, diffY) => {
+          Platform.runLater {
+            for (e <- view.getChildren) {
+              e.setTranslateX(e.getTranslateX + diffX)
+              e.setTranslateY(e.getTranslateY + diffY)
+           }
           }
         }
         case _ => Unit

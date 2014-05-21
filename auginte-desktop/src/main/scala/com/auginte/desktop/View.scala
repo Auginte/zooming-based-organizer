@@ -1,14 +1,11 @@
 package com.auginte.desktop
 
-import scalafx.scene.input.{ScrollEvent, MouseEvent}
 import com.auginte.desktop.operations.{AddWithMouse}
 import scalafx.Includes._
 import com.auginte.desktop.rich.RichSPane
 import javafx.scene.layout.{Pane => jp}
-import scalafx.scene.{input => sfxi}
-import javafx.scene.{input => jfxi, control => jfxc, Node}
-import javafx.{scene => jfxs}
-import com.auginte.desktop.actors.Container
+import javafx.scene.Node
+import com.auginte.desktop.actors.{DragableView, Container}
 import com.auginte.desktop.zooming.ZoomableCamera
 
 /**
@@ -18,7 +15,7 @@ import com.auginte.desktop.zooming.ZoomableCamera
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class View extends RichSPane
-with Container[jp] with ZoomableCamera {
+with Container[jp] with DragableView[jp] with ZoomableCamera {
   val contextMenu = initContextMenu()
 
   private def initContextMenu() = {

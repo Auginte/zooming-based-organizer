@@ -27,11 +27,13 @@ trait MouseMove2D[D <: jfxs.Node] extends RichNode[D] {
     dragX = e.screenX
     dragY = e.screenY
     beingDragged = true
+    e.consume()
   }
 
   private def finishDrag(e: MouseEvent): Unit = {
     saveDraggedPosition(e.screenX - dragX, e.screenY - dragY)
     beingDragged = false
+    e.consume()
   }
 
   protected def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
