@@ -7,6 +7,10 @@ import javafx.scene.layout.{Pane => jp}
 import javafx.scene.Node
 import com.auginte.desktop.actors.{DragableView, Container}
 import com.auginte.desktop.zooming.ZoomableCamera
+import scalafx.animation.Timeline
+import javafx.animation.KeyFrame
+import scalafx.util.Duration
+import scalafx.event.ActionEvent
 
 /**
  * JavaFX panel with Infinity zooming layout.
@@ -15,8 +19,19 @@ import com.auginte.desktop.zooming.ZoomableCamera
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class View extends RichSPane
-with Container[jp] with DragableView[jp] with ZoomableCamera {
+with Container[jp] with DragableView[jp] with ZoomableCamera[jp] {
   val contextMenu = initContextMenu()
+
+  val timeline = new Timeline {
+    cycleCount = Timeline.INDEFINITE
+    keyFrames = Seq(
+      new KeyFrame (
+        Duration(10),
+        (e: ActionEvent) => absoluteToCachedCoordinates
+      )
+    )
+  }
+  timeline.play()
 
   private def initContextMenu() = {
     val contextMenu = new ContextMenu()

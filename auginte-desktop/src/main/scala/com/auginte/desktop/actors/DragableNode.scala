@@ -3,6 +3,7 @@ package com.auginte.desktop.actors
 import com.auginte.desktop.operations.MouseMove2D
 import javafx.{scene => jfxs}
 import com.auginte.desktop.events.MoveElement
+import com.auginte.desktop.zooming.ZoomableNode
 
 /**
  * Delegating every drag event to View as Event
@@ -12,9 +13,10 @@ import com.auginte.desktop.events.MoveElement
  * @see [[com.auginte.desktop.actors.View]]
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait DragableNode[D <: jfxs.Node] extends ViewableNode with MouseMove2D[D] {
+trait DragableNode[D <: jfxs.Node] extends ViewableNode
+with MouseMove2D[D] with ZoomableNode[D] {
   override protected def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
-    view ! MoveElement(d, diffX, diffY)
+    view ! MoveElement(d, this, diffX, diffY)
   }
 }
 

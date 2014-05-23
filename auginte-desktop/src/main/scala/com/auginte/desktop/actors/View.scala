@@ -10,7 +10,7 @@ import com.auginte.desktop.events.ShowContextMenu
 import com.auginte.desktop.events.DeleteElement
 import com.auginte.desktop.events.MoveElement
 import javafx.{scene => jfxs}
-import scala.collection.JavaConversions._
+import com.auginte.desktop.zooming.ZoomableElement
 
 /**
  * Actor for asynchronous actions with View object.
@@ -52,9 +52,11 @@ class View extends Actor {
         }
         case InsertElement(element, x, y) => {
           registerView(element)
+          element match {
+            case e: ZoomableElement => representation.translateNew(e, x, y)
+            case _ => translateNew(element, x, y)
+          }
           Platform.runLater {
-            element.setTranslateX(x)
-            element.setTranslateY(y)
             representation.content.add(element)
           }
         }
@@ -63,19 +65,11 @@ class View extends Actor {
             representation.remove(element)
           }
         }
-        case MoveElement(element, diffX, diffY) => {
-          Platform.runLater {
-            element.setTranslateX(element.getTranslateX + diffX)
-            element.setTranslateY(element.getTranslateY + diffY)
-          }
+        case MoveElement(element, node, diffX, diffY) => {
+          synchronized(node.transformation = node.transformation.translated(diffX, diffY))
         }
-        case MoveView(view, diffX, diffY) => {
-          Platform.runLater {
-            for (e <- view.getChildren) {
-              e.setTranslateX(e.getTranslateX + diffX)
-              e.setTranslateY(e.getTranslateY + diffY)
-           }
-          }
+        case MoveView(view, camera, diffX, diffY) => {
+          synchronized(camera.transformation = camera.transformation.translated(diffX, diffY))
         }
         case _ => Unit
       }
@@ -85,6 +79,11 @@ class View extends Actor {
   private def registerView(element: Any) = element match {
     case v: ViewableNode => synchronized(v.setView(this))
     case _ => Unit
+  }
+
+  private def translateNew(element: jfxs.Node, x: Double, y: Double): Unit = Platform.runLater {
+    element.setTranslateX(x)
+    element.setTranslateY(y)
   }
 
 
