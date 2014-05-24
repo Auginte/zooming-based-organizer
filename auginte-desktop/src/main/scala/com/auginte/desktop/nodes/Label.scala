@@ -31,7 +31,6 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
   updateSize(_text)
   updateStyle(editMode)
 
-
   //
   // Listeners
   //
@@ -121,6 +120,8 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
     styleClass.remove("label-editable")
   }
 
+  def text: String = if (editable) textArea.getText else label.getText
+
 
   //
   // Operations
@@ -131,5 +132,15 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
     "Delete" -> ((e: ActionEvent) => view ! DeleteElement(this))
   )
 
-  override def toString(): String = "LABEL: " + super.toString()
+  override def toString: String = "LABEL: " + text
+}
+
+//FIXME: debug
+object Label {
+  private var id = 0;
+
+  def getId(): String = {
+    id += 1
+    s"|${id}|"
+  }
 }

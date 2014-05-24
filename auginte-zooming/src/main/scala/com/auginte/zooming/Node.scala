@@ -6,7 +6,7 @@ package com.auginte.zooming
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Node(val x: Int, val y: Int) {
+class Node(val x: Int, val y: Int) extends Iterable[Node] {
   private[Node] val id = NodeDebug.getId()
 
   private var _parent: Option[Node] = None
@@ -40,6 +40,8 @@ class Node(val x: Int, val y: Int) {
   def parent: Option[Node] = _parent
 
   def children: Seq[Node] = _children
+
+  override def iterator: Iterator[Node] = _children.iterator
 
   override def toString: String = {
     val parentId = if (parent.isDefined) parent.get.id else "ø"

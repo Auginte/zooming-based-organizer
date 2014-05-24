@@ -3,8 +3,11 @@ package com.auginte.desktop.zooming
 import javafx.scene.{layout => jfxl}
 import com.auginte.desktop.rich.RichNode
 import javafx.{scene => jfxs}
+import javafx.scene.{Node => jn}
 import scala.collection.JavaConversions._
-import com.auginte.zooming.Distance
+import com.auginte.zooming.{Node, Distance}
+import javafx.scene.control.TableView
+import com.auginte.desktop.nodes.MapRow
 
 /**
  * Zooming related functionality for containers.
@@ -20,23 +23,41 @@ import com.auginte.zooming.Distance
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait ZoomableCamera[D <: jfxl.Pane] extends RichNode[D] with ZoomableElement {
+trait ZoomableCamera[D <: jfxl.Pane] extends RichNode[D]
+with ZoomableElement with UsingGrid {
+
+  //FIXME: debug
+  var mapTable: Option[TableView[MapRow]] = None
 
   /**
    * For every child, converts infinity zooming coordinates to GUI ones
    */
-  protected def absoluteToCachedCoordinates(): Unit = {
+  protected def absoluteToCachedCoordinates(): Unit = for (element <- d.getChildren) element match {
+    case e: ZoomableNode[D] => {
+      val t = transformation
+      e.setTranslateX((t.x + e.t.x) * t.scale)
+      e.setTranslateY((t.y + e.t.y) * t.scale)
+      e.setScaleX(e.t.scale * t.scale)
+      e.setScaleY(e.t.scale * t.scale)
+      e.setScaleZ(e.t.scale * t.scale)
+    }
+    case _ => Unit
+  }
+
+  protected def debugHierarchy(): Unit = {
+    var map:Grid#GridMap = Map()
     for (element <- d.getChildren) element match {
-      case e: ZoomableNode[D] => {
-        val t = transformation
-        e.setTranslateX((t.x + e.t.x) * t.scale)
-        e.setTranslateY((t.y + e.t.y) * t.scale)
-        e.setScaleX(e.t.scale * t.scale)
-        e.setScaleY(e.t.scale * t.scale)
-        e.setScaleZ(e.t.scale * t.scale)
+      case e: ZoomableNode[jn] => {
+        val elementNode: Node = grid.getNode(node, e.t.x, e.t.y, e.t.scale)
+        map = map ++ Map(e.d -> elementNode)
+        map.values
       }
       case _ => Unit
     }
+    if (mapTable.isDefined) {
+      mapTable.get.setItems(MapRow.fromMap(map))
+    }
+    grid.map = map
   }
 
   /**

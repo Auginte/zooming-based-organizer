@@ -34,6 +34,17 @@ with ZoomableCamera[jp] {
   }
   timeline.play()
 
+  val timeline2 = new Timeline {
+    cycleCount = Timeline.INDEFINITE
+    keyFrames = Seq(
+      new KeyFrame (
+        Duration(1000),
+        (e: ActionEvent) => debugHierarchy
+      )
+    )
+  }
+  timeline2.play()
+
   private def initContextMenu() = {
     val contextMenu = new ContextMenu()
     contextMenu.layoutX <== (width - contextMenu.width) / 2

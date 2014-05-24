@@ -25,5 +25,5 @@ trait RichNodeDelegating[D <: jfxs.Node] {
    *   override val d = delegate
    * }}}
    */
-  protected val d: D
+  protected[desktop] val d: D
 }
