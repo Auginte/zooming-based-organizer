@@ -48,8 +48,10 @@ trait ZoomableCamera[D <: jfxl.Pane] extends RichNode[D] with ZoomableElement {
    * @return updated coordinates
    */
   def zoom(amount: Double, x: Double = 0, y: Double): Distance = {
-    transformation = t.zoomed(amount)
-    //TODO: GUI from coordinates
+    val newScale = t.scale * amount
+    val zoomCenterBefore = Distance(x / t.scale, y / t.scale, 1)
+    val zoomCenterAfter = Distance(x / newScale, y / newScale, 1)
+    transformation = (transformation - zoomCenterBefore + zoomCenterAfter).zoomed(amount)
     transformation
   }
 
@@ -90,7 +92,7 @@ trait ZoomableCamera[D <: jfxl.Pane] extends RichNode[D] with ZoomableElement {
    */
   def initializeInfinityZooming(element: ZoomableElement, x: Double, y: Double): Unit = {
     val e = element
-    element.transformation = Distance((x / t.scale) -  t.x, (y / t.scale) - t.y, 1 / t.scale)
+    element.transformation = Distance((x / t.scale) - t.x, (y / t.scale) - t.y, 1 / t.scale)
     e.transformation
   }
 
