@@ -40,4 +40,11 @@ trait RichNodeGeneralEvents[D <: jfxs.Node] extends RichNodeDelegating[D] {
   lazy val mouseDragged = new Event[sfxi.MouseEvent, jfxi.MouseEvent](d.onMouseDraggedProperty(), new sfxi.MouseEvent(_))
 
   def mouseDragged_=(f: sfxi.MouseEvent => Any): Unit = mouseDragged.replace(f)
+
+
+  lazy val scrolled = new Event[sfxi.ScrollEvent, jfxi.ScrollEvent](d.onScrollProperty(), new sfxi.ScrollEvent(_))
+
+  def scrolled_=(f: sfxi.ScrollEvent => Any): Unit = scrolled.replace(f)
+
+
 }

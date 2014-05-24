@@ -5,7 +5,7 @@ import scalafx.Includes._
 import com.auginte.desktop.rich.RichSPane
 import javafx.scene.layout.{Pane => jp}
 import javafx.scene.Node
-import com.auginte.desktop.actors.{DragableView, Container}
+import com.auginte.desktop.actors.{ZoomableView, DragableView, Container}
 import com.auginte.desktop.zooming.ZoomableCamera
 import scalafx.animation.Timeline
 import javafx.animation.KeyFrame
@@ -19,7 +19,8 @@ import scalafx.event.ActionEvent
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class View extends RichSPane
-with Container[jp] with DragableView[jp] with ZoomableCamera[jp] {
+with Container[jp] with DragableView[jp] with ZoomableView[jp]
+with ZoomableCamera[jp] {
   val contextMenu = initContextMenu()
 
   val timeline = new Timeline {

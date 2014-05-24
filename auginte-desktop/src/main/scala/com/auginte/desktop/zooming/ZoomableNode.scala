@@ -8,4 +8,6 @@ import javafx.{scene => jfxs}
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait ZoomableNode[D <: jfxs.Node] extends RichNode[D] with ZoomableElement
+trait ZoomableNode[D <: jfxs.Node] extends RichNode[D] with ZoomableElement {
+  //TODO: pass Camera and override translate
+}

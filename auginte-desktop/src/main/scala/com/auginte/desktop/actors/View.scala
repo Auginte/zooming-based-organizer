@@ -15,6 +15,8 @@ import com.auginte.desktop.zooming.ZoomableElement
 /**
  * Actor for asynchronous actions with View object.
  *
+ * Takes care of Threads and concurrent modification issues.
+ *
  * Using hierarchy of supervisor-actor-representation:
    - [[com.auginte.desktop.actors.Views]] manages [[com.auginte.desktop.actors.View]],
      which manages his own [[com.auginte.desktop.View]].
@@ -45,32 +47,25 @@ class View extends Actor {
         case ShowContextMenu(source) => {
           Platform.runLater {
             representation.contextMenu.show()
-          }
-          Platform.runLater {
             representation.contextMenu.showContent(source.operations)
           }
         }
         case InsertElement(element, x, y) => {
           registerView(element)
           element match {
-            case e: ZoomableElement => representation.translateNew(e, x, y)
+            case e: ZoomableElement => representation.initializeInfinityZooming(e, x, y)
             case _ => translateNew(element, x, y)
           }
           Platform.runLater {
             representation.content.add(element)
           }
         }
-        case DeleteElement(element) => {
-          Platform.runLater {
-            representation.remove(element)
-          }
+        case DeleteElement(element) => Platform.runLater {
+          representation.remove(element)
         }
-        case MoveElement(element, node, diffX, diffY) => {
-          synchronized(node.transformation = node.transformation.translated(diffX, diffY))
-        }
-        case MoveView(view, camera, diffX, diffY) => {
-          synchronized(camera.transformation = camera.transformation.translated(diffX, diffY))
-        }
+        case MoveElement(element, node, diffX, diffY) => synchronized(representation.translate(node, diffX, diffY))
+        case MoveView(camera, diffX, diffY) => synchronized(camera.translate(diffX, diffY))
+        case ZoomView(camera, scale, x, y) => synchronized(representation.zoom(scale, x, y))
         case _ => Unit
       }
     }

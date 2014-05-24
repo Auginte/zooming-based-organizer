@@ -17,7 +17,7 @@ trait DragableView[D <: jfxl.Pane] extends ViewableNode
 with MouseMove2D[D] with ZoomableCamera[D] {
 
   override protected def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
-    view ! MoveView(d, this, diffX, diffY)
+    view ! MoveView(this, diffX, diffY)
   }
 }
 
