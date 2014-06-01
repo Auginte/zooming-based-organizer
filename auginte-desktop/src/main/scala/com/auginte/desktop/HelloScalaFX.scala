@@ -20,6 +20,10 @@ import com.auginte.zooming.Node
 import javafx.scene.{Node => jn}
 import com.auginte.zooming.{Node => zn}
 import scalafx.event.Event
+import javafx.util.Callback
+import javafx.{scene => jfxs}
+import javafx.scene.{control => jfxc}
+import javafx.scene.shape.Rectangle
 
 object HelloScalaFX extends JFXApp {
   val akka = ActorSystem("auginte")
@@ -112,6 +116,11 @@ object HelloScalaFX extends JFXApp {
       val subItem = new TreeItem[String](subNode.toString)
       item.getChildren.add(subItem)
       item.setExpanded(true)
+      if (subNode == view1.node) {
+        val cameraNode = new TreeItem[String]("Camera: " + view1.toString())
+        subItem.getChildren.add(cameraNode)
+        subItem.setExpanded(true)
+      }
       if (subNode.size > 0) nodesToItems(subItem, subNode)
     }
 

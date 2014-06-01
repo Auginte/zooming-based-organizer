@@ -1,5 +1,8 @@
 package com.auginte.zooming
 
+import scala.annotation.tailrec
+import scala.Some
+
 /**
  * Class to ensure infinity scaling and translation.
  *
@@ -60,6 +63,11 @@ abstract class Grid extends Debugable {
    */
   val gridSize: Int = 100
 
+  /**
+   * When calculating new absolute position, approximation used.
+   */
+  val absolutePrecision = 1000000
+
   private lazy val scaleLog10 = Math.log10(gridSize)
 
   //
@@ -67,6 +75,12 @@ abstract class Grid extends Debugable {
   //
 
   def root: Node = _root
+
+  /**
+   *
+   * [[getNode]]
+   */
+  def getNode(parent: Node, absolute: Distance): Node = getNode(parent, absolute.x, absolute.y, absolute.scale)
 
   /**
    * Gets (creates if needed) closest node.
@@ -101,18 +115,26 @@ abstract class Grid extends Debugable {
   }
 
   /**
-   * Textual representation of coordinate difference between nodes.
-   * Scale is approximated to gridSize
+   * Textual representation of absolute coordinates from same level child perspective.
    *
+   * Used to test very long distances/scales (more thant double can handle).
    * For example:
    * {{{
    *   r3(12, 9) <- r2(34, 0) <- r1(56, 1)
-   *   ("123456", "90001", "1000000")
+   *   ("123456", "90001", "10000")
+   *
+   *
+   *   root
+   *   | \_r3(12, 9)
+   *   |     \_r2(34, 0)
+   *   from----> \_r1(56, 1)
    * }}}
    *
    * @throws IllegalArgumentException When there are no child-parent relation
+   * @see [[absoluteChild]]
    */
-  def getCoordinates(parent: Node, child: Node): TextualCoordinates = {
+  def absoluteTextual(child: Node, parent: Node): TextualCoordinates = if (child == parent) ("0", "0", "1")
+  else {
     require(child.isChildOf(parent), s"Not parent-child: $parent $child")
     d(s"getCoordinates $parent - $child")
 
@@ -140,7 +162,122 @@ abstract class Grid extends Debugable {
       }
     }
 
-    appended(child, (format(child.x), format(child.y), "1" + scale), false)
+    appended(child, (format(child.x), format(child.y), "1"), false)
+  }
+
+  /**
+   * Absolute coordinates from same level child perspective.
+   *
+   * Scale parameter shows scale distance from child to parent.
+   *
+   * For example:
+   * {{{
+   *   r3(12, 9) <- r2(34, 0) <- r1(56, 1)
+   *   (123456, 90001, 10000)
+   *
+   *   root
+   *   | \_r3(12, 9)
+   *   |     \_r2(34, 0)
+   *   from----> \_r1(56, 1)
+   * }}}
+   * @throws IllegalArgumentException When there are no child-parent relation
+   * @see [[absoluteTextual]]
+   */
+  def absoluteChild(child: Node, parent: Node): Distance = if (child == parent) Distance(0, 0, 1)
+  else {
+    require(child.isChildOf(parent), s"Not parent-child: $parent - $child")
+    @inline
+    def newScale(d: Distance) = d.scale * gridSize
+    @inline
+    def newDistance(n: Node, d: Distance) = Distance((n.x * newScale(d)) + d.x, (n.y * newScale(d)) + d.y, newScale(d))
+    @tailrec
+    def absolute(node: Node, last: Node, distance: Distance): Distance = node.parent match {
+      case Some(parent) if node != last => absolute(parent, last, newDistance(parent, distance))
+      case _ => distance
+    }
+    absolute(child, parent, Distance(child.x, child.y, 1))
+  }
+
+  /**
+   * Absolute coordinates for node from Graphical user interface perspective (including camera postion).
+   *
+   * Transformations:
+   * {{{
+   *   G_p = (C_p + E_p) * C_s
+   *   G_s = C_s * E_s
+   *   // G_p - Graphical user interface (GUI, e.g. JavaFx) position
+   *   // C_p - Camera's absolute position
+   *   // E_p - Element's own absolute position
+   *   // C_s - Camera's absolute scale (inverse of zooming)
+   *   // E_s - Element's absolute scale
+   *   // G_s - GUI scale of element (as it appears to user)
+   * }}}
+   */
+ def absoluteNode(camera: Node, cameraPosition: Distance,  element: Node, elementPosition: Distance): Distance =
+  if (camera == element) {
+    val cp = cameraPosition
+    val ep = elementPosition
+    Distance((cp.x + ep.x) * cp.scale, (cp.y + ep.y) * cp.scale, cp.scale * ep.scale)
+  } else {
+    //TODO: no covered by tests
+    val parent = getCommonParent(camera, element)
+    val absoluteFrom = absoluteChild(camera, parent)
+    val absoluteTo = absoluteChild(element, parent)
+    absoluteNode(element, (absoluteTo -- absoluteFrom) ++ cameraPosition, element, elementPosition)
+  }
+
+  /**
+   * Generating new absolute postion for new node, using GUI coordinates
+   */
+  def absoluteNew(cameraPosition: Distance, x: Double, y: Double): Distance = {
+    val p = cameraPosition
+    Distance((x / p.scale) - p.x, (y / p.scale) - p.y, 1 / p.scale)
+  }
+
+
+  /**
+   * Calculates new absolute coordinates after node change.
+   *
+   * @param from previous node
+   * @param to new node
+   * @param oldPosition previous absolute position
+   * @return new absolute position from new child perspective
+   */
+  def absoluteCamera(from: Node, to: Node, oldPosition: Distance): Distance = {
+    val parent = getCommonParent(from, to)
+    d(s"Common parent: $parent")
+    val absoluteFrom = absoluteChild(from, parent)
+    d(s"absoluteFrom: $absoluteFrom")
+    val absoluteTo = absoluteChild(to, parent)
+    d(s"absoluteTo: $absoluteTo")
+    val result = if (absoluteFrom.scale == absoluteTo.scale) {
+      val difference = (absoluteTo -- absoluteFrom) normalised 1 zoomed oldPosition.scale
+      d(s"difference EQ: $difference")
+      oldPosition -- difference
+    } else {
+      val factor = absoluteTo.scale / absoluteFrom.scale
+      d(s"factor: $factor")
+      val difference = (absoluteTo -- absoluteFrom) normalised 1 zoomed oldPosition.scale
+      d(s"difference DIFF SCALE: $difference")
+      val diff2 = oldPosition -- difference
+      d(s"diff2 DIFF SCALE: $diff2")
+      diff2 * factor
+    }
+    d(s"result: $result")
+    result
+  }
+
+  private def getCommonParent(from: Node, to: Node): Node = {
+    def whileSame(nodes1: List[Node], nodes2: List[Node], same: Node): Node = {
+      nodes1 match {
+        case head :: tail if !nodes2.isEmpty && head == nodes2.head => whileSame(tail, nodes2.tail, head)
+        case List(head) if !nodes2.isEmpty && head == nodes2.head => head
+        case _ => same
+      }
+    }
+    val parentsFrom = from.selfAndParents
+    val parentsTo = to.selfAndParents
+    whileSame(parentsFrom, parentsTo, parentsFrom.head)
   }
 
   //

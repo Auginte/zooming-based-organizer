@@ -16,7 +16,7 @@ trait UsingGrid {
   def grid: Grid = if (gridOption.isDefined) {
     gridOption.get
   } else {
-    throw new IllegalArgumentException("using nodes connector without grid initiated")
+    throw new IllegalArgumentException("Using nodes connector without grid initiated")
   }
 
   def node_=(n: Node): Unit = nodeOption = Some(n)
@@ -24,6 +24,6 @@ trait UsingGrid {
   def node: Node = if (nodeOption.isDefined) {
     nodeOption.get
   } else {
-    throw new IllegalArgumentException("using nodes connector without node assigned")
+    throw new IllegalArgumentException("Using nodes connector without node assigned")
   }
 }

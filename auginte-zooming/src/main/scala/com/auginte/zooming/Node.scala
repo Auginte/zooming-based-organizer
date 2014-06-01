@@ -43,6 +43,14 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] {
 
   override def iterator: Iterator[Node] = _children.iterator
 
+  def selfAndParents: List[Node] = {
+    def getParents(node: Node, list: List[Node]): List[Node] = node._parent match {
+      case Some(parent) => getParents(parent, parent :: list)
+      case None => list
+    }
+    getParents(this, List(this))
+  }
+
   override def toString: String = {
     val parentId = if (parent.isDefined) parent.get.id else "ø"
     s"[{$id}: ${x}x${y} of $parentId]"

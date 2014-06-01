@@ -31,7 +31,7 @@ class GridSpec extends UnitSpec {
         assert(n22.parent.get !== n1)
         assert(n22.parent.get !== n21)
       }
-      "provide textual representation of coordinates" in {
+      "provide textual and numeric representation of coordinates" in {
         // r3(12, 9) <- r2(34, 0) <- r1(56, 1)
         val r3 = new Node(12, 9)
         val r2 = r3.addChild(34, 0)
@@ -42,20 +42,35 @@ class GridSpec extends UnitSpec {
         assert(!r2.isChildOf(r1))
         assert(!r3.isChildOf(r1))
         assert(!r3.isChildOf(r2))
-        assertResult(("123456", "90001", "1000000")) {
-          standardGrid().getCoordinates(r3, r1)
+        assertResult(("123456", "90001", "10000")) {
+          standardGrid().absoluteTextual(r1, r3)
         }
-        assertResult(("1234", "900", "10000")) {
-          standardGrid().getCoordinates(r3, r2)
+        assertResult(("1234", "900", "100")) {
+          standardGrid().absoluteTextual(r2, r3)
         }
-        assertResult(("3456", "1", "10000")) {
-          standardGrid().getCoordinates(r2, r1)
+        assertResult(("3456", "1", "100")) {
+          standardGrid().absoluteTextual(r1, r2)
+        }
+        assertResult(("0", "0", "1")) {
+          standardGrid().absoluteTextual(r1, r1)
+        }
+        assertResult(Distance(123456, 90001, 10000)) {
+          standardGrid().absoluteChild(r1, r3)
+        }
+        assertResult(Distance(1234, 900, 100)) {
+          standardGrid().absoluteChild(r2, r3)
+        }
+        assertResult(Distance(3456, 1, 100)) {
+          standardGrid().absoluteChild(r1, r2)
+        }
+        assertResult(Distance(0, 0, 1)) {
+          standardGrid().absoluteChild(r1, r1)
         }
         intercept[IllegalArgumentException] {
-          standardGrid().getCoordinates(r1, r3)
+          standardGrid().absoluteTextual(r3, r1)
         }
         intercept[IllegalArgumentException] {
-          standardGrid().getCoordinates(r1, r1)
+          standardGrid().absoluteChild(r3, r1)
         }
       }
     }
@@ -433,9 +448,9 @@ class GridSpec extends UnitSpec {
         }
         assert(parent === oldRoot)
         assert(top === grid.root)
-        val scale = "1" + ("00" * (deep + 1))
+        val scale = "1" + ("00" * deep)
         assertResult(("0", "0", scale)) {
-          grid.getCoordinates(top, parent)
+          grid.absoluteTextual(parent, top)
         }
       }
       "create multilevel hierarchy for large translations" in {
@@ -454,8 +469,8 @@ class GridSpec extends UnitSpec {
         val r1 = translated.parent.getOrElse(invalid)
         val r2 = r1.parent.getOrElse(invalid)
         assert(r2 === grid.root)
-        assertResult(("9950", "4975", "1000000")) {
-          grid.getCoordinates(grid.root, translated)
+        assertResult(("9950", "4975", "10000")) {
+          grid.absoluteTextual(translated, grid.root)
         }
       }
     }
@@ -463,9 +478,49 @@ class GridSpec extends UnitSpec {
       "give zero for same elements" in (pending)
       "give larger scale for parent->child" in (pending)
       "give lower scale for child->parent" in (pending)
-      "give scale in multilevel hierarchy" in (pending)
-      "give translation relative to parent node" in (pending)
+      "give scale in multilevel hierarchy" in {
+        val (root, grid) = rootGridPair()
+        val distance = Distance(-12.3, 36.7, 0.0025)
+        val newNode = grid.getNode(root, distance)
+        assert(newNode isChildOf root)
+        assertXY(newNode, -12, 36)
+        val newDistance = grid.absoluteCamera(root, newNode, distance)
+        assertDistance(Distance(-30, 70, 0.25), newDistance, Some(0.000000000001))
+      }
+      "give translation relative to parent node" in {
+        val (root, grid) = rootGridPair()
+        val distance = Distance(-101, -90, 1.5)
+        val newNode = grid.getNode(root, distance)
+        assert(root !== newNode)
+        assertXY(newNode, -1, 0)
+        val newDistance = grid.absoluteCamera(root, newNode, distance)
+        assert(newDistance === Distance(-1, -90, 1.5))
+      }
       "give translation in multilevel hierarchy" in (pending)
+    }
+    "calculating nodes absolute position in infinity zooming" should {
+      "simple sum only absolute, when on same node and same scale" in {
+        val (root, grid) = rootGridPair()
+        val camera = Distance(12, 34, 1)
+        val element1 = Distance(56, 78, 1)
+        val element2 = Distance(90, -34, 1)
+        val gui1 = grid.absoluteNode(root, camera, root, element1)
+        assertDistance(Distance(12 + 56, 34 + 78, 1), gui1)
+        val gui2 = grid.absoluteNode(root, camera, root, element2)
+        assertDistance(Distance(12 + 90, 34 - 34, 1), gui2)
+      }
+      "sum only absolute, when on same node with zooming" in {
+        val (root, grid) = rootGridPair()
+        val camera = Distance(12, 34, 0.25)
+        val element1 = Distance(56, 78, 1.5)
+        val element2 = Distance(90, -34, 0.5)
+        val gui1 = grid.absoluteNode(root, camera, root, element1)
+        assertDistance(Distance((12 + 56) * 0.25, (34 + 78) * 0.25, 0.25 * 1.5), gui1)
+        val gui2 = grid.absoluteNode(root, camera, root, element2)
+        assertDistance(Distance((12 + 90) * 0.25, (34 - 34) * 0.25, 0.25 * 0.5), gui2)
+      }
+      "sum camera's child-parent and element's absolute, when camera changed" in (pending)
+      "sum camera's parent-child and element's absolute, when camera changed" in (pending)
     }
   }
 
@@ -486,6 +541,18 @@ class GridSpec extends UnitSpec {
   def assertXY(node: Node, x: Int, y: Int): Unit =
     assert(node.x == x && node.y == y,
       s"Expeced ${x}x${y}, but actual ${node.x}x${node.y} in ${node}\n")
+
+  def assertWithTolerance(expected: Double, actual: Double, tolerance: Double): Unit =
+    assert(expected > actual - tolerance && expected < actual + tolerance,
+      s"Expeced ${expected} +- ${tolerance}, but actual ${actual}\n")
+
+  def assertDistance(expected: Distance, actual: Distance, tolerance: Option[Double] = None): Unit = tolerance match {
+    case Some(t) => assert(expected.x > actual.x - t && expected.x < actual.x + t &&
+      expected.y > actual.y - t && expected.y < actual.y + t &&
+      expected.scale > actual.scale - t && expected.scale < actual.scale + t,
+      s"Expeced ${expected} +- ${t}, but actual ${actual}\n")
+    case None => assert(expected === actual, s"Expeced ${expected}, but actual ${actual}\n")
+  }
 
 
   def assertParents(node: Node, parents: Node*): Unit = {

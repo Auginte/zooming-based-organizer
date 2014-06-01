@@ -7,7 +7,7 @@ import com.auginte.zooming.Distance
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait ZoomableElement {
+trait ZoomableElement extends UsingGrid {
   /**
    * Absolute coordinates and scaling.
    */
