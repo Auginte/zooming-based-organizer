@@ -19,6 +19,11 @@ final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1) {
   def zoomed(amount: Double): Distance = Distance(x, y, scale * amount)
 
   /**
+   * Returns copy with provided scale value
+   */
+  def withScale(amount: Double): Distance = Distance(x, y, amount)
+
+  /**
    * Returns copy with every parameter added
    */
   def +(d: Distance): Distance = Distance(x + d.x, y + d.y, scale + d.scale)
@@ -32,23 +37,39 @@ final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1) {
   /**
    * Returns copy with every parameter multipied
    */
-  def *(factor: Double): Distance = Distance(x * factor, y  * factor, scale * factor)
+  def *(factor: Double): Distance = Distance(x * factor, y * factor, scale * factor)
 
 
   /**
    * Returns copy with scale dependent sum.
+   *
+   * {{{
+   *   f = A_s / B._s
+   *   D = (A_p * f,  f)
+   *   // D - graphical difference
+   *   // A, B - operands
+   *   // p - position parameters (x or y)
+   *   // s - scale parameter
+   * }}}
    */
   def ++(d: Distance): Distance = {
     val factor = d.scale / scale
-    Distance(x * factor + d.x, y * factor + d.y, scale)
+    Distance((x + d.x) * factor, (y + d.y) * factor, factor)
   }
 
   /**
    * Returns copy with scale dependent difference.
+   *
+   * {{{
+   *   D = (A_p / A_s  -  B_p / B_s,  A_s / B_s)
+   *   // D - graphical difference
+   *   // A, B - operands
+   *   // p - position parameters (x or y)
+   *   // s - scale parameter
+   * }}}
    */
   def --(d: Distance): Distance = {
-    val factor = d.scale / scale
-    Distance(x * factor - d.x, y * factor - d.y, scale)
+    Distance((x / scale) - (d.x / d.scale), (y / scale) - (d.y / scale), scale / d.scale)
   }
 
   /**

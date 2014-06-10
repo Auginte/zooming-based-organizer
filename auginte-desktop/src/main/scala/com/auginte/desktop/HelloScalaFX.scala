@@ -24,6 +24,8 @@ import javafx.util.Callback
 import javafx.{scene => jfxs}
 import javafx.scene.{control => jfxc}
 import javafx.scene.shape.Rectangle
+import com.auginte.desktop.rich.RichNode
+import com.auginte.desktop.{nodes => an}
 
 object HelloScalaFX extends JFXApp {
   val akka = ActorSystem("auginte")
@@ -117,7 +119,7 @@ object HelloScalaFX extends JFXApp {
       item.getChildren.add(subItem)
       item.setExpanded(true)
       if (subNode == view1.node) {
-        val cameraNode = new TreeItem[String]("Camera: " + view1.toString())
+        val cameraNode = new TreeItem[String](debugElement(view1))
         subItem.getChildren.add(cameraNode)
         subItem.setExpanded(true)
       }
@@ -129,12 +131,17 @@ object HelloScalaFX extends JFXApp {
     nodesToItems(tree.root.value, grid.root)
   }
 
+  private def debugElement(element: Any): String = element match {
+    case e: View => s"Camera: ${e.toString} ${e.node} ${e.transformation}"
+    case e: an.Label => s"${e.toString} ${e.node} ${e.transformation}"
+    case e: Any => e.toString
+  }
+
   def debugHierarchyWithElements(tree: TreeView[String]): Unit = {
     def nodesAndElementsToItems(item: TreeItem[String], node: Node): Unit = {
-      val map = grid.map
       val elements = view1.delegate.getChildren
-      for (e <- elements; if map.contains(e) && map.get(e).get == node) {
-        val subItem = new TreeItem[String](e.toString)
+      for (e <- elements; if e.isInstanceOf[an.Label] && e.asInstanceOf[an.Label].node == node) {
+        val subItem = new TreeItem[String](debugElement(e))
         item.getChildren.add(subItem)
         item.setExpanded(true)
       }

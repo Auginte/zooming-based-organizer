@@ -71,48 +71,8 @@ abstract class Grid extends Debugable {
   private lazy val scaleLog10 = Math.log10(gridSize)
 
   //
-  // High abstraction functions
+  // High level absolute coordinate (Node -> absolute) functions
   //
-
-  def root: Node = _root
-
-  /**
-   *
-   * [[getNode]]
-   */
-  def getNode(parent: Node, absolute: Distance): Node = getNode(parent, absolute.x, absolute.y, absolute.scale)
-
-  /**
-   * Gets (creates if needed) closest node.
-   *
-   * Position is owned by node, if distance is no longer than gridSize.
-   * If it is longer, position is related to other nodes.
-   * For example:
-   * {{{
-   *   val gridSize = 100
-   *   (0, 0), (99, -99) will be of the same node
-   *   (12345, 678) will be divided to node (23, 6) child of (1, 0)
-   * }}}
-   *
-   * Nodes are devided by long distances and large scale differences.
-   *
-   * @param parent from which node perspective position is needed
-   * @param x relative position to node
-   * @param y relative position to node
-   * @param scale size of new element
-   * @return best node for relative transaltion and scaling
-   */
-  def getNode(parent: Node, x: Double, y: Double, scale: Double): Node = {
-    d(s"getNode $parent ${x}x${y}x${scale}")
-    if (needOtherNode(x, y, scale)) {
-      d(s"from $parent down ${x}x${y}x${scale}")
-      getNode(Position(parent, x, y, scale))
-    }
-    else {
-      d(s"Return $parent")
-      parent
-    }
-  }
 
   /**
    * Textual representation of absolute coordinates from same level child perspective.
@@ -131,7 +91,7 @@ abstract class Grid extends Debugable {
    * }}}
    *
    * @throws IllegalArgumentException When there are no child-parent relation
-   * @see [[absoluteChild]]
+   * @see [[absoluteChildParent]]
    */
   def absoluteTextual(child: Node, parent: Node): TextualCoordinates = if (child == parent) ("0", "0", "1")
   else {
@@ -183,7 +143,7 @@ abstract class Grid extends Debugable {
    * @throws IllegalArgumentException When there are no child-parent relation
    * @see [[absoluteTextual]]
    */
-  def absoluteChild(child: Node, parent: Node): Distance = if (child == parent) Distance(0, 0, 1)
+  private[zooming] def absoluteChildParent(child: Node, parent: Node): Distance = if (child == parent) Distance(0, 0, 1)
   else {
     require(child.isChildOf(parent), s"Not parent-child: $parent - $child")
     @inline
@@ -199,7 +159,16 @@ abstract class Grid extends Debugable {
   }
 
   /**
-   * Absolute coordinates for node from Graphical user interface perspective (including camera postion).
+   * Absolute coordinates from parent perspective.
+   *
+   * @see absoluteChild
+   * @deprecated
+   */
+  private def absoluteParent(fromChild: Distance): Distance =
+    Distance(fromChild.x / fromChild.scale, fromChild.y / fromChild.scale, 1)
+
+  /**
+   * Absolute coordinates for node from Graphical user interface perspective (including camera and element's position).
    *
    * Transformations:
    * {{{
@@ -213,59 +182,66 @@ abstract class Grid extends Debugable {
    *   // G_s - GUI scale of element (as it appears to user)
    * }}}
    */
- def absoluteNode(camera: Node, cameraPosition: Distance,  element: Node, elementPosition: Distance): Distance =
-  if (camera == element) {
-    val cp = cameraPosition
-    val ep = elementPosition
-    Distance((cp.x + ep.x) * cp.scale, (cp.y + ep.y) * cp.scale, cp.scale * ep.scale)
-  } else {
-    //TODO: no covered by tests
-    val parent = getCommonParent(camera, element)
-    val absoluteFrom = absoluteChild(camera, parent)
-    val absoluteTo = absoluteChild(element, parent)
-    absoluteNode(element, (absoluteTo -- absoluteFrom) ++ cameraPosition, element, elementPosition)
-  }
+  def absolute(camera: Node, cameraPosition: Distance, element: Node, elementPosition: Distance): Distance =
+    if (camera == element) {
+      val cp = cameraPosition
+      val ep = elementPosition
+      Distance((cp.x + ep.x) * cp.scale, (cp.y + ep.y) * cp.scale, cp.scale * ep.scale)
+    } else {
+      val fromElement = absoluteNew(element, camera, cameraPosition)
+      absolute(element, fromElement, element, elementPosition)
+    }
 
   /**
-   * Generating new absolute postion for new node, using GUI coordinates
+   * Generating new absolute position for new node, using GUI coordinates
    */
   def absoluteNew(cameraPosition: Distance, x: Double, y: Double): Distance = {
     val p = cameraPosition
     Distance((x / p.scale) - p.x, (y / p.scale) - p.y, 1 / p.scale)
   }
 
+  /**
+   * Generating new absolute position from first node (e.g. camera's) perspective
+   */
+  def absoluteFirst(from: Node, to: Node, absoluteFrom: Distance): Distance = {
+    val between = absoluteBetweenFirst(from, to)
+    (absoluteFrom -- between) zoomed absoluteFrom.scale
+  }
 
   /**
-   * Calculates new absolute coordinates after node change.
-   *
-   * @param from previous node
-   * @param to new node
-   * @param oldPosition previous absolute position
-   * @return new absolute position from new child perspective
+   * Generating new absolute position from last node (e.g. element's) perspective
    */
-  def absoluteCamera(from: Node, to: Node, oldPosition: Distance): Distance = {
-    val parent = getCommonParent(from, to)
-    d(s"Common parent: $parent")
-    val absoluteFrom = absoluteChild(from, parent)
-    d(s"absoluteFrom: $absoluteFrom")
-    val absoluteTo = absoluteChild(to, parent)
-    d(s"absoluteTo: $absoluteTo")
-    val result = if (absoluteFrom.scale == absoluteTo.scale) {
-      val difference = (absoluteTo -- absoluteFrom) normalised 1 zoomed oldPosition.scale
-      d(s"difference EQ: $difference")
-      oldPosition -- difference
-    } else {
-      val factor = absoluteTo.scale / absoluteFrom.scale
-      d(s"factor: $factor")
-      val difference = (absoluteTo -- absoluteFrom) normalised 1 zoomed oldPosition.scale
-      d(s"difference DIFF SCALE: $difference")
-      val diff2 = oldPosition -- difference
-      d(s"diff2 DIFF SCALE: $diff2")
-      diff2 * factor
-    }
-    d(s"result: $result")
-    result
+  def absoluteNew(from: Node, to: Node, absoluteFirst: Distance): Distance = {
+    val between = absoluteBetweenFirst(from, to)
+    (between - absoluteFirst) * -1 withScale (between.scale * absoluteFirst.scale)
   }
+
+  /**
+   * Calculating new location, if camera node should be optimised
+   * @see [[getCameraNode]]
+   */
+  def absoluteCamera(from: Node, to: Node, absoluteFrom: Distance): Distance = {
+    val between = absoluteBetweenFirst(from, to)
+    (absoluteFrom + between) withScale (absoluteFrom.scale / between.scale)
+  }
+
+  /**
+   * Absolute position between nodes from first node perspective.
+   */
+  private[zooming] def absoluteBetweenFirst(from: Node, to: Node): Distance = {
+    d(s"INPUT#absoluteBetweenFirst#: $from -> $to")
+    val parent = getCommonParent(from, to)
+    d(s"Parent=$parent")
+    val absoluteFrom = absoluteChildParent(from, parent)
+    d(s"absoluteFrom=$absoluteFrom")
+    val absoluteTo = absoluteChildParent(to, parent)
+    d(s"absoluteTo=$absoluteTo")
+    val differenceAtParent = (absoluteTo -- absoluteFrom) withScale 1
+    d(s"differenceAtParent=$differenceAtParent")
+    val factor = absoluteFrom.scale * gridSize
+    (differenceAtParent * factor) withScale (absoluteFrom.scale / absoluteTo.scale)
+  }
+
 
   private def getCommonParent(from: Node, to: Node): Node = {
     def whileSame(nodes1: List[Node], nodes2: List[Node], same: Node): Node = {
@@ -280,9 +256,54 @@ abstract class Grid extends Debugable {
     whileSame(parentsFrom, parentsTo, parentsFrom.head)
   }
 
+
   //
-  // High level best node search function
+  // High level best node search (absolute -> Node) functions
   //
+
+  def root: Node = _root
+
+  /**
+   * Optimised node for camera
+   */
+  def getCameraNode(camera: Node, x: Double, y: Double, scale: Double) = getNode(camera, -x, -y, scale)
+
+  /**
+   * Delegating to [[getNode]]
+   */
+  def getNode(parent: Node, absolute: Distance): Node = getNode(parent, absolute.x, absolute.y, absolute.scale)
+
+  /**
+   * Gets (creates if needed) closest node.
+   *
+   * Position is owned by node, if distance is no longer than gridSize.
+   * If it is longer, position is related to other nodes.
+   * For example:
+   * {{{
+   *   val gridSize = 100
+   *   (0, 0), (99, -99) will be of the same node
+   *   (12345, 678) will be divided to node (23, 6) child of (1, 0)
+   * }}}
+   *
+   * Nodes are devided by long distances and large scale differences.
+   *
+   * @param parent from which node perspective position is needed
+   * @param x relative position to node
+   * @param y relative position to node
+   * @param scale size of new element
+   * @return best node for relative transaltion and scaling
+   */
+  def getNode(parent: Node, x: Double, y: Double, scale: Double): Node = {
+    d(s"getNode $parent ${x}x${y}x${scale}")
+    if (needOtherNode(x, y, scale)) {
+      d(s"from $parent down ${x}x${y}x${scale}")
+      getNode(Position(parent, x, y, scale))
+    }
+    else {
+      d(s"Return $parent")
+      parent
+    }
+  }
 
   @inline
   private def needOtherNode(x: Double, y: Double, scale: Double): Boolean = {
@@ -417,7 +438,6 @@ abstract class Grid extends Debugable {
       pos
     }
 
-
   @inline
   private def isLarger(scale: Double) = Math.log10(scale.abs) >= scaleLog10
 
@@ -493,7 +513,7 @@ trait Debugable {
   def d(text: String = ""): Unit = {
     if (Debug.on) debugString(text)
     debugI += 1
-//    if (debugI > DEBUG_MAX_I) {
+    //    if (debugI > DEBUG_MAX_I) {
     //      throw new InfinityRecursion
     //    }
   }
