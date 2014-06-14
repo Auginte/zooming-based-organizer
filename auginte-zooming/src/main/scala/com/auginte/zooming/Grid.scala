@@ -186,9 +186,12 @@ abstract class Grid extends Debugable {
     if (camera == element) {
       val cp = cameraPosition
       val ep = elementPosition
+      d(s" G = ${cp.x + ep.x} * ${cp.scale} x ${cp.y + ep.y} * ${cp.scale}")
       Distance((cp.x + ep.x) * cp.scale, (cp.y + ep.y) * cp.scale, cp.scale * ep.scale)
     } else {
+      d(s"IN $camera $cameraPosition --> $element $elementPosition")
       val fromElement = absoluteNew(element, camera, cameraPosition)
+      d(s"fromElement=$fromElement")
       absolute(element, fromElement, element, elementPosition)
     }
 
@@ -213,6 +216,9 @@ abstract class Grid extends Debugable {
    */
   def absoluteNew(from: Node, to: Node, absoluteFirst: Distance): Distance = {
     val between = absoluteBetweenFirst(from, to)
+    d(s"NEW IN $from -> $to | $absoluteFirst")
+    d(s"NEW between=$between")
+    d(s"NEW sub=${between - absoluteFirst}")
     (between - absoluteFirst) * -1 withScale (between.scale * absoluteFirst.scale)
   }
 
@@ -221,7 +227,11 @@ abstract class Grid extends Debugable {
    * @see [[getCameraNode]]
    */
   def absoluteCamera(from: Node, to: Node, absoluteFrom: Distance): Distance = {
+    d(s"CAM: INPUT $from -> $to | $absoluteFrom")
     val between = absoluteBetweenFirst(from, to)
+    d(s"CAM: BETWEEN $between")
+    d(s"CAM: SUM ${absoluteFrom + between}")
+    d(s"CAM: DIV ${absoluteFrom.scale / between.scale}")
     (absoluteFrom + between) withScale (absoluteFrom.scale / between.scale)
   }
 
@@ -229,15 +239,15 @@ abstract class Grid extends Debugable {
    * Absolute position between nodes from first node perspective.
    */
   private[zooming] def absoluteBetweenFirst(from: Node, to: Node): Distance = {
-    d(s"INPUT#absoluteBetweenFirst#: $from -> $to")
+    d(s"BTW INPUT#absoluteBetweenFirst#: $from -> $to")
     val parent = getCommonParent(from, to)
-    d(s"Parent=$parent")
+    d(s"BTW Parent=$parent")
     val absoluteFrom = absoluteChildParent(from, parent)
-    d(s"absoluteFrom=$absoluteFrom")
+    d(s"BTW absoluteFrom=$absoluteFrom")
     val absoluteTo = absoluteChildParent(to, parent)
-    d(s"absoluteTo=$absoluteTo")
+    d(s"BTW absoluteTo=$absoluteTo")
     val differenceAtParent = (absoluteTo -- absoluteFrom) withScale 1
-    d(s"differenceAtParent=$differenceAtParent")
+    d(s"BTW differenceAtParent=$differenceAtParent")
     val factor = absoluteFrom.scale * gridSize
     (differenceAtParent * factor) withScale (absoluteFrom.scale / absoluteTo.scale)
   }

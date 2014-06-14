@@ -73,9 +73,9 @@ with ZoomableElement {
     val newNode = grid.getCameraNode(oldNode, t.x, t.y, t.scale)
     if (oldNode != newNode) {
       debugGraphical
-      println(s"Camera $oldNode -> $newNode")
       val newAbsolute  = grid.absoluteCamera(oldNode, newNode, transformation)
-      println(s" TR: $transformation -> $newAbsolute")
+      println(s"val (camera, newCamera, translation) = ($oldNode, $newNode, $transformation)")
+      println(s"val (newTranslation) = ($newAbsolute)")
       transformation = newAbsolute
       node = newNode
       debugGraphical
@@ -87,7 +87,7 @@ with ZoomableElement {
   def debugGraphical(): Unit = for (element <- d.getChildren) element match {
     case e: ZoomableNode[D]  => {
       val absolute = grid.absolute(node, transformation, e.node, e.transformation)
-      println(s"# $e ${e.node} ${e.transformation} => $absolute")
+      println(s"val(n, a, g) = (${e.node}, ${e.transformation}, $absolute)")
       e.setTranslateX(absolute.x)
       e.setTranslateY(absolute.y)
       e.setScaleX(absolute.scale)

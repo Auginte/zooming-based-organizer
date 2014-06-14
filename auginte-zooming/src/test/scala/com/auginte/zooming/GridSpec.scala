@@ -612,6 +612,23 @@ class GridSpec extends UnitSpec {
         assert(g3 === grid.absolute(newCamera, newTranslation, n3, a3))
         assert(g4 === grid.absolute(newCamera, newTranslation, n4, a4))
       }
+      "invariant gui, but optimise camera absolute, when camera zoomed" in {
+        val (camera, grid) = rootGridPair()
+        val n1 = grid.getNode(camera, 100, 100, 1)
+        val a1 = Distance(2.0,6.0,1.0)
+        val g1 = Distance(18534.787497310354, 19724.615300846748, 101.17921587238027)
+        assertXY(n1, 1, 1)
+        val translation = Distance(81.18769657879855,88.94730346325152,101.17921587238027)
+        val newCamera = grid.getCameraNode(camera, translation.x, translation.y, translation.scale)
+        assertXY(camera, 0, 0)
+        assertXY(newCamera, 0, 0)
+        assert(camera isChildOf newCamera)
+        val newTranslation = grid.absoluteCamera(camera, newCamera, translation)
+        assert(Distance(81.18769657879855,88.94730346325152,1.0117921587238028) === newTranslation)
+        val precision = Some(1E-7)
+        assertDistance(g1, grid.absolute(camera, translation, n1, a1), precision)
+        assertDistance(g1, grid.absolute(newCamera, newTranslation, n1, a1), precision)
+      }
     }
     "calculating absolute position in infinity zooming" should {
       "optimise absolute coordinates, when no camera transformation" in {

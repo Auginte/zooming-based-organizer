@@ -69,7 +69,7 @@ final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1) {
    * }}}
    */
   def --(d: Distance): Distance = {
-    Distance((x / scale) - (d.x / d.scale), (y / scale) - (d.y / scale), scale / d.scale)
+    Distance((x / scale) - (d.x / d.scale), (y / scale) - (d.y / d.scale), scale / d.scale)
   }
 
   /**
