@@ -169,38 +169,57 @@ abstract class Grid extends Debugable {
 
   /**
    * Absolute coordinates for node from Graphical user interface perspective (including camera and element's position).
+   * Assuming GUI coordinates are in same scale/hierarchy level as camera.
    *
    * Transformations:
    * {{{
-   *   G_p = (C_p + E_p) * C_s
-   *   G_s = C_s * E_s
+   *   G_p = (E_p - C_p) / C_s
+   *   G_s = E_s / C_s
    *   // G_p - Graphical user interface (GUI, e.g. JavaFx) position
-   *   // C_p - Camera's absolute position
+   *   // C_p - Camera's absolute position (treating camera as node in grid, not as translation in GUI)
    *   // E_p - Element's own absolute position
-   *   // C_s - Camera's absolute scale (inverse of zooming)
+   *   // C_s - Camera's absolute zooming (multiplicative inverse of scale)
    *   // E_s - Element's absolute scale
    *   // G_s - GUI scale of element (as it appears to user)
    * }}}
+   *
+   * @see [[Distance.asCameraNode]]
    */
   def absolute(camera: Node, cameraPosition: Distance, element: Node, elementPosition: Distance): Distance =
     if (camera == element) {
       val cp = cameraPosition
       val ep = elementPosition
-      d(s" G = ${cp.x + ep.x} * ${cp.scale} x ${cp.y + ep.y} * ${cp.scale}")
-      Distance((cp.x + ep.x) * cp.scale, (cp.y + ep.y) * cp.scale, cp.scale * ep.scale)
+
+      d(s"cameraPosition=$cameraPosition")
+      d(s"elementPosition=$elementPosition")
+      d(s"node=$element")
+      d(s" G = ${ep.x - cp.x} / ${cp.scale} x ${ep.y - cp.y} / ${cp.scale}")
+      Distance((ep.x - cp.x) / cp.scale, (ep.y - cp.y) / cp.scale, ep.scale / cp.scale)
     } else {
       d(s"IN $camera $cameraPosition --> $element $elementPosition")
-      val fromElement = absoluteNew(element, camera, cameraPosition)
-      d(s"fromElement=$fromElement")
-      absolute(element, fromElement, element, elementPosition)
+//      val fromElement = absoluteNew(camera, element, cameraPosition)
+//      d(s"fromElement=$fromElement")
+
+      d(s"---------------------")
+      val betweenNodes = absoluteBetweenFirst(camera, element)
+      d(s"betweenNodes=$betweenNodes")
+      val elementAtCameraLevel = elementPosition * betweenNodes.scale
+      d(s"elementAtCameraLevel=$elementAtCameraLevel")
+      val elementFromCamera = (betweenNodes + elementAtCameraLevel) withScale elementAtCameraLevel.scale
+
+      absolute(camera, cameraPosition, camera, elementFromCamera)
+
+//      d(s"_____________________")
+//      absolute(element, fromElement, element, elementPosition)
     }
 
   /**
    * Generating new absolute position for new node, using GUI coordinates
+   * @see [[Distance.asCameraNode]]
    */
   def absoluteNew(cameraPosition: Distance, x: Double, y: Double): Distance = {
     val p = cameraPosition
-    Distance((x / p.scale) - p.x, (y / p.scale) - p.y, 1 / p.scale)
+    Distance((x * p.scale) + p.x, (y * p.scale) + p.y, p.scale)
   }
 
   /**
@@ -216,10 +235,15 @@ abstract class Grid extends Debugable {
    */
   def absoluteNew(from: Node, to: Node, absoluteFirst: Distance): Distance = {
     val between = absoluteBetweenFirst(from, to)
+    //FIXME:
+    println(s"[ANEW] between.scale=${between.scale} \t | $from -> $to")
     d(s"NEW IN $from -> $to | $absoluteFirst")
+    val absoluteAtFirst = absoluteFirst / between.scale
     d(s"NEW between=$between")
-    d(s"NEW sub=${between - absoluteFirst}")
-    (between - absoluteFirst) * -1 withScale (between.scale * absoluteFirst.scale)
+    d(s"NEW sub1=${between - absoluteAtFirst}")
+    d(s"NEW sub1=${between - absoluteFirst}")
+    val rez = (between - absoluteFirst) * -1 withScale (between.scale * absoluteFirst.scale)
+    rez
   }
 
   /**
@@ -232,7 +256,10 @@ abstract class Grid extends Debugable {
     d(s"CAM: BETWEEN $between")
     d(s"CAM: SUM ${absoluteFrom + between}")
     d(s"CAM: DIV ${absoluteFrom.scale / between.scale}")
-    (absoluteFrom + between) withScale (absoluteFrom.scale / between.scale)
+    val atSameLevel = (absoluteFrom - between) withScale absoluteFrom.scale
+    d(s"CAM sameLevel=$atSameLevel")
+    val atNewCameraLevel = atSameLevel / between.scale
+    atNewCameraLevel
   }
 
   /**
@@ -273,10 +300,13 @@ abstract class Grid extends Debugable {
 
   def root: Node = _root
 
+  def getCameraNode(camera: Node, absolute: Distance): Node =
+    getCameraNode(camera, absolute.x, absolute.y, absolute.scale)
+
   /**
    * Optimised node for camera
    */
-  def getCameraNode(camera: Node, x: Double, y: Double, scale: Double) = getNode(camera, -x, -y, scale)
+  def getCameraNode(camera: Node, x: Double, y: Double, scale: Double): Node = getNode(camera, x, y, scale)
 
   /**
    * Delegating to [[getNode]]

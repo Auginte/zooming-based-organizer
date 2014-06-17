@@ -24,6 +24,12 @@ final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1) {
   def withScale(amount: Double): Distance = Distance(x, y, amount)
 
   /**
+   * Inverts coordinates, so gui transformation is like camera's node change.
+   * @return
+   */
+  def asCameraNode: Distance = Distance(-x, -y, 1 / scale)
+
+  /**
    * Returns copy with every parameter added
    */
   def +(d: Distance): Distance = Distance(x + d.x, y + d.y, scale + d.scale)
@@ -35,27 +41,14 @@ final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1) {
 
 
   /**
-   * Returns copy with every parameter multipied
+   * Returns copy with every parameter multiplied
    */
   def *(factor: Double): Distance = Distance(x * factor, y * factor, scale * factor)
 
-
   /**
-   * Returns copy with scale dependent sum.
-   *
-   * {{{
-   *   f = A_s / B._s
-   *   D = (A_p * f,  f)
-   *   // D - graphical difference
-   *   // A, B - operands
-   *   // p - position parameters (x or y)
-   *   // s - scale parameter
-   * }}}
+   * Returns copy with every parameter divided
    */
-  def ++(d: Distance): Distance = {
-    val factor = d.scale / scale
-    Distance((x + d.x) * factor, (y + d.y) * factor, factor)
-  }
+  def /(factor: Double): Distance = Distance(x / factor, y / factor, scale / factor)
 
   /**
    * Returns copy with scale dependent difference.

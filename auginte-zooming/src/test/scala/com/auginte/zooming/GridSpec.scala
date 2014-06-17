@@ -589,9 +589,10 @@ class GridSpec extends UnitSpec {
       }
     }
     "optimising active camera in infinity zooming" should {
-      "invariant gui, but optimise camera absolute, when camera translated" in {
+      "invariant gui, but optimise camera absolute, when same level camera translated" in {
         val (camera, grid) = rootGridPair()
-        val (newCamera, translation) = (grid.getCameraNode(camera, 100, 0, 1), Distance(106.0, -1.0, 1.0))
+        val translation = Distance(106.0, -1.0, 1.0).asCameraNode
+        val newCamera = grid.getCameraNode(camera, translation)
         assertXY(newCamera, -1, 0)
         val (n1, a1, g1) = (grid.getNode(camera, 0, 0, 1), Distance(83.0, 85.0, 1.0), Distance(189.0, 84.0, 1.0))
         val (n2, a2, g2) = (grid.getNode(camera, 200, 0, 1), Distance(18.0, 88.0, 1.0), Distance(324.0, 87.0, 1.0))
@@ -602,7 +603,7 @@ class GridSpec extends UnitSpec {
         assertXY(n3, 0, 2)
         assertXY(n4, 2, 2)
         val newTranslation = grid.absoluteCamera(camera, newCamera, translation)
-        assert(Distance(6.0, -1.0, 1.0) === newTranslation)
+        assert(Distance(6.0, -1.0, 1.0).asCameraNode === newTranslation)
         assert(g1 === grid.absolute(camera, translation, n1, a1))
         assert(g2 === grid.absolute(camera, translation, n2, a2))
         assert(g3 === grid.absolute(camera, translation, n3, a3))
@@ -612,22 +613,122 @@ class GridSpec extends UnitSpec {
         assert(g3 === grid.absolute(newCamera, newTranslation, n3, a3))
         assert(g4 === grid.absolute(newCamera, newTranslation, n4, a4))
       }
-      "invariant gui, but optimise camera absolute, when camera zoomed" in {
-        val (camera, grid) = rootGridPair()
-        val n1 = grid.getNode(camera, 100, 100, 1)
-        val a1 = Distance(2.0,6.0,1.0)
-        val g1 = Distance(18534.787497310354, 19724.615300846748, 101.17921587238027)
+      "DEBUG invariant gui, but optimise camera absolute, when camera zoomed" in {
+        // c - camera's node, t - camera's absolute
+        // n - element's node, a - element's absolute
+        // i - element's initial absolute,  g - coordinates in GUI
+        //
+        //  c2___                               c2
+        //  |    \           =>            =>   :
+        //  c1    n1    c1        c1-->n1       '--->n1
+        val (c1, grid) = rootGridPair()
+        val td1 = Distance(81, 88.125, 125)
+        val t1 = td1.asCameraNode
+        val i1 = Distance(100, 100, 1)
+        val gWithoutScale = Distance(i1.x + td1.x, i1.y + td1.y, i1.scale )
+        val g1 = Distance((i1.x + td1.x) * td1.scale, (i1.y + td1.y) * td1.scale, i1.scale * td1.scale) // G_p = (E_p + C_p) * C_s
+        //FIXME:
+        println(s"g1=$g1")
+        println(s"gWithoutScale=$gWithoutScale")
+        assertDistance(g1, grid.absolute(c1, t1, c1, i1), precision) // From same point
+
+        val n1 = grid.getNode(c1, i1)
         assertXY(n1, 1, 1)
-        val translation = Distance(81.18769657879855,88.94730346325152,101.17921587238027)
-        val newCamera = grid.getCameraNode(camera, translation.x, translation.y, translation.scale)
-        assertXY(camera, 0, 0)
-        assertXY(newCamera, 0, 0)
-        assert(camera isChildOf newCamera)
-        val newTranslation = grid.absoluteCamera(camera, newCamera, translation)
-        assert(Distance(81.18769657879855,88.94730346325152,1.0117921587238028) === newTranslation)
-        val precision = Some(1E-7)
-        assertDistance(g1, grid.absolute(camera, translation, n1, a1), precision)
-        assertDistance(g1, grid.absolute(newCamera, newTranslation, n1, a1), precision)
+        val a1 = grid.absoluteNew(c1, n1, i1)
+        assert(Distance(0,0,1.0) === a1)
+        assertDistance(g1, grid.absolute(c1, t1, n1, a1), precision) // Element in other node
+
+        val c2 = grid.getCameraNode(c1, t1)
+        assertXY(c1, 0, 0)
+//        assertXY(c2, 0, 0)
+//        assert(c1 isChildOf c2)
+        val t2 = grid.absoluteCamera(c1, c2, t1)
+//        assert(Distance(81.18769657879855, 88.94730346325152, 1.0117921587238028).asCameraNode === t2)
+        //FIXME:
+        println(grid.root.hierarchyAsString())
+        Debug.on = true
+        val gg = grid.absolute(c2, t2, n1, a1)
+        //FIXME:
+        println("_________________________________________________________________")
+        Debug.on = false
+        assertDistance(g1, gg, precision) // Camera in other node
+      }
+      "invariant gui, but optimise camera absolute, when camera zoomed" in {
+        // c - camera's node, t - camera's absolute
+        // n - element's node, a - element's absolute
+        // i - element's initial absolute,  g - coordinates in GUI
+        //
+        //  c2___                               c2
+        //  |    \           =>            =>   :
+        //  c1    n1    c1        c1-->n1       '--->n1
+        val (c1, grid) = rootGridPair()
+        val t1 = Distance(81.18769657879855, 88.94730346325152, 101.17921587238027).asCameraNode
+        val g1 = Distance(18534.787497310354, 19724.615300846748, 101.17921587238027)
+        val i1 = Distance(102, 106, 1)
+        assertDistance(g1, grid.absolute(c1, t1, c1, i1), precision) // From same point
+
+        val n1 = grid.getNode(c1, i1)
+        assertXY(n1, 1, 1)
+        val a1 = grid.absoluteNew(c1, n1, i1)
+        assert(Distance(2.0,6.0,1.0) === a1)
+        assertDistance(g1, grid.absolute(c1, t1, n1, a1), precision) // Element in other node
+
+        val c2 = grid.getCameraNode(c1, t1)
+        assertXY(c1, 0, 0)
+        assertXY(c2, -81, -88)
+        assert(c2 isChildOf c1)
+        val t2 = grid.absoluteCamera(c1, c2, t1)
+        assert(Distance(-18.769657879855117,-94.73034632515152,0.9883452756357822) === t2)
+        val gg = grid.absolute(c2, t2, n1, a1)
+        assertDistance(g1, gg, precision) // Camera in other node
+      }
+      "invariant gui, but optimise camera absolute, when upper level camera translated" in {
+        // c - camera's node, t - camera's absolute
+        // n - element's node, a - element's absolute
+        // i - element's initial absolute,  g - coordinates in GUI
+        //  .____
+        //  |    \
+        //  c2--->c2_2
+        //  |
+        //  c1,n1
+        val (c1, grid) = rootGridPair()
+        val t1 = Distance(76.55955449023968, 86.31689204151021, 101.24249243014931)
+        val i1 = Distance(105.0, 106.0, 1.0)
+        val n1 = grid.getNode(c1, i1) // [{3}: 1x1 of 2]
+        val a1 = grid.absoluteNew(c1, n1, i1)
+        val g1 = Distance(2879.3815892319835, 1992.7669084892138, 101.24249243014931)
+        assertDistance(g1, grid.absolute(c1, t1, n1, a1), precision)
+        val i2 = Distance(82.80577735327356, 89.22307713283807, 0.011175230732997038)
+        val n2 = grid.getNode(c1, i2) // [{1}: 0x0 of 2]
+        val a2 = grid.absoluteNew(c1, n2, i2)
+        val g2 = Distance(632.383170927733, 294.2294221093733, 1.1314082128906244)
+        assertDistance(g2, grid.absolute(c1, t1, n2, a2), precision)
+
+        val c2 = grid.getCameraNode(c1, t1) // [{1}: 0x0 of 2] -> [{2}: 0x0 of ø]
+        val t2 = grid.absoluteCamera(c1, c2, t1)
+        assert(c1 !== c2)
+        assert(t1 !== t2)
+        assertDistance(g1, grid.absolute(c2, t2, n1, a1), precision)
+        assertDistance(g2, grid.absolute(c2, t2, n2, a2), precision)
+
+        val g1_2 = Distance(342.58778218686695,737.0882332314784,106.36789360942561)
+        val g2_2 = Distance(-2018.164931044036,-1047.4377133963412,1.1886857536682123)
+        val t1_2 = Distance(-101.77921814034579,-99.07038798814605,1.063678936094256)
+        val c1_2 = c2
+        assertDistance(g1_2, grid.absolute(c1_2, t1_2, n1, a1), precision)
+        assertDistance(g1_2, grid.absolute(c1_2, t1_2, n1, a1), precision)
+
+        val c2_2 = grid.getCameraNode(c1_2, t1_2) // [{2}: 0x0 of 4] -> [{5}: 1x0 of 4]
+        val t2_2 = grid.absoluteCamera(c1_2, c2_2, t1_2)
+        assert(c1_2 !== c2_2)
+        assert(t1_2 !== t2_2)
+//        Debug.on = true
+//        println(s"${grid.root.hierarchyAsString()}")
+        val g1_2_a = grid.absolute(c2_2, t2_2, n1, a1)
+//        Debug.on = false
+        val g2_2_a = grid.absolute(c2_2, t2_2, n2, a2)
+        assertDistance(g1_2, g1_2_a, precision)
+        assertDistance(g2_2, g2_2_a, precision)
       }
     }
     "calculating absolute position in infinity zooming" should {
@@ -646,7 +747,7 @@ class GridSpec extends UnitSpec {
       }
       "optimise absolute coordinates, when no zooming" in {
         val (camera, grid) = rootGridPair()
-        val cameraAbsolute = Distance(12, 34, 1)
+        val cameraAbsolute = Distance(12, 34, 1).asCameraNode
         val absolute = grid.absoluteNew(cameraAbsolute, 123 + 12, 78 + 34)
         assert(Distance(123, 78, 1) === absolute)
         val node = grid.getNode(camera, absolute)
@@ -659,7 +760,7 @@ class GridSpec extends UnitSpec {
       }
       "optimise absolute coordinates, when simple zooming" in {
         val (camera, grid) = rootGridPair()
-        val cameraAbsolute = Distance(0, 0, 0.5)
+        val cameraAbsolute = Distance(0, 0, 0.5).asCameraNode
         val absolute = grid.absoluteNew(cameraAbsolute, 123, 78)
         assert(Distance(246, 156, 2) === absolute)
         val node = grid.getNode(camera, absolute)
@@ -672,7 +773,7 @@ class GridSpec extends UnitSpec {
       }
       "simple sum only absolute, when on same node and same scale" in {
         val (root, grid) = rootGridPair()
-        val camera = Distance(12, 34, 1)
+        val camera = Distance(12, 34, 1).asCameraNode
         val element1 = Distance(56, 78, 1)
         val element2 = Distance(90, -34, 1)
         val gui1 = grid.absolute(root, camera, root, element1)
@@ -682,7 +783,7 @@ class GridSpec extends UnitSpec {
       }
       "sum only absolute, when on same node with zooming" in {
         val (root, grid) = rootGridPair()
-        val camera = Distance(12, 34, 0.25)
+        val camera = Distance(12, 34, 0.25).asCameraNode
         val element1 = Distance(56, 78, 1.5)
         val element2 = Distance(90, -34, 0.5)
         val gui1 = grid.absolute(root, camera, root, element1)
@@ -692,7 +793,7 @@ class GridSpec extends UnitSpec {
       }
       "calculate gui absolute, when camera and elements in different nodes" in {
         val (camera, grid) = rootGridPair()
-        val cameraAbsolute = Distance(0, 0, 1)
+        val cameraAbsolute = Distance(0, 0, 1).asCameraNode
         val elementAbsolute = Distance(123, 456, 1)
         val element = grid.getNode(camera, elementAbsolute)
         assertXY(element, 1, 4)
@@ -703,7 +804,7 @@ class GridSpec extends UnitSpec {
       }
       "calculate gui absolute, when moved camera and elements in different nodes" in {
         val (camera, grid) = rootGridPair()
-        val cameraAbsolute = Distance(-10, -20, 1)
+        val cameraAbsolute = Distance(-10, -20, 1).asCameraNode
         val elementAbsolute = grid.absoluteNew(cameraAbsolute, 113, 436)
         assert(Distance(123, 456, 1) === elementAbsolute)
         val element = grid.getNode(camera, elementAbsolute)
@@ -715,7 +816,7 @@ class GridSpec extends UnitSpec {
       }
       "calculate gui absolute, when simple zoomed camera and elements in different nodes" in {
         val (camera, grid) = rootGridPair()
-        val cameraAbsolute = Distance(0, 0, 0.5)
+        val cameraAbsolute = Distance(0, 0, 0.5).asCameraNode
         val elementAbsolute = grid.absoluteNew(cameraAbsolute, 123, 456)
         assert(Distance(246, 912, 2) === elementAbsolute)
         val element = grid.getNode(camera, elementAbsolute)
@@ -801,5 +902,7 @@ class GridSpec extends UnitSpec {
 
     override def equals(obj: scala.Any): Boolean = false
   }
+
+  private val precision = Some(1E-7)
 
 }

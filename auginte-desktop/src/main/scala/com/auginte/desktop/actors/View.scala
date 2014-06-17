@@ -64,7 +64,7 @@ class View extends Actor {
           representation.remove(element)
         }
         case MoveElement(element, node, diffX, diffY) => synchronized(representation.translate(node, diffX, diffY))
-        case MoveView(camera, diffX, diffY) => synchronized(camera.translate(diffX, diffY))
+        case MoveView(camera, diffX, diffY) => synchronized(camera.translate(-diffX, -diffY))
         case ZoomView(camera, scale, x, y) => synchronized(representation.zoom(scale, x, y))
         case _ => Unit
       }
