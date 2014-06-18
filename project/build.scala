@@ -11,7 +11,7 @@ object AuginteBuild extends sbt.Build {
   val buildMainClass = "com.auginte.desktop.HelloScalaFX"
   
   // Settings
-  
+
   lazy val buildSettings = Defaults.defaultSettings ++ Seq (
     organization := buildOrganization,
     version      := buildVersion,
@@ -26,34 +26,43 @@ object AuginteBuild extends sbt.Build {
     scalacOptions in(Compile, doc) += "-implicits",
     scalacOptions in(Compile, doc) += "-groups"
   )
-  
+
   // Project
-    
+  lazy val allSettings = Project.defaultSettings ++ assemblySettings ++ buildSettings ++ scalaDocSettings
+  lazy val withAssembly = allSettings ++ assemblySettings
+
   lazy val root = Project(
     id = "auginte",
-    base = file("."),
-    settings = Project.defaultSettings ++ assemblySettings ++ buildSettings ++ scalaDocSettings 
-    ) aggregate(
+    base = file(".")
+  ) aggregate(
+    auginteDesktop,
     auginteZooming,
     auginteTransformation,
     auginteDistribution,
-    auginteDesktop,
     augitenteTest
     )
 
   lazy val auginteZooming = Project(id = "auginte-zooming",
-    base = file("auginte-zooming")) dependsOn (augitenteTest % "test->test")
+    base = file("auginte-zooming"),
+    settings = allSettings
+  ) dependsOn (augitenteTest % "test->test")
 
   lazy val auginteTransformation = Project(id = "auginte-transformation",
+    settings = allSettings,
     base = file("auginte-transformation"))
 
   lazy val auginteDistribution = Project(id = "auginte-distribution",
+    settings = allSettings,
     base = file("auginte-distribution"))
 
   lazy val auginteDesktop = Project(id = "auginte-desktop",
-    base = file("auginte-desktop")) dependsOn (auginteZooming) dependsOn(augitenteTest % "test->test")
+    settings = withAssembly,
+    base = file("auginte-desktop")
+
+  ) dependsOn (auginteZooming) dependsOn(augitenteTest % "test->test")
 
   lazy val augitenteTest = Project(id = "auginte-test",
+    settings = allSettings,
     base = file("auginte-test"))
 }
 
