@@ -19,7 +19,7 @@ import scalafx.Includes._
 trait ZoomableCamera[D <: jfxl.Pane] extends RichNode[D]
 with ZoomableElement {
 
-  val maxVisibleSize = 1E5
+  val maxVisibleSize = 1E4
   val minVisibleSize = 0.5
   val epsilonTranslate = 1
 
@@ -48,9 +48,10 @@ with ZoomableElement {
       e.setScaleX(absolute.scale)
       e.setScaleY(absolute.scale)
       e.setScaleZ(absolute.scale)
-      val minSize = Math.min(e.getLayoutBounds.getWidth, e.getLayoutBounds.getHeight)
-      val maxSize = Math.max(e.getLayoutBounds.getWidth, e.getLayoutBounds.getHeight)
-      e.setVisible(minSize > minVisibleSize && maxSize < maxVisibleSize)
+      val minSize = Math.min(e.getBoundsInParent.getWidth, e.getBoundsInParent.getHeight)
+      val maxSize = Math.max(e.getBoundsInParent.getWidth, e.getBoundsInParent.getHeight)
+      val visible = minSize > minVisibleSize && maxSize < maxVisibleSize
+      e.setVisible(visible)
     }
     case _ => Unit
   }
