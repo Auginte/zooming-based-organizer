@@ -21,12 +21,13 @@ with ZoomableElement {
 
   val maxVisibleSize = 1E5
   val minVisibleSize = 0.5
+  val epsilonTranslate = 1
 
   //FIXME: debug
   var mapTable: Option[TableView[MapRow]] = None
 
   //FIXME:
-  println(
+  debug(
     """
       |val (c1, grid) = rootGridPair()
       |var g: Distance = Distance()
@@ -78,7 +79,7 @@ with ZoomableElement {
    * @return updated coordinates
    */
   def zoom(amount: Double, x: Double = 0, y: Double): Distance = {
-    println(s"t = grid.zoomCamera($transformation, $amount, $x, $y)")
+    debug(s"t = grid.zoomCamera($transformation, $amount, $x, $y)")
     transformation = grid.zoomCamera(transformation, amount, x, y)
     validateCameraNode()
     transformation
@@ -87,9 +88,9 @@ with ZoomableElement {
   private def validateCameraNode(): Unit = {
     val optimized = grid.validateCamera(node, transformation)
     if (node != optimized._1) {
-      println(s"optimised = grid.validateCamera(c, t)")
-      println(s"c = optimised._1")
-      println(s"t = optimised._2")
+      debug(s"optimised = grid.validateCamera(c, t)")
+      debug(s"c = optimised._1")
+      debug(s"t = optimised._2")
       debugAbsoluteToCachedCoordinates(node, transformation, optimized._1, optimized._2)
       node = optimized._1
       transformation = optimized._2
@@ -103,14 +104,14 @@ with ZoomableElement {
         val g2 = grid.absolute(camera2, absolute2, e.node, e.transformation)
         val elementVar = "n" + e.debugId
         val absoluteVar = "a" + e.debugId
-        println(s"// $camera1 $absolute1 --> $camera2 $absolute2")
-        println(s"assertDistance($g1, grid.absolute(c, t, $elementVar, $absoluteVar), precision)")
+        debug(s"// $camera1 $absolute1 --> $camera2 $absolute2")
+        debug(s"assertDistance($g1, grid.absolute(c, t, $elementVar, $absoluteVar), precision)")
         if (!compareDistance(g1, g2)) {
-          println(s"// $g1 -> $g2")
-          println(s"val g1 = grid.absolute(c, t, $elementVar, $absoluteVar)")
-          println(s"val g2 = grid.absolute(c, t, $elementVar, $absoluteVar)")
-          println(s"assertDistance(g1, g2, precision)")
-          println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+          debug(s"// $g1 -> $g2")
+          debug(s"val g1 = grid.absolute(c, t, $elementVar, $absoluteVar)")
+          debug(s"val g2 = grid.absolute(c, t, $elementVar, $absoluteVar)")
+          debug(s"assertDistance(g1, g2, precision)")
+          debug("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         }
       }
       case _ => Unit
@@ -131,13 +132,16 @@ with ZoomableElement {
    * @return updated absolute coordinates
    */
   override def translate(x: Double, y: Double): Distance = {
-    if (x != 0 && y != 0) {
-      transformation = grid.translateCamera(transformation, x, y)
-      println(s"t = grid.translateCamera(t, $x, $y)")
+    transformation = grid.translateCamera(transformation, x, y)
+    if (!equalDouble(x, 0, epsilonTranslate) && !equalDouble(y, 0, epsilonTranslate)) {
+      debug(s"t = grid.translateCamera(t, $x, $y)")
       validateCameraNode
     }
     transformation
   }
+
+  @inline
+  private def equalDouble(a: Double, b: Double, epsilon: Double) = a - epsilon <= b && a + epsilonTranslate >= b
 
   /**
    * Updates coordinates. Converts GUI element's translation to absolute coordinates,
@@ -151,7 +155,7 @@ with ZoomableElement {
   def translate(element: ZoomableElement, x: Double, y: Double): Distance = {
     element.transformation = grid.translateElement(element.transformation, x, y, transformation)
     val elementVar = "n" + element.debugId
-    println(s"$elementVar = grid.translateElement(${elementVar}.transformation, $x, $y, t)")
+    debug(s"$elementVar = grid.translateElement(${elementVar}.transformation, $x, $y, t)")
     element.transformation
   }
 
@@ -170,11 +174,9 @@ with ZoomableElement {
     element.node = optimised._1
     val elementVar = "n" + element.debugId
     val absoluteVar = "a" + element.debugId
-    println(s"pair = grid.newElement(c, t, $x, $y)")
-    println(s"val ($elementVar, $absoluteVar) = pair")
+    debug(s"pair = grid.newElement(c, t, $x, $y)")
+    debug(s"val ($elementVar, $absoluteVar) = pair")
     element.transformation = optimised._2
     element.transformation
   }
-
-
 }

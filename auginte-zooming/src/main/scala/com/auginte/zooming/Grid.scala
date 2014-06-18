@@ -1,7 +1,6 @@
 package com.auginte.zooming
 
 import scala.annotation.tailrec
-import scala.Some
 
 /**
  * Class to ensure infinity scaling and translation.
@@ -98,36 +97,36 @@ abstract class Grid extends Debugable {
    */
   def absoluteTextual(child: Node, parent: Node): TextualCoordinates =
     if (child == parent) (parent.x + "", parent.y + "", "1")
-  else {
-    require(child.isChildOf(parent), s"Not parent-child: $parent $child")
-    d(s"getCoordinates $parent - $child")
+    else {
+      require(child.isChildOf(parent), s"Not parent-child: $parent $child")
+      d(s"getCoordinates $parent - $child")
 
-    type TC = TextualCoordinates
-    val originalChild = child
+      type TC = TextualCoordinates
+      val originalChild = child
 
-    val scale = gridSize.toString().substring(1)
-    val format = (number: Int) => number.formatted("%0" + scale.length + "d")
-    val leaveLastZero = (s: String) => if (s.length > 0) s else "0"
-    val strip = (s: String) => leaveLastZero(s.dropWhile(_ == '0'))
-    val stripped = (c: TC) => (strip(c._1), strip(c._2), c._3)
-    val newCoordinates = (node: Node, c: TC) =>
-      (format(node.x) + c._1, format(node.y) + c._2, c._3 + scale)
+      val scale = gridSize.toString().substring(1)
+      val format = (number: Int) => number.formatted("%0" + scale.length + "d")
+      val leaveLastZero = (s: String) => if (s.length > 0) s else "0"
+      val strip = (s: String) => leaveLastZero(s.dropWhile(_ == '0'))
+      val stripped = (c: TC) => (strip(c._1), strip(c._2), c._3)
+      val newCoordinates = (node: Node, c: TC) =>
+        (format(node.x) + c._1, format(node.y) + c._2, c._3 + scale)
 
-    def appended(child: Node, coordinates: TC, end: Boolean): TC = {
-      d(s" appended $child: $coordinates")
-      if (end) {
-        require(child eq parent, s"Not parent-child: $parent $originalChild")
-        return stripped(coordinates)
+      def appended(child: Node, coordinates: TC, end: Boolean): TC = {
+        d(s" appended $child: $coordinates")
+        if (end) {
+          require(child eq parent, s"Not parent-child: $parent $originalChild")
+          return stripped(coordinates)
+        }
+        child.parent match {
+          case Some(node) =>
+            appended(node, newCoordinates(node, coordinates), node eq parent)
+          case None => appended(child, coordinates, true)
+        }
       }
-      child.parent match {
-        case Some(node) =>
-          appended(node, newCoordinates(node, coordinates), node eq parent)
-        case None => appended(child, coordinates, true)
-      }
+
+      appended(child, (format(child.x), format(child.y), "1"), false)
     }
-
-    appended(child, (format(child.x), format(child.y), "1"), false)
-  }
 
   /**
    * Absolute coordinates from same level child perspective.
@@ -152,19 +151,19 @@ abstract class Grid extends Debugable {
    */
   private[zooming] def absoluteChildParent(child: Node, parent: Node): Distance =
     if (child == parent) Distance(parent.x, parent.y, 1)
-  else {
-    require(child.isChildOf(parent), s"Not parent-child: $parent - $child")
-    @inline
-    def newScale(d: Distance) = d.scale * gridSize
-    @inline
-    def newDistance(n: Node, d: Distance) = Distance((n.x * newScale(d)) + d.x, (n.y * newScale(d)) + d.y, newScale(d))
-    @tailrec
-    def absolute(node: Node, last: Node, distance: Distance): Distance = node.parent match {
-      case Some(parent) if node != last => absolute(parent, last, newDistance(parent, distance))
-      case _ => distance
+    else {
+      require(child.isChildOf(parent), s"Not parent-child: $parent - $child")
+      @inline
+      def newScale(d: Distance) = d.scale * gridSize
+      @inline
+      def newDistance(n: Node, d: Distance) = Distance((n.x * newScale(d)) + d.x, (n.y * newScale(d)) + d.y, newScale(d))
+      @tailrec
+      def absolute(node: Node, last: Node, distance: Distance): Distance = node.parent match {
+        case Some(parent) if node != last => absolute(parent, last, newDistance(parent, distance))
+        case _ => distance
+      }
+      absolute(child, parent, Distance(child.x, child.y, 1))
     }
-    absolute(child, parent, Distance(child.x, child.y, 1))
-  }
 
   /**
    * Absolute coordinates from parent perspective.
@@ -205,8 +204,8 @@ abstract class Grid extends Debugable {
       Distance((ep.x - cp.x) / cp.scale, (ep.y - cp.y) / cp.scale, ep.scale / cp.scale)
     } else {
       d(s"IN $camera $cameraPosition --> $element $elementPosition")
-//      val fromElement = absoluteNew(camera, element, cameraPosition)
-//      d(s"fromElement=$fromElement")
+      //      val fromElement = absoluteNew(camera, element, cameraPosition)
+      //      d(s"fromElement=$fromElement")
 
       d(s"---------------------")
       val betweenNodes = absoluteBetweenFirst(camera, element)
@@ -217,8 +216,8 @@ abstract class Grid extends Debugable {
 
       absolute(camera, cameraPosition, camera, elementFromCamera)
 
-//      d(s"_____________________")
-//      absolute(element, fromElement, element, elementPosition)
+      //      d(s"_____________________")
+      //      absolute(element, fromElement, element, elementPosition)
     }
 
   /**
@@ -539,10 +538,10 @@ abstract class Grid extends Debugable {
 
   def zoomCamera(cameraPosition: Distance, amount: Double, guiX: Double, guiY: Double): Distance =
   {
-    val newScale = cameraPosition.scale / amount
+    val absoluteAmount = amount
     val zoomCenterBefore = Distance(guiX * cameraPosition.scale, guiY * cameraPosition.scale, 1)
-    val zoomCenterAfter = Distance(guiX * newScale, guiY * newScale, 1)
-    (cameraPosition - zoomCenterBefore + zoomCenterAfter).zoomed(amount)
+    val zoomCenterAfter = (zoomCenterBefore * absoluteAmount) withScale 1
+    (cameraPosition + zoomCenterBefore - zoomCenterAfter).zoomed(amount)
   }
 
   def translateCamera(transformation: Distance, diffX: Double, diffY: Double): Distance = {
@@ -560,8 +559,7 @@ abstract class Grid extends Debugable {
     (optimisedNode, optimisedAbsolute)
   }
 
-  def validateCamera(camera: Node, transformation: Distance): (Node, Distance) =
-  {
+  def validateCamera(camera: Node, transformation: Distance): (Node, Distance) = {
     val newNode = getCameraNode(camera, transformation)
     if (newNode == camera) (camera, transformation)
     else (newNode, absoluteCamera(camera, newNode, transformation))
