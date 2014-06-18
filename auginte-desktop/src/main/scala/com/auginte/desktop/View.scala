@@ -1,5 +1,8 @@
 package com.auginte.desktop
 
+import javafx.collections.ObservableList
+
+import com.auginte.desktop.nodes.MouseFocusable
 import com.auginte.desktop.operations.{AddWithMouse}
 import scalafx.Includes._
 import com.auginte.desktop.rich.RichSPane
@@ -20,7 +23,7 @@ import scalafx.event.ActionEvent
  */
 class View extends RichSPane
 with Container[jp] with DragableView[jp] with ZoomableView[jp]
-with ZoomableCamera[jp] {
+with ZoomableCamera[jp] with MouseFocusable[jp] {
   val contextMenu = initContextMenu()
 
   val timeline = new Timeline {

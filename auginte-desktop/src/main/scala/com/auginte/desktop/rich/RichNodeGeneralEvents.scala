@@ -47,4 +47,29 @@ trait RichNodeGeneralEvents[D <: jfxs.Node] extends RichNodeDelegating[D] {
   def scrolled_=(f: sfxi.ScrollEvent => Any): Unit = scrolled.replace(f)
 
 
+
+  lazy val mouseEntered = new Event[sfxi.MouseEvent, jfxi.MouseEvent](d.onMouseEnteredProperty(), new sfxi.MouseEvent(_))
+
+  def mouseEntered_=(f: sfxi.MouseEvent => Any): Unit = mouseEntered.replace(f)
+
+
+  lazy val mouseExited = new Event[sfxi.MouseEvent, jfxi.MouseEvent](d.onMouseExitedProperty(), new sfxi.MouseEvent(_))
+
+  def mouseExited_=(f: sfxi.MouseEvent => Any): Unit = mouseExited.replace(f)
+
+
+
+  lazy val keyPressed = new Event[sfxi.KeyEvent, jfxi.KeyEvent](d.onKeyPressedProperty(), new sfxi.KeyEvent(_))
+
+  def keyPressed_=(f: sfxi.KeyEvent => Any): Unit = keyPressed.replace(f)
+
+
+  lazy val keyReleased = new Event[sfxi.KeyEvent, jfxi.KeyEvent](d.onKeyReleasedProperty(), new sfxi.KeyEvent(_))
+
+  def keyReleased_=(f: sfxi.KeyEvent => Any): Unit = keyReleased.replace(f)
+
+
+  lazy val keyTyped = new Event[sfxi.KeyEvent, jfxi.KeyEvent](d.onKeyTypedProperty(), new sfxi.KeyEvent(_))
+
+  def keyTyped_=(f: sfxi.KeyEvent => Any): Unit = keyTyped.replace(f)
 }

@@ -1,5 +1,11 @@
 .view {
     -fx-background-color: #F8F8FF;
+    -fx-border-color: black;
+    -fx-border-width: 1px;
+}
+
+.focused {
+    -fx-background-color: #FCFCFF;
     -fx-border-color: blue;
     -fx-border-width: 1px;
 }

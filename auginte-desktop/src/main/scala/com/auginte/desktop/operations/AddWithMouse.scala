@@ -17,18 +17,8 @@ import com.auginte.desktop.rich.RichNode
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait AddWithMouse[D <: jfxs.Node] extends RichNode[D] {
-  def content: jfxc.ObservableList[jfxs.Node]
-
+trait AddWithMouse[D <: jfxs.Node] extends RichNode[D] with InsertingElements[D] {
   mouseClicked += {
     (e: MouseEvent) => if (e.clickCount > 1) insertElement(createNewElement, e.x, e.y)
-  }
-
-  protected def createNewElement: jfxs.Node = new Label()
-
-  protected def insertElement(element: jfxs.Node, x: Double, y: Double): Unit = {
-    element.setTranslateX(x)
-    element.setTranslateY(y)
-    content.add(element)
   }
 }

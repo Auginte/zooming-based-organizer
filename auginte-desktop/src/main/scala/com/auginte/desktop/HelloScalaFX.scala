@@ -42,7 +42,7 @@ object HelloScalaFX extends JFXApp {
   }
   view1.stylesheets add "css/view.css"
   view1.stylesheets add "css/controls.css"
-  view1.styleClass.add("view")
+  view1.getStyleClass.add("view")
 
   val exitButton = new Button("Exit") {
     onAction = (e: ActionEvent) => quit()

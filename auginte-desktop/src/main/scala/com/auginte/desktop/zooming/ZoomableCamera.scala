@@ -91,7 +91,7 @@ with ZoomableElement {
       debug(s"optimised = grid.validateCamera(c, t)")
       debug(s"c = optimised._1")
       debug(s"t = optimised._2")
-      debugAbsoluteToCachedCoordinates(node, transformation, optimized._1, optimized._2)
+      if (DebugZoomable.on) debugAbsoluteToCachedCoordinates(node, transformation, optimized._1, optimized._2)
       node = optimized._1
       transformation = optimized._2
     }
