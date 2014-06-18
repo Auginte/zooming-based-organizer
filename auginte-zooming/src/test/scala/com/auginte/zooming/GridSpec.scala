@@ -51,7 +51,7 @@ class GridSpec extends UnitSpec {
         assertResult(("3456", "1", "100")) {
           standardGrid().absoluteTextual(r1, r2)
         }
-        assertResult(("0", "0", "1")) {
+        assertResult(("56", "1", "1")) {
           standardGrid().absoluteTextual(r1, r1)
         }
         assertResult(Distance(123456, 90001, 10000)) {
@@ -63,7 +63,7 @@ class GridSpec extends UnitSpec {
         assertResult(Distance(3456, 1, 100)) {
           standardGrid().absoluteChildParent(r1, r2)
         }
-        assertResult(Distance(0, 0, 1)) {
+        assertResult(Distance(56, 1, 1)) {
           standardGrid().absoluteChildParent(r1, r1)
         }
         intercept[IllegalArgumentException] {
@@ -627,9 +627,6 @@ class GridSpec extends UnitSpec {
         val i1 = Distance(100, 100, 1)
         val gWithoutScale = Distance(i1.x + td1.x, i1.y + td1.y, i1.scale )
         val g1 = Distance((i1.x + td1.x) * td1.scale, (i1.y + td1.y) * td1.scale, i1.scale * td1.scale) // G_p = (E_p + C_p) * C_s
-        //FIXME:
-        println(s"g1=$g1")
-        println(s"gWithoutScale=$gWithoutScale")
         assertDistance(g1, grid.absolute(c1, t1, c1, i1), precision) // From same point
 
         val n1 = grid.getNode(c1, i1)
@@ -644,13 +641,7 @@ class GridSpec extends UnitSpec {
 //        assert(c1 isChildOf c2)
         val t2 = grid.absoluteCamera(c1, c2, t1)
 //        assert(Distance(81.18769657879855, 88.94730346325152, 1.0117921587238028).asCameraNode === t2)
-        //FIXME:
-        println(grid.root.hierarchyAsString())
-        Debug.on = true
         val gg = grid.absolute(c2, t2, n1, a1)
-        //FIXME:
-        println("_________________________________________________________________")
-        Debug.on = false
         assertDistance(g1, gg, precision) // Camera in other node
       }
       "invariant gui, but optimise camera absolute, when camera zoomed" in {
@@ -682,53 +673,225 @@ class GridSpec extends UnitSpec {
         val gg = grid.absolute(c2, t2, n1, a1)
         assertDistance(g1, gg, precision) // Camera in other node
       }
-      "invariant gui, but optimise camera absolute, when upper level camera translated" in {
-        // c - camera's node, t - camera's absolute
-        // n - element's node, a - element's absolute
-        // i - element's initial absolute,  g - coordinates in GUI
-        //  .____
-        //  |    \
-        //  c2--->c2_2
-        //  |
-        //  c1,n1
+//      "invariant gui, but optimise camera absolute, when upper level camera translated" ignore {
+//        // c - camera's node, t - camera's absolute
+//        // n - element's node, a - element's absolute
+//        // i - element's initial absolute,  g - coordinates in GUI
+//        //  .____
+//        //  |    \
+//        //  c2--->c2_2
+//        //  |
+//        //  c1,n1
+//        val (c1, grid) = rootGridPair()
+//        val t1 = Distance(76.55955449023968, 86.31689204151021, 101.24249243014931)
+//        val i1 = Distance(105.0, 106.0, 1.0)
+//        val n1 = grid.getNode(c1, i1) // [{3}: 1x1 of 2]
+//        val a1 = grid.absoluteNew(c1, n1, i1)
+//        val g1 = Distance(2879.3815892319835, 1992.7669084892138, 101.24249243014931)
+//        assertDistance(g1, grid.absolute(c1, t1, n1, a1), precision)
+//        val i2 = Distance(82.80577735327356, 89.22307713283807, 0.011175230732997038)
+//        val n2 = grid.getNode(c1, i2) // [{1}: 0x0 of 2]
+//        val a2 = grid.absoluteNew(c1, n2, i2)
+//        val g2 = Distance(632.383170927733, 294.2294221093733, 1.1314082128906244)
+//        assertDistance(g2, grid.absolute(c1, t1, n2, a2), precision)
+//
+//        val c2 = grid.getCameraNode(c1, t1) // [{1}: 0x0 of 2] -> [{2}: 0x0 of ø]
+//        val t2 = grid.absoluteCamera(c1, c2, t1)
+//        assert(c1 !== c2)
+//        assert(t1 !== t2)
+//        assertDistance(g1, grid.absolute(c2, t2, n1, a1), precision)
+//        assertDistance(g2, grid.absolute(c2, t2, n2, a2), precision)
+//
+//        val g1_2 = Distance(342.58778218686695,737.0882332314784,106.36789360942561)
+//        val g2_2 = Distance(-2018.164931044036,-1047.4377133963412,1.1886857536682123)
+//        val t1_2 = Distance(-101.77921814034579,-99.07038798814605,1.063678936094256)
+//        val c1_2 = c2
+//        assertDistance(g1_2, grid.absolute(c1_2, t1_2, n1, a1), precision)
+//        assertDistance(g1_2, grid.absolute(c1_2, t1_2, n1, a1), precision)
+//
+//        val c2_2 = grid.getCameraNode(c1_2, t1_2) // [{2}: 0x0 of 4] -> [{5}: 1x0 of 4]
+//        val t2_2 = grid.absoluteCamera(c1_2, c2_2, t1_2)
+//        assert(c1_2 !== c2_2)
+//        assert(t1_2 !== t2_2)
+////        Debug.on = true
+////        println(s"${grid.root.hierarchyAsString()}")
+//        val g1_2_a = grid.absolute(c2_2, t2_2, n1, a1)
+////        Debug.on = false
+//        val g2_2_a = grid.absolute(c2_2, t2_2, n2, a2)
+//        assertDistance(g1_2, g1_2_a, precision)
+//        assertDistance(g2_2, g2_2_a, precision)
+//      }
+    }
+    "debuging invariants" should {
+      "tes1" in {
         val (c1, grid) = rootGridPair()
-        val t1 = Distance(76.55955449023968, 86.31689204151021, 101.24249243014931)
-        val i1 = Distance(105.0, 106.0, 1.0)
-        val n1 = grid.getNode(c1, i1) // [{3}: 1x1 of 2]
-        val a1 = grid.absoluteNew(c1, n1, i1)
-        val g1 = Distance(2879.3815892319835, 1992.7669084892138, 101.24249243014931)
-        assertDistance(g1, grid.absolute(c1, t1, n1, a1), precision)
-        val i2 = Distance(82.80577735327356, 89.22307713283807, 0.011175230732997038)
-        val n2 = grid.getNode(c1, i2) // [{1}: 0x0 of 2]
-        val a2 = grid.absoluteNew(c1, n2, i2)
-        val g2 = Distance(632.383170927733, 294.2294221093733, 1.1314082128906244)
-        assertDistance(g2, grid.absolute(c1, t1, n2, a2), precision)
+        var g: Distance = Distance()
+        var c = c1
+        var t = Distance()
+        var pair = (c1, Distance())
+        var optimised = (c1, Distance())
 
-        val c2 = grid.getCameraNode(c1, t1) // [{1}: 0x0 of 2] -> [{2}: 0x0 of ø]
-        val t2 = grid.absoluteCamera(c1, c2, t1)
-        assert(c1 !== c2)
-        assert(t1 !== t2)
-        assertDistance(g1, grid.absolute(c2, t2, n1, a1), precision)
-        assertDistance(g2, grid.absolute(c2, t2, n2, a2), precision)
-
-        val g1_2 = Distance(342.58778218686695,737.0882332314784,106.36789360942561)
-        val g2_2 = Distance(-2018.164931044036,-1047.4377133963412,1.1886857536682123)
-        val t1_2 = Distance(-101.77921814034579,-99.07038798814605,1.063678936094256)
-        val c1_2 = c2
-        assertDistance(g1_2, grid.absolute(c1_2, t1_2, n1, a1), precision)
-        assertDistance(g1_2, grid.absolute(c1_2, t1_2, n1, a1), precision)
-
-        val c2_2 = grid.getCameraNode(c1_2, t1_2) // [{2}: 0x0 of 4] -> [{5}: 1x0 of 4]
-        val t2_2 = grid.absoluteCamera(c1_2, c2_2, t1_2)
-        assert(c1_2 !== c2_2)
-        assert(t1_2 !== t2_2)
-//        Debug.on = true
-//        println(s"${grid.root.hierarchyAsString()}")
-        val g1_2_a = grid.absolute(c2_2, t2_2, n1, a1)
-//        Debug.on = false
-        val g2_2_a = grid.absolute(c2_2, t2_2, n2, a2)
-        assertDistance(g1_2, g1_2_a, precision)
-        assertDistance(g2_2, g2_2_a, precision)
+        pair = grid.newElement(c, t, 214.0, 188.0)
+        val (n1, a1) = pair
+        t = grid.zoomCamera(Distance(0.0,0.0,1.0), 1.25, 241.0, 226.0)
+        t = grid.zoomCamera(Distance(-48.19999999999999,-45.19999999999999,1.25), 1.25, 241.0, 226.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{1}: 0x0 of 2] Distance(-108.44999999999999,-101.69999999999999,1.5625) --> [{4}: -1x-1 of 2] Distance(-8.449999999999989,-1.6999999999999886,1.5625)
+        assertDistance(Distance(206.368,185.408,0.64), grid.absolute(c, t, n1, a1), precision)
+        t = grid.zoomCamera(Distance(-8.449999999999989,-1.6999999999999886,1.5625), 1.25, 241.0, 226.0)
+        t = grid.zoomCamera(Distance(-83.76249999999999,-72.32499999999999,1.953125), 1.25, 241.0, 226.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{4}: -1x-1 of 2] Distance(-177.90312500000005,-160.60625000000005,2.44140625) --> [{5}: -2x-2 of 2] Distance(-77.90312500000005,-60.606250000000045,2.44140625)
+        assertDistance(Distance(201.48352000000003,183.74912,0.4096), grid.absolute(c, t, n1, a1), precision)
+        t = grid.zoomCamera(Distance(-77.90312500000005,-60.606250000000045,2.44140625), 1.25, 241.0, 226.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{5}: -2x-2 of 2] Distance(-195.57890625000005,-170.95781250000005,3.0517578125) --> [{6}: -3x-3 of 2] Distance(-95.57890625000006,-70.95781250000006,3.0517578125)
+        assertDistance(Distance(199.74681600000002,183.159296,0.32768), grid.absolute(c, t, n1, a1), precision)
+        t = grid.zoomCamera(Distance(-95.57890625000006,-70.95781250000006,3.0517578125), 1.25, 241.0, 226.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{6}: -3x-3 of 2] Distance(-242.67363281250005,-208.89726562500005,3.814697265625) --> [{7}: -5x-5 of 2] Distance(-42.67363281250002,-8.897265625000017,3.814697265625)
+        assertDistance(Distance(198.3574528,182.6874368,0.262144), grid.absolute(c, t, n1, a1), precision)
+        t = grid.zoomCamera(Distance(-42.67363281250002,-8.897265625000017,3.814697265625), 1.25, 239.0, 223.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{7}: -5x-5 of 2] Distance(-225.01616210937505,-179.03276367187505,4.76837158203125) --> [{8}: -7x-6 of 2] Distance(-25.016162109375017,-79.0327636718751,4.76837158203125)
+        assertDistance(Distance(196.92596224000005,181.82994944,0.2097152), grid.absolute(c, t, n1, a1), precision)
+        pair = grid.newElement(c, t, 252.0, 222.0)
+        val (n2, a2) = pair
+        t = grid.zoomCamera(Distance(-25.016162109375017,-79.0327636718751,4.76837158203125), 1.25, 218.0, 238.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{8}: -7x-6 of 2] Distance(-232.91716308593755,-306.00725097656255,5.9604644775390625) --> [{10}: -9x-9 of 2] Distance(-32.91716308593766,-6.0072509765625455,5.9604644775390625)
+        assertDistance(Distance(192.42076979200004,183.54395955199996,0.16777216), grid.absolute(c, t, n1, a1), precision)
+        // [{8}: -7x-6 of 2] Distance(-232.91716308593755,-306.00725097656255,5.9604644775390625) --> [{10}: -9x-9 of 2] Distance(-32.91716308593766,-6.0072509765625455,5.9604644775390625)
+        assertDistance(Distance(236.48,215.68,0.8), grid.absolute(c, t, n2, a2), precision)
+        t = grid.zoomCamera(Distance(-32.91716308593766,-6.0072509765625455,5.9604644775390625), 1.25, 218.0, 238.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{10}: -9x-9 of 2] Distance(-292.7934143066409,-289.7253601074219,7.450580596923828) --> [{11}: -11x-11 of 2] Distance(-92.79341430664087,-89.72536010742189,7.450580596923828)
+        assertDistance(Distance(188.81661583360003,184.9151676416,0.134217728), grid.absolute(c, t, n1, a1), precision)
+        // [{10}: -9x-9 of 2] Distance(-292.7934143066409,-289.7253601074219,7.450580596923828) --> [{11}: -11x-11 of 2] Distance(-92.79341430664087,-89.72536010742189,7.450580596923828)
+        assertDistance(Distance(224.064,210.624,0.64), grid.absolute(c, t, n2, a2), precision)
+        t = grid.zoomCamera(Distance(-92.79341430664087,-89.72536010742189,7.450580596923828), 1.25, 218.0, 238.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{11}: -11x-11 of 2] Distance(-417.6387283325198,-444.37299652099614,9.313225746154785) --> [{12}: -15x-15 of 2] Distance(-17.63872833251986,-44.372996520996196,9.313225746154785)
+        assertDistance(Distance(185.93329266688002,186.01213411328,0.1073741824), grid.absolute(c, t, n1, a1), precision)
+        // [{11}: -11x-11 of 2] Distance(-417.6387283325198,-444.37299652099614,9.313225746154785) --> [{12}: -15x-15 of 2] Distance(-17.63872833251986,-44.372996520996196,9.313225746154785)
+        assertDistance(Distance(214.1312,206.57920000000001,0.512), grid.absolute(c, t, n2, a2), precision)
+        t = grid.zoomCamera(Distance(-17.63872833251986,-44.372996520996196,9.313225746154785), 1.25, 218.0, 238.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{12}: -15x-15 of 2] Distance(-423.69537086486844,-487.68254203796414,11.641532182693481) --> [{13}: -19x-19 of 2] Distance(-23.69537086486838,-87.68254203796408,11.641532182693481)
+        assertDistance(Distance(183.62663413350398,186.88970729062402,0.08589934592), grid.absolute(c, t, n1, a1), precision)
+        // [{12}: -15x-15 of 2] Distance(-423.69537086486844,-487.68254203796414,11.641532182693481) --> [{13}: -19x-19 of 2] Distance(-23.69537086486838,-87.68254203796408,11.641532182693481)
+        assertDistance(Distance(206.18496,203.34336,0.4096), grid.absolute(c, t, n2, a2), precision)
+        t = grid.zoomCamera(Distance(-23.69537086486838,-87.68254203796408,11.641532182693481), 1.25, 218.0, 238.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{13}: -19x-19 of 2] Distance(-531.2661740303042,-641.8194739341739,14.551915228366852) --> [{14}: -24x-25 of 2] Distance(-31.26617403030434,-41.81947393417386,14.551915228366852)
+        assertDistance(Distance(181.78130730680323,187.59176583249922,0.068719476736), grid.absolute(c, t, n1, a1), precision)
+        // [{13}: -19x-19 of 2] Distance(-531.2661740303042,-641.8194739341739,14.551915228366852) --> [{14}: -24x-25 of 2] Distance(-31.26617403030434,-41.81947393417386,14.551915228366852)
+        assertDistance(Distance(199.827968,200.75468800000004,0.32768), grid.absolute(c, t, n2, a2), precision)
+        t = grid.zoomCamera(Distance(-31.26617403030434,-41.81947393417386,14.551915228366852), 1.25, 218.0, 237.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{14}: -24x-25 of 2] Distance(-665.729677987099,-731.5802557587626,18.189894035458565) --> [{15}: -30x-32 of 2] Distance(-65.72967798709897,-31.58025575876252,18.189894035458565)
+        assertDistance(Distance(180.30504584544258,187.9934126659994,0.0549755813888), grid.absolute(c, t, n1, a1), precision)
+        // [{14}: -24x-25 of 2] Distance(-665.729677987099,-731.5802557587626,18.189894035458565) --> [{15}: -30x-32 of 2] Distance(-65.72967798709897,-31.58025575876252,18.189894035458565)
+        assertDistance(Distance(194.7423744,198.5237504,0.262144), grid.absolute(c, t, n2, a2), precision)
+        t = grid.zoomCamera(Distance(-65.72967798709897,-31.58025575876252,18.189894035458565), 1.25, 218.0, 237.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{15}: -30x-32 of 2] Distance(-858.8090579330924,-893.7812330394981,22.737367544323206) --> [{16}: -38x-40 of 2] Distance(-58.80905793309228,-93.78123303949803,22.737367544323206)
+        assertDistance(Distance(179.12403667635405,188.31473013279947,0.04398046511104), grid.absolute(c, t, n1, a1), precision)
+        // [{15}: -30x-32 of 2] Distance(-858.8090579330924,-893.7812330394981,22.737367544323206) --> [{16}: -38x-40 of 2] Distance(-58.80905793309228,-93.78123303949803,22.737367544323206)
+        assertDistance(Distance(190.67389952,196.73900032,0.2097152), grid.absolute(c, t, n2, a2), precision)
+        t = grid.zoomCamera(Distance(-58.80905793309228,-93.78123303949803,22.737367544323206), 1.25, 212.0, 226.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{16}: -38x-40 of 2] Distance(-1022.8734418123959,-1121.510246042907,28.421709430404007) --> [{17}: -48x-51 of 2] Distance(-22.873441812396095,-21.510246042907283,28.421709430404007)
+        assertDistance(Distance(177.21922934108323,186.81178410623957,0.035184372088832), grid.absolute(c, t, n1, a1), precision)
+        // [{16}: -38x-40 of 2] Distance(-1022.8734418123959,-1121.510246042907,28.421709430404007) --> [{17}: -48x-51 of 2] Distance(-22.873441812396095,-21.510246042907283,28.421709430404007)
+        assertDistance(Distance(186.45911961599998,193.55120025600004,0.16777216), grid.absolute(c, t, n2, a2), precision)
+        pair = grid.newElement(c, t, 145.0, 178.0)
+        val (n3, a3) = pair
+        t = grid.zoomCamera(Distance(-22.873441812396095,-21.510246042907283,28.421709430404007), 1.25, 176.0, 204.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{17}: -48x-51 of 2] Distance(-1023.3176137626169,-1181.1159908033906,35.52713678800501) --> [{19}: -58x-62 of 2] Distance(-23.317613762617157,-81.11599080339079,35.52713678800501)
+        assertDistance(Distance(169.9353834728666,182.08942728499167,0.0281474976710656), grid.absolute(c, t, n1, a1), precision)
+        // [{17}: -48x-51 of 2] Distance(-1023.3176137626169,-1181.1159908033906,35.52713678800501) --> [{19}: -58x-62 of 2] Distance(-23.317613762617157,-81.11599080339079,35.52713678800501)
+        assertDistance(Distance(177.32729569279996,187.4809602048,0.134217728), grid.absolute(c, t, n2, a2), precision)
+        // [{17}: -48x-51 of 2] Distance(-1023.3176137626169,-1181.1159908033906,35.52713678800501) --> [{19}: -58x-62 of 2] Distance(-23.317613762617157,-81.11599080339079,35.52713678800501)
+        assertDistance(Distance(144.16,175.04,0.8), grid.absolute(c, t, n3, a3), precision)
+        t = grid.zoomCamera(Distance(-23.317613762617157,-81.11599080339079,35.52713678800501), 1.25, 178.0, 205.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{19}: -58x-62 of 2] Distance(-1288.0836834155953,-1537.728599111596,44.40892098500626) --> [{20}: -70x-77 of 2] Distance(-88.08368341559526,-37.72859911159571,44.40892098500626)
+        assertDistance(Distance(164.42830677829326,178.47154182799332,0.02251799813685248), grid.absolute(c, t, n1, a1), precision)
+        // [{19}: -58x-62 of 2] Distance(-1288.0836834155953,-1537.728599111596,44.40892098500626) --> [{20}: -70x-77 of 2] Distance(-88.08368341559526,-37.72859911159571,44.40892098500626)
+        assertDistance(Distance(170.34183655424,182.78476816384,0.1073741824), grid.absolute(c, t, n2, a2), precision)
+        // [{19}: -58x-62 of 2] Distance(-1288.0836834155953,-1537.728599111596,44.40892098500626) --> [{20}: -70x-77 of 2] Distance(-88.08368341559526,-37.72859911159571,44.40892098500626)
+        assertDistance(Distance(143.808,172.832,0.64), grid.absolute(c, t, n3, a3), precision)
+        t = grid.zoomCamera(Distance(-88.08368341559526,-37.72859911159571,44.40892098500626), 1.25, 179.0, 206.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{20}: -70x-77 of 2] Distance(-1677.9230546788194,-1867.376143693853,55.51115123125783) --> [{21}: -86x-95 of 2] Distance(-77.9230546788192,-67.37614369385369,55.51115123125783)
+        assertDistance(Distance(160.18264542263464,175.73723346239464,0.018014398509481985), grid.absolute(c, t, n1, a1), precision)
+        // [{20}: -70x-77 of 2] Distance(-1677.9230546788194,-1867.376143693853,55.51115123125783) --> [{21}: -86x-95 of 2] Distance(-77.9230546788192,-67.37614369385369,55.51115123125783)
+        assertDistance(Distance(164.913469243392,179.187814531072,0.08589934592), grid.absolute(c, t, n2, a2), precision)
+        // [{20}: -70x-77 of 2] Distance(-1677.9230546788194,-1867.376143693853,55.51115123125783) --> [{21}: -86x-95 of 2] Distance(-77.9230546788192,-67.37614369385369,55.51115123125783)
+        assertDistance(Distance(143.68640000000002,171.2256,0.512), grid.absolute(c, t, n3, a3), precision)
+        t = grid.zoomCamera(Distance(-77.9230546788192,-67.37614369385369,55.51115123125783), 1.25, 179.0, 206.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{21}: -86x-95 of 2] Distance(-2065.2222687578487,-2354.4355744216755,69.38893903907228) --> [{24}: -6x-18 of 23] Distance(-65.22226875784872,-54.43557442167548,69.38893903907228)
+        assertDistance(Distance(156.7861163381077,173.54978676991573,0.014411518807585587), grid.absolute(c, t, n1, a1), precision)
+        // [{21}: -86x-95 of 2] Distance(-2065.2222687578487,-2354.4355744216755,69.38893903907228) --> [{24}: -6x-18 of 23] Distance(-65.22226875784872,-54.43557442167548,69.38893903907228)
+        assertDistance(Distance(160.57077539471356,176.31025162485759,0.068719476736), grid.absolute(c, t, n2, a2), precision)
+        // [{21}: -86x-95 of 2] Distance(-2065.2222687578487,-2354.4355744216755,69.38893903907228) --> [{24}: -6x-18 of 23] Distance(-65.22226875784872,-54.43557442167548,69.38893903907228)
+        assertDistance(Distance(143.58912,169.94047999999998,0.4096), grid.absolute(c, t, n3, a3), precision)
+        t = grid.zoomCamera(Distance(-65.22226875784872,-54.43557442167548,69.38893903907228), 1.25, 179.0, 206.0)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        // [{24}: -6x-18 of 23] Distance(-2549.3462863566365,-2913.2598628314536,86.73617379884035) --> [{25}: -31x-47 of 23] Distance(-49.34628635663648,-13.25986283145312,86.73617379884035)
+        assertDistance(Distance(154.06889307048615,171.79982941593258,0.011529215046068469), grid.absolute(c, t, n1, a1), precision)
+        // [{24}: -6x-18 of 23] Distance(-2549.3462863566365,-2913.2598628314536,86.73617379884035) --> [{25}: -31x-47 of 23] Distance(-49.34628635663648,-13.25986283145312,86.73617379884035)
+        assertDistance(Distance(157.09662031577085,174.00820129988605,0.0549755813888), grid.absolute(c, t, n2, a2), precision)
+        // [{24}: -6x-18 of 23] Distance(-2549.3462863566365,-2913.2598628314536,86.73617379884035) --> [{25}: -31x-47 of 23] Distance(-49.34628635663648,-13.25986283145312,86.73617379884035)
+        assertDistance(Distance(143.511296,168.91238399999997,0.32768), grid.absolute(c, t, n3, a3), precision)
+        t = grid.zoomCamera(Distance(-49.34628635663648,-13.25986283145312,86.73617379884035), 1.25, 179.0, 206.0)
+        val (c2, t2) = (c, t)
+        optimised = grid.validateCamera(c, t)
+        c = optimised._1
+        t = optimised._2
+        val (c3, t3) = (c, t)
+        val g1 = grid.absolute(c2, t2, n1, a1)
+        val g2 = grid.absolute(c3, t3, n1, a1)
+        assertDistance(g1, g2, precision)
       }
     }
     "calculating absolute position in infinity zooming" should {
@@ -855,7 +1018,7 @@ class GridSpec extends UnitSpec {
     case Some(t) => assert(expected.x > actual.x - t && expected.x < actual.x + t &&
       expected.y > actual.y - t && expected.y < actual.y + t &&
       expected.scale > actual.scale - t && expected.scale < actual.scale + t,
-      s"Expeced ${expected} +- ${t}, but actual ${actual}\n")
+      s"Expeced ${expected} +- ${t}, but actual ${actual}\t${getErrorPosition}\n")
     case None => assert(expected === actual, s"Expeced ${expected}, but actual ${actual}\n")
   }
 
@@ -901,6 +1064,16 @@ class GridSpec extends UnitSpec {
     override def toString = "Invalid node"
 
     override def equals(obj: scala.Any): Boolean = false
+  }
+
+  private def getErrorPosition(): String = {
+    try {
+      val stack = Thread.currentThread().getStackTrace()
+      val element = stack(3)
+      s"(${element.getFileName}:${element.getLineNumber}})\t"
+    } catch {
+      case e: Exception => "Stack trace went wrong"
+    }
   }
 
   private val precision = Some(1E-7)

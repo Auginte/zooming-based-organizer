@@ -56,6 +56,7 @@ import scala.Some
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 abstract class Grid extends Debugable {
+  NodeDebug.resetId()
   private var _root = new Node(0, 0)
 
   /**
@@ -90,10 +91,13 @@ abstract class Grid extends Debugable {
    *   from----> \_r1(56, 1)
    * }}}
    *
+   * Includes upper node coordinates. For same nodes, returns upper node coordinates.
+   *
    * @throws IllegalArgumentException When there are no child-parent relation
    * @see [[absoluteChildParent]]
    */
-  def absoluteTextual(child: Node, parent: Node): TextualCoordinates = if (child == parent) ("0", "0", "1")
+  def absoluteTextual(child: Node, parent: Node): TextualCoordinates =
+    if (child == parent) (parent.x + "", parent.y + "", "1")
   else {
     require(child.isChildOf(parent), s"Not parent-child: $parent $child")
     d(s"getCoordinates $parent - $child")
@@ -140,10 +144,14 @@ abstract class Grid extends Debugable {
    *   |     \_r2(34, 0)
    *   from----> \_r1(56, 1)
    * }}}
+   *
+   * Includes upper node coordinates. For same nodes, returns upper node coordinates.
+   *
    * @throws IllegalArgumentException When there are no child-parent relation
    * @see [[absoluteTextual]]
    */
-  private[zooming] def absoluteChildParent(child: Node, parent: Node): Distance = if (child == parent) Distance(0, 0, 1)
+  private[zooming] def absoluteChildParent(child: Node, parent: Node): Distance =
+    if (child == parent) Distance(parent.x, parent.y, 1)
   else {
     require(child.isChildOf(parent), s"Not parent-child: $parent - $child")
     @inline
@@ -235,8 +243,6 @@ abstract class Grid extends Debugable {
    */
   def absoluteNew(from: Node, to: Node, absoluteFirst: Distance): Distance = {
     val between = absoluteBetweenFirst(from, to)
-    //FIXME:
-    println(s"[ANEW] between.scale=${between.scale} \t | $from -> $to")
     d(s"NEW IN $from -> $to | $absoluteFirst")
     val absoluteAtFirst = absoluteFirst / between.scale
     d(s"NEW between=$between")
@@ -247,7 +253,9 @@ abstract class Grid extends Debugable {
   }
 
   /**
-   * Calculating new location, if camera node should be optimised
+   * Calculating new location, if camera node should be optimised.
+   *
+   * @return absolute from second node perspective
    * @see [[getCameraNode]]
    */
   def absoluteCamera(from: Node, to: Node, absoluteFrom: Distance): Distance = {
@@ -306,7 +314,10 @@ abstract class Grid extends Debugable {
   /**
    * Optimised node for camera
    */
-  def getCameraNode(camera: Node, x: Double, y: Double, scale: Double): Node = getNode(camera, x, y, scale)
+  def getCameraNode(camera: Node, x: Double, y: Double, scale: Double): Node = {
+    d(s"Get camera node IN: $camera ($x, $y, $scale)")
+    getNode(camera, x, y, scale)
+  }
 
   /**
    * Delegating to [[getNode]]
@@ -521,6 +532,40 @@ abstract class Grid extends Debugable {
       }
     }
 
+
+  //
+  // Transformations
+  //
+
+  def zoomCamera(cameraPosition: Distance, amount: Double, guiX: Double, guiY: Double): Distance =
+  {
+    val newScale = cameraPosition.scale / amount
+    val zoomCenterBefore = Distance(guiX * cameraPosition.scale, guiY * cameraPosition.scale, 1)
+    val zoomCenterAfter = Distance(guiX * newScale, guiY * newScale, 1)
+    (cameraPosition - zoomCenterBefore + zoomCenterAfter).zoomed(amount)
+  }
+
+  def translateCamera(transformation: Distance, diffX: Double, diffY: Double): Distance = {
+    transformation.translated(diffX * transformation.scale, diffY * transformation.scale)
+  }
+
+  def translateElement(transformation: Distance, diffX: Double, diffY: Double, camera: Distance): Distance = {
+    transformation.translated(diffX * camera.scale, diffY * camera.scale)
+  }
+
+  def newElement(camera: Node, cameraPosition: Distance, guiX: Double, guiY: Double): (Node, Distance) = {
+    val absolute = absoluteNew(cameraPosition, guiX, guiY)
+    val optimisedNode = getNode(camera, absolute)
+    val optimisedAbsolute = absoluteNew(camera, optimisedNode, absolute)
+    (optimisedNode, optimisedAbsolute)
+  }
+
+  def validateCamera(camera: Node, transformation: Distance): (Node, Distance) =
+  {
+    val newNode = getCameraNode(camera, transformation)
+    if (newNode == camera) (camera, transformation)
+    else (newNode, absoluteCamera(camera, newNode, transformation))
+  }
 
   //
   // Utilities

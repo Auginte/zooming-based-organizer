@@ -25,6 +25,11 @@ trait ZoomableElement extends UsingGrid {
    */
   def translate(x: Double, y: Double): Distance = {
     transformation = t.translated(t.x + x, t.y + y)
+    val elementVar = "n" + debugId
+    println(s"$elementVar.transformation = $elementVar.transformation.translated($elementVar.transformation.x + $x, $elementVar.transformation.y + $y)")
     transformation
   }
+
+  //FIXME:
+  val debugId: String = "-1"
 }

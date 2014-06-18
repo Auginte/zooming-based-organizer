@@ -13,7 +13,7 @@ import javafx.beans.property.StringProperty
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class RichJTextArea extends jfxc.TextArea with RichNode[jfxc.TextArea] {
-  protected val d = this
+  protected[desktop] val d = this
 
   def prefWidth = getPrefWidth()
 

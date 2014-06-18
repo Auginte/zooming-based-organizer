@@ -24,7 +24,7 @@ trait AddWithMouse[D <: jfxs.Node] extends RichNode[D] {
     (e: MouseEvent) => if (e.clickCount > 1) insertElement(createNewElement, e.x, e.y)
   }
 
-  protected def createNewElement: jfxs.Node = new Label(Label.getId())
+  protected def createNewElement: jfxs.Node = new Label()
 
   protected def insertElement(element: jfxs.Node, x: Double, y: Double): Unit = {
     element.setTranslateX(x)

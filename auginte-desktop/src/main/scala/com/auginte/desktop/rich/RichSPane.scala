@@ -12,5 +12,5 @@ import javafx.{scene => jfxs}
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class RichSPane extends sfxl.Pane with RichNodeGeneralEvents[jfxl.Pane] {
-  protected val d = delegate
+  protected[desktop] val d = delegate
 }

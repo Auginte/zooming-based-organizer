@@ -13,7 +13,7 @@ trait MouseZoom[D <: jfxs.Node] extends RichNode[D] {
 
   scrolled += ((e: ScrollEvent) => zoomed(delta2scale(e.deltaY), e.x, e.y))
 
-  @inline
+  @inline //FIXME:
   private def delta2scale(delta: Double) = 1 + (1 / delta)
 
   protected def zoomed(scale: Double, x: Double, y: Double)

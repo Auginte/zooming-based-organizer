@@ -31,6 +31,11 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
   updateSize(_text)
   updateStyle(editMode)
 
+  // Debug
+  override val debugId = _text
+  def this() = this(Label.getId)
+
+
   //
   // Listeners
   //
@@ -141,6 +146,6 @@ object Label {
 
   def getId(): String = {
     id += 1
-    s"|${id}|"
+    s"${id}"
   }
 }

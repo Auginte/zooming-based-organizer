@@ -97,6 +97,8 @@ object Node {
 object NodeDebug {
   private var i = 0;
 
+  def resetId(): Unit = i = 0
+
   def getId() = {
     i += 1
     i

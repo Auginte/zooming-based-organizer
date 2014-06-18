@@ -1,35 +1,46 @@
 package com.auginte.desktop.zooming
 
-import javafx.scene.{layout => jfxl}
-import com.auginte.desktop.rich.RichNode
-import javafx.{scene => jfxs}
-import javafx.scene.{Node => jn}
-import scala.collection.JavaConversions._
-import com.auginte.zooming.{Node, Distance}
 import javafx.scene.control.TableView
-import scalafx.Includes._
+import javafx.scene.{Node => jn, layout => jfxl}
+import javafx.{scene => jfxs}
+
 import com.auginte.desktop.nodes.MapRow
+import com.auginte.desktop.rich.RichNode
+import com.auginte.zooming.{Distance, Node}
+
+import scalafx.Includes._
 
 /**
  * Zooming related functionality for containers.
  *
- * @see [[com.auginte.zooming.Grid.absolute()]]
+ * @see [[com.auginte.zooming.Grid.absolute( )]]
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait ZoomableCamera[D <: jfxl.Pane] extends RichNode[D]
 with ZoomableElement {
 
-  val maxVisibleSize = 1E10
+  val maxVisibleSize = 1E5
   val minVisibleSize = 0.5
 
   //FIXME: debug
   var mapTable: Option[TableView[MapRow]] = None
 
+  //FIXME:
+  println(
+    """
+      |val (c1, grid) = rootGridPair()
+      |var g: Distance = Distance()
+      |var c = c1
+      |var t = Distance()
+      |var pair = (c1, Distance())
+      |var optimised = (c1, Distance())
+    """.stripMargin)
+
   /**
    * For every child, converts infinity zooming coordinates to GUI ones
    */
   protected def absoluteToCachedCoordinates(): Unit = for (element <- d.getChildren) element match {
-    case e: ZoomableNode[D]  => {
+    case e: ZoomableNode[D] => {
       val absolute = grid.absolute(node, transformation, e.node, e.transformation)
       e.setTranslateX(absolute.x)
       e.setTranslateY(absolute.y)
@@ -44,18 +55,18 @@ with ZoomableElement {
   }
 
   protected def debugHierarchy(): Unit = {
-    var map:Grid#GridMap = Map()
-    for (element <- d.getChildren) element match {
-      case e: ZoomableNode[jn] => {
-        val elementNode: Node = grid.getNode(node, e.t.x + t.x, e.t.y + t.y, e.t.scale * t.scale)
-        map = map ++ Map(e.d -> elementNode)
-        map.values
-      }
-      case _ => Unit
-    }
-    if (mapTable.isDefined) {
-      mapTable.get.setItems(MapRow.fromMap(map))
-    }
+//    var map: Grid#GridMap = Map()
+//    for (element <- d.getChildren) element match {
+//      case e: ZoomableNode[jn] => {
+//        val elementNode: Node = grid.getNode(node, e.t.x + t.x, e.t.y + t.y, e.t.scale * t.scale)
+//        map = map ++ Map(e.d -> elementNode)
+//        map.values
+//      }
+//      case _ => Unit
+//    }
+//    if (mapTable.isDefined) {
+//      mapTable.get.setItems(MapRow.fromMap(map))
+//    }
   }
 
   /**
@@ -67,33 +78,49 @@ with ZoomableElement {
    * @return updated coordinates
    */
   def zoom(amount: Double, x: Double = 0, y: Double): Distance = {
-    val newScale = t.scale / amount
-    val zoomCenterBefore = Distance(x * t.scale, y * t.scale, 1)
-    val zoomCenterAfter = Distance(x * newScale, y * newScale, 1)
-    transformation = (transformation - zoomCenterBefore + zoomCenterAfter).zoomed(amount)
+    println(s"t = grid.zoomCamera($transformation, $amount, $x, $y)")
+    transformation = grid.zoomCamera(transformation, amount, x, y)
     validateCameraNode()
     transformation
   }
 
   private def validateCameraNode(): Unit = {
-    val oldNode = node
-    val newNode = grid.getCameraNode(oldNode, transformation)
-    if (oldNode != newNode) {
-//      debugGraphical
-      val newAbsolute  = grid.absoluteCamera(oldNode, newNode, transformation)
-//      println(s"val t = $transformation")
-//      println(s"CAM $oldNode -> $newNode | $transformation -> $newAbsolute")
-//      println(s"val c2 = grid.getCameraNode(c, t)")
-//      println(s"val t2 = grid.absoluteCamera(c, c2, t)")
-//      println(s"assertDistance(g, grid.absolute(c, t, n, a), precision)")
-      transformation = newAbsolute
-      node = newNode
-//      debugGraphical
-//      println("--------------------")
-//      println(grid.root.hierarchyAsString())
-//      println("___________________________________")
+    val optimized = grid.validateCamera(node, transformation)
+    if (node != optimized._1) {
+      println(s"optimised = grid.validateCamera(c, t)")
+      println(s"c = optimised._1")
+      println(s"t = optimised._2")
+      debugAbsoluteToCachedCoordinates(node, transformation, optimized._1, optimized._2)
+      node = optimized._1
+      transformation = optimized._2
     }
-    //TODO: camera absolute position should not extend grid cell boundaries.
+  }
+
+  protected def debugAbsoluteToCachedCoordinates(camera1: Node, absolute1: Distance, camera2: Node, absolute2: Distance): Unit = synchronized {
+    for (element <- d.getChildren) element match {
+      case e: ZoomableNode[D] => {
+        val g1 = grid.absolute(camera1, absolute1, e.node, e.transformation)
+        val g2 = grid.absolute(camera2, absolute2, e.node, e.transformation)
+        val elementVar = "n" + e.debugId
+        val absoluteVar = "a" + e.debugId
+        println(s"// $camera1 $absolute1 --> $camera2 $absolute2")
+        println(s"assertDistance($g1, grid.absolute(c, t, $elementVar, $absoluteVar), precision)")
+        if (!compareDistance(g1, g2)) {
+          println(s"// $g1 -> $g2")
+          println(s"val g1 = grid.absolute(c, t, $elementVar, $absoluteVar)")
+          println(s"val g2 = grid.absolute(c, t, $elementVar, $absoluteVar)")
+          println(s"assertDistance(g1, g2, precision)")
+          println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        }
+      }
+      case _ => Unit
+    }
+  }
+
+  private def compareDistance(expected: Distance, actual: Distance, t: Double = 1E-7) = {
+    expected.x > actual.x - t && expected.x < actual.x + t &&
+      expected.y > actual.y - t && expected.y < actual.y + t &&
+      expected.scale > actual.scale - t && expected.scale < actual.scale + t
   }
 
   /**
@@ -104,8 +131,11 @@ with ZoomableElement {
    * @return updated absolute coordinates
    */
   override def translate(x: Double, y: Double): Distance = {
-    transformation = t.translated(x * t.scale, y * t.scale)
-    validateCameraNode
+    if (x != 0 && y != 0) {
+      transformation = grid.translateCamera(transformation, x, y)
+      println(s"t = grid.translateCamera(t, $x, $y)")
+      validateCameraNode
+    }
     transformation
   }
 
@@ -119,9 +149,10 @@ with ZoomableElement {
    * @return updated element's absolute coordinates
    */
   def translate(element: ZoomableElement, x: Double, y: Double): Distance = {
-    val e = element
-    e.transformation = e.t.translated(x * t.scale, y * t.scale)
-    e.transformation
+    element.transformation = grid.translateElement(element.transformation, x, y, transformation)
+    val elementVar = "n" + element.debugId
+    println(s"$elementVar = grid.translateElement(${elementVar}.transformation, $x, $y, t)")
+    element.transformation
   }
 
   /**
@@ -135,15 +166,13 @@ with ZoomableElement {
    * @return updated element's absolute coordinates
    */
   def initializeInfinityZooming(element: ZoomableElement, x: Double, y: Double): Unit = {
-    val absolute = grid.absoluteNew(transformation, x, y)
-    val elementNode = grid.getNode(node, absolute)
-//    println("---------------")
-//    println(s"val a = $absolute")
-//    println(s"val n = grid.getNode($node, a)")
-//    println("---------------")
-    val optimised = grid.absoluteNew(node, elementNode, absolute)
-    element.node = elementNode
-    element.transformation = optimised
+    val optimised = grid.newElement(node, transformation, x, y)
+    element.node = optimised._1
+    val elementVar = "n" + element.debugId
+    val absoluteVar = "a" + element.debugId
+    println(s"pair = grid.newElement(c, t, $x, $y)")
+    println(s"val ($elementVar, $absoluteVar) = pair")
+    element.transformation = optimised._2
     element.transformation
   }
 
