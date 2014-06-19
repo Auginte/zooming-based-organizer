@@ -154,7 +154,7 @@ with ZoomableElement {
    * @return updated element's absolute coordinates
    */
   def translate(element: ZoomableElement, x: Double, y: Double): Distance = {
-    element.transformation = grid.translateElement(element.transformation, x, y, transformation)
+    element.transformation = grid.translateElement(element.node, element.transformation, x, y, node, transformation)
     val elementVar = "n" + element.debugId
     debug(s"$elementVar = grid.translateElement(${elementVar}.transformation, $x, $y, t)")
     element.transformation

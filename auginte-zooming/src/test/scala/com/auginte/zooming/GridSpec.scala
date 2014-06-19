@@ -937,6 +937,39 @@ class GridSpec extends UnitSpec {
     }
   }
 
+  "Element optimisation" when {
+    "translating element" when {
+      "in same level" should {
+        "use main camera scale" in {
+          val (camera, grid) = rootGridPair()
+          val transformation = Distance(12, 34, 0.25).asCameraNode
+          val element = camera
+          val absolute =Distance(10, 20, 1.25)
+          val gui = (56.0, 78.9)
+          val newAbsolute = grid.translateElement(element, absolute, gui._1, gui._2, camera, transformation)
+          assertDistance(Distance(234.0,335.6,1.25), newAbsolute, precision)
+        }
+      }
+      "in different level" should {
+        "use chain of camera scales" in {
+          val (camera1, grid) = rootGridPair()
+          val transformation1 = Distance(12, 34, 0.0025).asCameraNode
+          val element = camera1
+          val absolute =Distance(10, 20, 1.25)
+          val gui = (56.0, 78.9)
+          val (camera2, transformation2) = grid.validateCamera(camera1, transformation1)
+
+          assert(camera1 isChildOf camera2)
+          val expected = Distance(22410.0,31580.0,1.25)
+          val absolute1 = grid.translateElement(element, absolute, gui._1, gui._2, camera1, transformation1)
+          val absolute2 = grid.translateElement(element, absolute, gui._1, gui._2, camera2, transformation2)
+          assertDistance(absolute1, absolute2, precision)
+          assertDistance(expected, absolute1, precision)
+        }
+      }
+    }
+  }
+
 
   //
   // Helpers

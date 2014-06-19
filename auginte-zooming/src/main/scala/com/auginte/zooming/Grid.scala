@@ -548,8 +548,10 @@ abstract class Grid extends Debugable {
     transformation.translated(diffX * transformation.scale, diffY * transformation.scale)
   }
 
-  def translateElement(transformation: Distance, diffX: Double, diffY: Double, camera: Distance): Distance = {
-    transformation.translated(diffX * camera.scale, diffY * camera.scale)
+  def translateElement(element: Node, transformation: Distance, diffX: Double, diffY: Double,
+                       camera: Node, cameraPosition: Distance): Distance = {
+    val scale = cameraPosition.scale / absoluteBetweenFirst(camera, element).scale
+    transformation.translated(diffX * scale, diffY * scale)
   }
 
   def newElement(camera: Node, cameraPosition: Distance, guiX: Double, guiY: Double): (Node, Distance) = {
