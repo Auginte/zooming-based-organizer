@@ -9,6 +9,7 @@ import com.auginte.desktop.rich.RichNode
 import com.auginte.zooming.{Distance, Node}
 
 import scalafx.Includes._
+import scalafx.scene.input.{KeyCode, KeyEvent}
 
 /**
  * Zooming related functionality for containers.
@@ -26,6 +27,9 @@ with ZoomableElement {
   //FIXME: debug
   var mapTable: Option[TableView[MapRow]] = None
 
+  private var visibleElements: List[ZoomableNode[D]] = List()
+  @volatile private var revalidateZoomable: Boolean = false
+
   //FIXME:
   debug(
     """
@@ -38,22 +42,25 @@ with ZoomableElement {
     """.stripMargin)
 
   /**
-   * For every child, converts infinity zooming coordinates to GUI ones
+    * For every child, converts infinity zooming coordinates to GUI ones
    */
-  protected def absoluteToCachedCoordinates(): Unit = for (element <- d.getChildren) element match {
-    case e: ZoomableNode[D] => {
+  protected def absoluteToCachedCoordinates(): Unit = if (revalidateZoomable) {
+    val zoomable = getZoomable
+    visibleElements = grid.filter(zoomable, node, -1, 8, javaFx2zoomable).toList
+    //FIXME:
+    grid.debug_distances.append(s"\nDcamera=${node.selfAndParents.reverse}\n\n")
+    val hiddenElements = zoomable diff visibleElements
+    revalidateZoomable = false
+    for (e <- visibleElements) {
       val absolute = grid.absolute(node, transformation, e.node, e.transformation)
-      e.setTranslateX(absolute.x)
-      e.setTranslateY(absolute.y)
-      e.setScaleX(absolute.scale)
-      e.setScaleY(absolute.scale)
-      e.setScaleZ(absolute.scale)
-      val minSize = Math.min(e.getBoundsInParent.getWidth, e.getBoundsInParent.getHeight)
-      val maxSize = Math.max(e.getBoundsInParent.getWidth, e.getBoundsInParent.getHeight)
-      val visible = minSize > minVisibleSize && maxSize < maxVisibleSize
-      e.setVisible(visible)
+      e.d.setTranslateX(absolute.x)
+      e.d.setTranslateY(absolute.y)
+      e.d.setScaleX(absolute.scale)
+      e.d.setScaleY(absolute.scale)
+      e.d.setScaleZ(absolute.scale)
+      e.d.setVisible(true)
     }
-    case _ => Unit
+    for (e <- hiddenElements) e.d.setVisible(false)
   }
 
   protected def debugHierarchy(): Unit = {
@@ -96,6 +103,21 @@ with ZoomableElement {
       node = optimized._1
       transformation = optimized._2
     }
+  }
+
+  def validateZoomableElementsLater(): Unit = {
+    revalidateZoomable = true
+  }
+
+  private def javaFx2zoomable: (ZoomableNode[D]) => Node = _.node
+
+  private def getZoomable: List[ZoomableNode[D]] = {
+    var list: List[ZoomableNode[D]] = List()
+    for (element <- d.getChildren) element match {
+      case e: ZoomableNode[D] => list = e :: list
+      case _ => Unit
+    }
+    list
   }
 
   protected def debugAbsoluteToCachedCoordinates(camera1: Node, absolute1: Distance, camera2: Node, absolute2: Distance): Unit = synchronized {
@@ -179,5 +201,11 @@ with ZoomableElement {
     debug(s"val ($elementVar, $absoluteVar) = pair")
     element.transformation = optimised._2
     element.transformation
+  }
+
+  keyPressed += {
+    (e: KeyEvent) => if (e.code == KeyCode.Z) {
+      println(grid.debug_distances + "\n_________________________________\n")
+    }
   }
 }

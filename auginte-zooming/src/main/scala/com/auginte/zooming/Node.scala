@@ -39,7 +39,7 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] {
 
   def parent: Option[Node] = _parent
 
-  def children: Seq[Node] = _children
+  def children: List[Node] = _children
 
   override def iterator: Iterator[Node] = _children.iterator
 
@@ -80,6 +80,7 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] {
     (sum: String, child: Node) => sum + child.hierarchyAsString(indent + 1)
   }
 
+  def entries(): List[Node] = children.foldLeft(children)((list, element) => element.entries ::: list)
 }
 
 /**

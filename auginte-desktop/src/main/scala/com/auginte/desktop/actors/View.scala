@@ -68,6 +68,9 @@ class View extends Actor {
         case ZoomView(camera, scale, x, y) => synchronized(representation.zoom(scale, x, y))
         case _ => Unit
       }
+      Platform.runLater {
+        representation.validateZoomableElementsLater()
+      }
     }
   }
 

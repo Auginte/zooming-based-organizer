@@ -68,6 +68,8 @@ abstract class Grid extends Debugable {
    */
   val absolutePrecision = 1000000
 
+  var debug_distances: StringBuilder = new StringBuilder()
+
   private lazy val scaleLog10 = Math.log10(gridSize)
 
   //
@@ -496,6 +498,55 @@ abstract class Grid extends Debugable {
 
   private def floor(a: Double): Double = if (a >= 0) a.floor else a.ceil
 
+  /**
+   * Distance parameter dependent on both position and scale.
+   *
+   * @return How many connections there are between farthest node and common parent
+   * @throws IllegalArgumentException when there are no path between nodes
+   */
+  private[zooming] def logicalDistance(from: Node, to: Node): Int = {
+    def calculateLevel(child: Node, parent: Node, level: Int = 0): Int = {
+      if (child eq parent) 0
+      else child.parent match {
+        case Some(p) if p eq parent => level + 1
+        case Some(p) => calculateLevel(p, parent, level + 1)
+        case None => throw new IllegalArgumentException(s"Not connected nodes: $from -> $parent -> $to")
+      }
+    }
+    val parent = getCommonParent(from, to)
+    val levelFrom = calculateLevel(from, parent)
+    val levelTo = calculateLevel(to, parent)
+    val level = if (levelFrom <= levelTo) Math.max(levelFrom, levelTo) else -Math.max(levelFrom, levelTo)
+    d(s"LOG IN $from -> $parent -> $to = $levelFrom ~ $levelTo == $level")
+    level
+  }
+
+  /**
+   * Filters by logical distance
+   *
+   * @param items graphical elements with relation to node
+   * @param from node to calculate distance from
+   * @param negative max negative logical distance of elements to be included. E.g. -4 < -2 < -1
+   * @param postiive max positive logical distance of elements to be included. E.g. 1 > 2 > 4
+   * @param f closure to retrieve node by list item
+   * @tparam A type of list items
+   * @return filtered list
+   */
+  def filter[A](items: Traversable[A], from: Node, negative: Int, postiive: Int, f: (A) => Node): Traversable[A] = {
+    debug_distances = new StringBuilder(items.size * 10)
+    val res = items.filter(element => {
+      val distance = logicalDistance(from, f(element))
+      negative <= distance && distance <= postiive
+    })
+    for (e <- res) {
+      debug_distances.append(s"VISIBLE: $e\n")
+    }
+    debug_distances.append(s"-------------------\n")
+    for (element <- items) {
+      debug_distances.append(s"${logicalDistance(from, f(element))} <= $postiive\t\t$element\n")
+    }
+    res
+  }
 
   //
   // Low level node pick up function
@@ -536,8 +587,7 @@ abstract class Grid extends Debugable {
   // Transformations
   //
 
-  def zoomCamera(cameraPosition: Distance, amount: Double, guiX: Double, guiY: Double): Distance =
-  {
+  def zoomCamera(cameraPosition: Distance, amount: Double, guiX: Double, guiY: Double): Distance = {
     val absoluteAmount = amount
     val zoomCenterBefore = Distance(guiX * cameraPosition.scale, guiY * cameraPosition.scale, 1)
     val zoomCenterAfter = (zoomCenterBefore * absoluteAmount) withScale 1

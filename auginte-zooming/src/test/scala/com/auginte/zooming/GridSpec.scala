@@ -944,10 +944,10 @@ class GridSpec extends UnitSpec {
           val (camera, grid) = rootGridPair()
           val transformation = Distance(12, 34, 0.25).asCameraNode
           val element = camera
-          val absolute =Distance(10, 20, 1.25)
+          val absolute = Distance(10, 20, 1.25)
           val gui = (56.0, 78.9)
           val newAbsolute = grid.translateElement(element, absolute, gui._1, gui._2, camera, transformation)
-          assertDistance(Distance(234.0,335.6,1.25), newAbsolute, precision)
+          assertDistance(Distance(234.0, 335.6, 1.25), newAbsolute, precision)
         }
       }
       "in different level" should {
@@ -955,17 +955,139 @@ class GridSpec extends UnitSpec {
           val (camera1, grid) = rootGridPair()
           val transformation1 = Distance(12, 34, 0.0025).asCameraNode
           val element = camera1
-          val absolute =Distance(10, 20, 1.25)
+          val absolute = Distance(10, 20, 1.25)
           val gui = (56.0, 78.9)
           val (camera2, transformation2) = grid.validateCamera(camera1, transformation1)
 
           assert(camera1 isChildOf camera2)
-          val expected = Distance(22410.0,31580.0,1.25)
+          val expected = Distance(22410.0, 31580.0, 1.25)
           val absolute1 = grid.translateElement(element, absolute, gui._1, gui._2, camera1, transformation1)
           val absolute2 = grid.translateElement(element, absolute, gui._1, gui._2, camera2, transformation2)
           assertDistance(absolute1, absolute2, precision)
           assertDistance(expected, absolute1, precision)
         }
+      }
+    }
+    "using logical (scale+translation) distance" should {
+      val (camera, grid) = rootGridPair()
+      val n1 = grid.getNode(camera, 0, 0, 0.01)
+      val n2 = grid.getNode(camera, 0, 0, 0.0001)
+      val n3 = grid.getNode(camera, 0, 0, 0.000001)
+      val n4 = grid.getNode(camera, 100, 100, 1)
+      val n5 = grid.getNode(camera, -100, -100, 1)
+      val n6 = grid.getNode(camera, 100, 100, 0.01)
+      val n7 = grid.getNode(camera, -100, -100, 0.01)
+      val n8 = grid.getNode(camera, 100, 100, 0.0001)
+      val n9 = grid.getNode(camera, -100, -100, 0.0001)
+      val n10 = grid.getNode(camera, 100, 100, 0.000001)
+      val n11 = grid.getNode(camera, -100, -100, 0.000001)
+      val n12 = grid.getNode(camera, 10000, 10000, 100)
+      val n13 = grid.getNode(camera, -10000, -10000, 100)
+      val n14 = grid.getNode(camera, 10000, 10000, 1)
+      val n15 = grid.getNode(camera, -10000, -10000, 1)
+      val n16 = grid.getNode(camera, 10000, 10000, 0.01)
+      val n17 = grid.getNode(camera, -10000, -10000, 0.01)
+      val n18 = grid.getNode(camera, 10000, 10000, 0.0001)
+      val n19 = grid.getNode(camera, -10000, -10000, 0.0001)
+      val n20 = grid.getNode(camera, 1000000, 1000000, 10000)
+      val n21 = grid.getNode(camera, -1000000, -1000000, 10000)
+      val n22 = grid.getNode(camera, 1000000, 1000000, 100)
+      val n23 = grid.getNode(camera, -1000000, -1000000, 100)
+      val n24 = grid.getNode(camera, 1000000, 1000000, 1)
+      val n25 = grid.getNode(camera, -1000000, -1000000, 1)
+      val r1 = camera.parent.getOrElse(invalid)
+      val r2 = r1.parent.getOrElse(invalid)
+      val r3 = r2.parent.getOrElse(invalid)
+      //        ___________r3__________                      :     .................r3.................      :
+      //       /           |           \                     :     :                ^ negative        :      :
+      //      n21    ______r2______   n20                    :     :     ...........r2...........     :      :
+      //     /      /      |       \     \                   :    n21    :          '           :     n20    :
+      //    n23   n13  ____r1___    n12  n22                 :    n23   n13   ......r1......    n12   n22    :
+      //   /      /   /    |    \     \    \                <:_____:_____:____:____________:_____:_____:_____:>
+      //  n25   n15  n5  camera  n4    n14  n24             n19   n25   n15  n5   camera   n4   n14   n24   n18
+      //       /    /      |       \     \                  n11   n17   n7    :            :    n6    n16   n10
+      //     n17   n7      n1      n6     n16                :    n9     :    ......n1......    :     n8     :
+      //    /     /        |         \      \                :     :     :          .           :     :      :
+      //   n19   n9        n2         n8     n18             :     :     :..........n2...........     :      ;
+      //        /          |           \                     :     :                v positive        :      :
+      //       n11         n3           n10                  :     .................n3.................      :
+      "retain consistent hierarchy" in {
+        assertParents(n3, n2, n1, camera, r1, r2, r3)
+        assertParents(n10, n8, n6, n4, r1, r2, r3)
+        assertParents(n11, n9, n7, n5, r1, r2, r3)
+        assertParents(n18, n16, n14, n12, r2, r3)
+        assertParents(n19, n17, n15, n13, r2, r3)
+        assertParents(n24, n22, n20, r3)
+        assertParents(n25, n23, n21, r3)
+      }
+      "have positive values for smaller elements" in {
+        assert(0 === grid.logicalDistance(camera, camera))
+        assert(1 === grid.logicalDistance(camera, n1))
+        assert(1 === grid.logicalDistance(camera, n4))
+        assert(1 === grid.logicalDistance(camera, n5))
+        assert(2 === grid.logicalDistance(camera, n2))
+        assert(2 === grid.logicalDistance(camera, n6))
+        assert(2 === grid.logicalDistance(camera, n7))
+        assert(2 === grid.logicalDistance(camera, n14))
+        assert(2 === grid.logicalDistance(camera, n15))
+        assert(3 === grid.logicalDistance(camera, n3))
+        assert(3 === grid.logicalDistance(camera, n8))
+        assert(3 === grid.logicalDistance(camera, n9))
+        assert(3 === grid.logicalDistance(camera, n16))
+        assert(3 === grid.logicalDistance(camera, n17))
+        assert(3 === grid.logicalDistance(camera, n24))
+        assert(3 === grid.logicalDistance(camera, n25))
+        assert(4 === grid.logicalDistance(camera, n10))
+        assert(4 === grid.logicalDistance(camera, n11))
+        assert(4 === grid.logicalDistance(camera, n18))
+        assert(4 === grid.logicalDistance(camera, n19))
+      }
+      "have negative values for larger elements" in {
+        assert(-1 === grid.logicalDistance(camera, r1))
+        assert(-2 === grid.logicalDistance(camera, r2))
+        assert(-2 === grid.logicalDistance(camera, n12))
+        assert(-2 === grid.logicalDistance(camera, n13))
+        assert(-3 === grid.logicalDistance(camera, r3))
+        assert(-3 === grid.logicalDistance(camera, n22))
+        assert(-3 === grid.logicalDistance(camera, n23))
+        assert(-3 === grid.logicalDistance(camera, n20))
+        assert(-3 === grid.logicalDistance(camera, n21))
+
+      }
+      "calculate distance not only from root" in {
+        assert(0 === grid.logicalDistance(n15, n15))
+        assert(1 === grid.logicalDistance(n15, n17))
+        assert(2 === grid.logicalDistance(n15, n5))
+        assert(2 === grid.logicalDistance(n15, n19))
+        assert(2 === grid.logicalDistance(n15, camera))
+        assert(3 === grid.logicalDistance(n15, n25))
+        assert(3 === grid.logicalDistance(n15, n7))
+        assert(3 === grid.logicalDistance(n15, n1))
+        assert(4 === grid.logicalDistance(n15, n9))
+
+        assert(-1 === grid.logicalDistance(n15, n13))
+        assert(-2 === grid.logicalDistance(n15, r1))
+        assert(-2 === grid.logicalDistance(n15, r2))
+        assert(-3 === grid.logicalDistance(n15, n23))
+        assert(-3 === grid.logicalDistance(n15, n21))
+        assert(-3 === grid.logicalDistance(n15, r3))
+      }
+      "filter by positive and negative logical distance" in {
+        val converter = (node: Node) => node
+        val all = grid.root :: grid.root.entries
+        val by1 = List(camera, n1, n5, r1, n4)
+        val by2 = List(n2, n7, n15, n13, r2, n12, n14, n6) ::: by1
+        val by3 = List(n3, n9, n17, n25, n23, n21, r3, n20, n22, n24, n16, n8) ::: by2
+        val by4 = List(n11, n19, n18, n10) ::: by3
+        val filtered1 = grid.filter(all, camera, -1, 1, converter)
+        val filtered2 = grid.filter(all, camera, -2, 2, converter)
+        val filtered3 = grid.filter(all, camera, -3, 3, converter)
+        val filtered4 = grid.filter(all, camera, -4, 4, converter)
+        assert(set(filtered1) === set(by1))
+        assert(set(filtered2) === set(by2))
+        assert(set(filtered3) === set(by3))
+        assert(set(filtered4) === set(by4))
+        assert(set(filtered4) === set(all))
       }
     }
   }
@@ -1056,4 +1178,5 @@ class GridSpec extends UnitSpec {
 
   private val precision = Some(1E-7)
 
+  private def set(list: Traversable[Node]): Set[Node] = list.toSet
 }
