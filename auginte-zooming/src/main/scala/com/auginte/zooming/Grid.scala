@@ -499,12 +499,23 @@ abstract class Grid extends Debugable {
   private def floor(a: Double): Double = if (a >= 0) a.floor else a.ceil
 
   /**
-   * Distance parameter dependent on both position and scale.
+   * Distance parameter dependent on both: position and scale.
    *
    * @return How many connections there are between farthest node and common parent
    * @throws IllegalArgumentException when there are no path between nodes
    */
   private[zooming] def logicalDistance(from: Node, to: Node): Int = {
+    // Using triangle metaphor:
+    //                        ^ P  A       Real links  o
+    //                 o      | r  k                 / |             o Parent
+    //               / |      | o  a               o   o            /|
+    //             o...o      | j                /   / |           / |
+    //           / : / |      | e  T                              /  o Projection parent
+    //         o...o...o      | c  r                             /  /'                    \ Inner
+    //       / : / : / |      | t  u                   y        /  / ' Center             / triangle
+    //     o...o...o...o      | i  n    Logical links  :
+    //   / : / : / : / |      | o  k           :   :   :           \_/
+    // o...o...o...o...o      | n          x...........o            Inner triangle
     def calculateLevel(child: Node, parent: Node, level: Int = 0): Int = {
       if (child eq parent) 0
       else child.parent match {
@@ -513,12 +524,28 @@ abstract class Grid extends Debugable {
         case None => throw new IllegalArgumentException(s"Not connected nodes: $from -> $parent -> $to")
       }
     }
+    def childStraightDown(parent: Node, level: Int): Node = {
+      if (level <= 0) parent else childStraightDown(getNode(parent, 0, 0, 1.0 / gridSize), level - 1)
+    }
+    def byMaxLinks(child1: Node, child2: Node, parent: Node): Int = {
+      val level1 = calculateLevel(child1, parent)
+      val level2 = calculateLevel(child2, parent)
+      val sign = if (level1 <= level2) 1 else -1
+      sign * Math.max(level1, level2)
+    }
+    def byInnerTriangle(child1: Node, child2: Node): Int =  byMaxLinks(child1, child2, getCommonParent(child1, child2))
+
     val parent = getCommonParent(from, to)
     val levelFrom = calculateLevel(from, parent)
     val levelTo = calculateLevel(to, parent)
-    val level = if (levelFrom <= levelTo) Math.max(levelFrom, levelTo) else -Math.max(levelFrom, levelTo)
-    d(s"LOG IN $from -> $parent -> $to = $levelFrom ~ $levelTo == $level")
-    level
+
+    val centerFrom = childStraightDown(parent, levelFrom)
+    val centerTo = childStraightDown(parent, levelTo)
+    @inline val fromTrunk = (from eq centerFrom) || (to eq centerTo)
+
+    if (fromTrunk) byMaxLinks(from, to, parent)
+    else if (levelFrom == levelTo) Math.abs(byInnerTriangle(centerFrom, from) - byInnerTriangle(centerTo, to))
+    else byInnerTriangle(centerFrom, to)
   }
 
   /**

@@ -46,9 +46,9 @@ with ZoomableElement {
    */
   protected def absoluteToCachedCoordinates(): Unit = if (revalidateZoomable) {
     val zoomable = getZoomable
-    visibleElements = grid.filter(zoomable, node, -1, 8, javaFx2zoomable).toList
+    visibleElements = grid.filter(zoomable, node, -1, 3, javaFx2zoomable).toList
     //FIXME:
-    grid.debug_distances.append(s"\nDcamera=${node.selfAndParents.reverse}\n\n")
+    grid.debug_distances.append(s"\nCamera=${node.selfAndParents.reverse}\n\n")
     val hiddenElements = zoomable diff visibleElements
     revalidateZoomable = false
     for (e <- visibleElements) {
