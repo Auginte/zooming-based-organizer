@@ -13,6 +13,8 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] {
 
   private var _children: List[Node] = List[Node]()
 
+  var debugName = ""
+
   def createParent(): Node = {
     val parentNode: Node = new Node(0, 0)
     _parent = Some(parentNode)
@@ -53,7 +55,7 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] {
 
   override def toString: String = {
     val parentId = if (parent.isDefined) parent.get.id else "ø"
-    s"[{$id}: ${x}x${y} of $parentId]"
+    s"[$debugName{$id}: ${x}x${y} of $parentId]"
   }
 
   def isChildOf(distantParent: Node): Boolean = {

@@ -969,127 +969,372 @@ class GridSpec extends UnitSpec {
       }
     }
     "using logical (scale+translation) distance" should {
+      // Main hierarchy
       val (camera, grid) = rootGridPair()
-      val n1 = grid.getNode(camera, 0, 0, 0.01)
-      val n2 = grid.getNode(camera, 0, 0, 0.0001)
-      val n3 = grid.getNode(camera, 0, 0, 0.000001)
-      val n4 = grid.getNode(camera, 100, 100, 1)
-      val n5 = grid.getNode(camera, -100, -100, 1)
-      val n6 = grid.getNode(camera, 100, 100, 0.01)
-      val n7 = grid.getNode(camera, -100, -100, 0.01)
-      val n8 = grid.getNode(camera, 100, 100, 0.0001)
-      val n9 = grid.getNode(camera, -100, -100, 0.0001)
-      val n10 = grid.getNode(camera, 100, 100, 0.000001)
-      val n11 = grid.getNode(camera, -100, -100, 0.000001)
-      val n12 = grid.getNode(camera, 10000, 10000, 100)
-      val n13 = grid.getNode(camera, -10000, -10000, 100)
-      val n14 = grid.getNode(camera, 10000, 10000, 1)
-      val n15 = grid.getNode(camera, -10000, -10000, 1)
-      val n16 = grid.getNode(camera, 10000, 10000, 0.01)
-      val n17 = grid.getNode(camera, -10000, -10000, 0.01)
-      val n18 = grid.getNode(camera, 10000, 10000, 0.0001)
-      val n19 = grid.getNode(camera, -10000, -10000, 0.0001)
-      val n20 = grid.getNode(camera, 1000000, 1000000, 10000)
-      val n21 = grid.getNode(camera, -1000000, -1000000, 10000)
-      val n22 = grid.getNode(camera, 1000000, 1000000, 100)
-      val n23 = grid.getNode(camera, -1000000, -1000000, 100)
-      val n24 = grid.getNode(camera, 1000000, 1000000, 1)
-      val n25 = grid.getNode(camera, -1000000, -1000000, 1)
+      val n1 = grid.getNode(camera, 1, 1, 0.01)
+      val n2 = grid.getNode(camera, -1, -1, 0.01)
+      val n3 = grid.getNode(camera, 100, 0, 0)
+      val n4 = grid.getNode(camera, 0, 100, 0)
+      val n5 = grid.getNode(camera, 200, 0, 0)
+      val n6 = grid.getNode(camera, 0, 200, 0)
+      val n7 = grid.getNode(camera, -100, 0, 0)
+      val n8 = grid.getNode(camera, 0, -100, 0)
+      val n9 = grid.getNode(camera, -200, 0, 0)
+      val n10 = grid.getNode(camera, 0, -200, 0)
+      val n11 = grid.getNode(camera, 10000, 0, 100)
+      val n12 = grid.getNode(camera, 20000, 0, 100)
+      val n13 = grid.getNode(camera, -10000, 0, 100)
+      val n14 = grid.getNode(camera, -20000, 0, 100)
+      val n15 = grid.getNode(camera, 1000000, 0, 10000)
+      val n16 = grid.getNode(camera, 2000000, 0, 10000)
+      val n17 = grid.getNode(camera, -1000000, 0, 10000)
+      val n18 = grid.getNode(camera, -2000000, 0, 10000)
+      val n19 = grid.getNode(camera, 1, 1, 0.0001)
+      val n20 = grid.getNode(camera, -1, -1, 0.0001)
+      val n21 = grid.getNode(camera, 100, 0, 0.01)
+      val n22 = grid.getNode(camera, -100, 0, 0.01)
+      val n23 = grid.getNode(camera, 1, 1, 0.000001)
+      val n24 = grid.getNode(camera, -1, -1, 0.000001)
+      val n25 = grid.getNode(camera, 100, 0, 0.0001)
+      val n26 = grid.getNode(camera, -100, 0, 0.0001)
+      val n27 = grid.getNode(camera, 0, 100, 0.01)
+      val n28 = grid.getNode(camera, 0, -100, 0.01)
+      val n29 = grid.getNode(camera, 200, 0, 0.01)
+      val n30 = grid.getNode(camera, -200, 0, 0.01)
+      val n31 = grid.getNode(camera, 0, 200, 0.01)
+      val n32 = grid.getNode(camera, 0, -200, 0.01)
+      val n33 = grid.getNode(camera, 10000, 0, 0)
+      val n34 = grid.getNode(camera, -10000, 0, 0)
+      val n35 = grid.getNode(camera, 1, 1, 0.00000001)
+      val n36 = grid.getNode(camera, -1, -1, 0.00000001)
+      val n37 = grid.getNode(camera, 1, 1, 0.0000000001)
+      val n38 = grid.getNode(camera, -1, -1, 0.0000000001)
+
+      // Edge nodes
+      val n39 = grid.getNode(camera, 9900, 0, 0)
+      val n40 = grid.getNode(camera, 9997, 0, 0.01)
+      val n41 = grid.getNode(camera, 9999, 0, 0.01)
+      val n42 = grid.getNode(camera, 10000, 0, 0.01)
+      val n43 = grid.getNode(camera, 10001, 0, 0.01)
+      val n44 = grid.getNode(camera, 9997, 0, 0.0001)
+      val n45 = grid.getNode(camera, 9999, 0, 0.0001)
+      val n46 = grid.getNode(camera, 10000, 0, 0.0001)
+      val n47 = grid.getNode(camera, 10001, 0, 0.0001)
+
+      // Automatically generated parents
       val r1 = camera.parent.getOrElse(invalid)
       val r2 = r1.parent.getOrElse(invalid)
       val r3 = r2.parent.getOrElse(invalid)
-      //        ___________r3__________                      :     .................r3.................      :
-      //       /           |           \                     :     :                ^ negative        :      :
-      //      n21    ______r2______   n20                    :     :     ...........r2...........     :      :
-      //     /      /      |       \     \                   :    n21    :          '           :     n20    :
-      //    n23   n13  ____r1___    n12  n22                 :    n23   n13   ......r1......    n12   n22    :
-      //   /      /   /    |    \     \    \                <:_____:_____:____:____________:_____:_____:_____:>
-      //  n25   n15  n5  camera  n4    n14  n24             n19   n25   n15  n5   camera   n4   n14   n24   n18
-      //       /    /      |       \     \                  n11   n17   n7    :            :    n6    n16   n10
-      //     n17   n7      n1      n6     n16                :    n9     :    ......n1......    :     n8     :
-      //    /     /        |         \      \                :     :     :          .           :     :      :
-      //   n19   n9        n2         n8     n18             :     :     :..........n2...........     :      ;
-      //        /          |           \                     :     :                v positive        :      :
-      //       n11         n3           n10                  :     .................n3.................      :
-      "retain consistent hierarchy" in {
-        assertParents(n3, n2, n1, camera, r1, r2, r3)
-        assertParents(n10, n8, n6, n4, r1, r2, r3)
-        assertParents(n11, n9, n7, n5, r1, r2, r3)
-        assertParents(n18, n16, n14, n12, r2, r3)
-        assertParents(n19, n17, n15, n13, r2, r3)
-        assertParents(n24, n22, n20, r3)
-        assertParents(n25, n23, n21, r3)
-      }
-      "have positive values for smaller elements" in {
-        assert(0 === grid.logicalDistance(camera, camera))
-        assert(1 === grid.logicalDistance(camera, n1))
-        assert(1 === grid.logicalDistance(camera, n4))
-        assert(1 === grid.logicalDistance(camera, n5))
-        assert(2 === grid.logicalDistance(camera, n2))
-        assert(2 === grid.logicalDistance(camera, n6))
-        assert(2 === grid.logicalDistance(camera, n7))
-        assert(2 === grid.logicalDistance(camera, n14))
-        assert(2 === grid.logicalDistance(camera, n15))
-        assert(3 === grid.logicalDistance(camera, n3))
-        assert(3 === grid.logicalDistance(camera, n8))
-        assert(3 === grid.logicalDistance(camera, n9))
-        assert(3 === grid.logicalDistance(camera, n16))
-        assert(3 === grid.logicalDistance(camera, n17))
-        assert(3 === grid.logicalDistance(camera, n24))
-        assert(3 === grid.logicalDistance(camera, n25))
-        assert(4 === grid.logicalDistance(camera, n10))
-        assert(4 === grid.logicalDistance(camera, n11))
-        assert(4 === grid.logicalDistance(camera, n18))
-        assert(4 === grid.logicalDistance(camera, n19))
-      }
-      "have negative values for larger elements" in {
-        assert(-1 === grid.logicalDistance(camera, r1))
-        assert(-2 === grid.logicalDistance(camera, r2))
-        assert(-2 === grid.logicalDistance(camera, n12))
-        assert(-2 === grid.logicalDistance(camera, n13))
-        assert(-3 === grid.logicalDistance(camera, r3))
-        assert(-3 === grid.logicalDistance(camera, n22))
-        assert(-3 === grid.logicalDistance(camera, n23))
-        assert(-3 === grid.logicalDistance(camera, n20))
-        assert(-3 === grid.logicalDistance(camera, n21))
 
-      }
-      "calculate distance not only from root" in {
-        assert(0 === grid.logicalDistance(n15, n15))
-        assert(1 === grid.logicalDistance(n15, n17))
-        assert(1 === grid.logicalDistance(n15, n5))
-        assert(1 === grid.logicalDistance(n15, n25))
-        assert(2 === grid.logicalDistance(n15, n19))
-        assert(2 === grid.logicalDistance(n15, n7))
-        assert(2 === grid.logicalDistance(n15, camera))
-        assert(3 === grid.logicalDistance(n15, n9))
-        assert(3 === grid.logicalDistance(n15, n1))
-        assert(4 === grid.logicalDistance(n15, n11))
-        assert(4 === grid.logicalDistance(n15, n2))
+      // Automatically generated children, as a result of scale-translate error
+      val e1 = grid.getNode(n12, 0, 0, 0.001)
+      val e2 = grid.getNode(n14, 0, 0, 0.001)
+      val e3 = grid.getNode(n15, 0, 0, 0.001)
+      val e4 = grid.getNode(n16, 0, 0, 0.001)
+      val e5 = grid.getNode(n17, 0, 0, 0.001)
+      val e6 = grid.getNode(n18, 0, 0, 0.001)
+      val e7 = grid.getNode(e3, 0, 0, 0.001)
+      val e8 = grid.getNode(e4, 0, 0, 0.001)
+      val e9 = grid.getNode(e5, 0, 0, 0.001)
+      val e10 = grid.getNode(e6, 0, 0, 0.001)
 
-        assert(-1 === grid.logicalDistance(n15, n13))
-        assert(-2 === grid.logicalDistance(n15, r1))
-        assert(-2 === grid.logicalDistance(n15, r2))
-        assert(-3 === grid.logicalDistance(n15, n23))
-        assert(-3 === grid.logicalDistance(n15, n21))
-        assert(-3 === grid.logicalDistance(n15, r3))
+      // Common nodes group
+      val converter = (node: Node) => node
+      val all = grid.root :: grid.root.entries
+      val r1ChildrenLevel1 = List(n3, n4, n5, n6, n39, n7, n8, n9, n10)
+      val r1ChildrenLevel2 = List(n21, n27, n29, n31, n40, n41, n22, n28, n30, n32)
+      val r1ChildrenLevel3 = List(n25, n26, n44, n45)
+      val r2ChildrenLevel1 = List(n11, n12, n13, n14)
+      val r2ChildrenLevel2 = List(n33, n34, e1, e2)
+      val r3ChildrenLevel2 = List(e3, e4, e5, e6)
+      val r3ChildrenLevel3 = List(e7, e8, e9, e10)
+
+      //FIXME: debug
+      n1.debugName = "n1 "
+      n2.debugName = "n2 "
+      n3.debugName = "n3 "
+      n4.debugName = "n4 "
+      n5.debugName = "n5 "
+      n6.debugName = "n6 "
+      n7.debugName = "n7 "
+      n8.debugName = "n8 "
+      n9.debugName = "n9 "
+      n10.debugName = "n10 "
+      n11.debugName = "n11 "
+      n12.debugName = "n12 "
+      n13.debugName = "n13 "
+      n14.debugName = "n14 "
+      n15.debugName = "n15 "
+      n16.debugName = "n16 "
+      n17.debugName = "n17 "
+      n18.debugName = "n18 "
+      n19.debugName = "n19 "
+      n20.debugName = "n20 "
+      n21.debugName = "n21 "
+      n22.debugName = "n22 "
+      n23.debugName = "n23 "
+      n24.debugName = "n24 "
+      n25.debugName = "n25 "
+      n26.debugName = "n26 "
+      n27.debugName = "n27 "
+      n28.debugName = "n28 "
+      n29.debugName = "n29 "
+      n30.debugName = "n30 "
+      n31.debugName = "n31 "
+      n32.debugName = "n32 "
+      n33.debugName = "n33 "
+      n34.debugName = "n34 "
+      n35.debugName = "n35 "
+      n36.debugName = "n36 "
+      n37.debugName = "n37 "
+      n38.debugName = "n38 "
+      n39.debugName = "n39 "
+      n40.debugName = "n40 "
+      n41.debugName = "n41 "
+      n42.debugName = "n42 "
+      n43.debugName = "n43 "
+      n44.debugName = "n44 "
+      n45.debugName = "n45 "
+      n46.debugName = "n46 "
+      n47.debugName = "n47 "
+      e1.debugName = "e1 "
+      e2.debugName = "e2 "
+      e3.debugName = "e3 "
+      e4.debugName = "e4 "
+      e5.debugName = "e5 "
+      e6.debugName = "e6 "
+      e7.debugName = "e7 "
+      e8.debugName = "e8 "
+      e9.debugName = "e9 "
+      e10.debugName = "e10 "
+      camera.debugName = "camera "
+      r1.debugName = "r1 "
+      r2.debugName = "r2 "
+      r3.debugName = "r3 "
+
+      //        ______________________________r3________________________________________
+      //       /   /                          |                                     \   \
+      //      n18 n17  _______________________r2________________________________   n15 n16
+      //      /  /    /   /                   |                           \     \     \   \
+      //    e6 e5  n14 n13   _________________r1_____________________      n11   n12   e3  e4
+      //    /  /   /    /   /   /   /   /     |      \   \   \   \   \      \      \    \   \
+      // e10 e9  e2   n34  n10 n9  n8  n7  camera     n3  n4  n5  n6  n39    n33__  e1   e7  e8
+      //                   |   |   |  |      / \      |   |   |  |    |  \    |   \
+      //                  n32 n30 n28 n22  n2  n1   n21 n27 n29 n31 n40 n41 n42 n43
+      //                              |    |   |     |               |   |   |    |
+      //                             n26  n20  n19  n25             n44 n45 n46 n47
+      //                                   |   |
+      //                                  n24  n23
+      //                                   |    |
+      //                                  n36   n35
+      //                                   |    |
+      //                                  n38   n37
+      //
+      //                          +-----------|------------+          ------------------+------
+      //                          |          n10           |                            |
+      //                          |          n8            |                            |
+      //                          -  n9 n7 camera n3 n4 n5 -->         n31      n40 n41 n42 n43
+      //                          |          n4            | x                          |
+      //                          |          n6            |           0        97  99  |0  1
+      //                          +-----------|------------+          ------------------+-----
+      //                                      V y
+      "retaining consistent hierarchy" in {
+        // Base hierarchy
+        assertParents(n37, n35, n23, n19, n1, camera, r1, r2, r3)
+        assertParents(n38, n36, n24, n20, n2, camera, r1, r2, r3)
+        assertParents(n25, n21, n3, r1, r2, r3)
+        assertParents(n26, n22, n7, r1, r2, r3)
+        assertParents(n27, n4, r1, r2, r3)
+        assertParents(n28, n8, r1, r2, r3)
+        assertParents(n29, n5, r1, r2, r3)
+        assertParents(n30, n9, r1, r2, r3)
+        assertParents(n31, n6, r1, r2, r3)
+        assertParents(n32, n10, r1, r2, r3)
+        assertParents(n33, n11, r2, r3)
+        assertParents(n34, n13, r2, r3)
+        assertParents(n12, r2, r3)
+        assertParents(n14, r2, r3)
+        assertParents(n15, r3)
+        assertParents(n16, r3)
+        assertParents(n17, r3)
+        assertParents(n18, r3)
+        assertXY(n1, 1, 1)
+        assertXY(n2, -1, -1)
+        assertXY(n3, 1, 0)
+        assertXY(n4, 0, 1)
+        assertXY(n5, 2, 0)
+        assertXY(n6, 0, 2)
+        assertXY(n7, -1, 0)
+        assertXY(n8, 0, -1)
+        assertXY(n9, -2, 0)
+        assertXY(n10, 0, -2)
+        assertXY(n11, 1, 0)
+        assertXY(n12, 2, 0)
+        assertXY(n13, -1, 0)
+        assertXY(n14, -2, 0)
+        assertXY(n15, 1, 0)
+        assertXY(n16, 2, 0)
+        assertXY(n17, -1, 0)
+        assertXY(n18, -2, 0)
+        val directDown = List(
+          n19, n20, n21, n22, n23, n24, n25, n26, n27, n28, n29, n30, n31, n32, n33, n34, n35, n36, n37, n38
+        )
+        for (node <- directDown) assertXY(node, 0, 0)
+
+        // Edge situations
+        assertParents(n44, n40, n39, r1, r2, r3)
+        assertParents(n45, n41, n39, r1, r2, r3)
+        assertParents(n46, n42, n33, n11, r2, r3)
+        assertParents(n47, n43, n33, n11, r2, r3)
+        assertXY(n39, 99, 0)
+        assertXY(n40, 97, 0)
+        assertXY(n41, 99, 0)
+        assertXY(n42, 0, 0)
+        assertXY(n43, 1, 0)
+        assertXY(n44, 0, 0)
+        assertXY(n45, 0, 0)
+        assertXY(n46, 0, 0)
+        assertXY(n47, 0, 0)
       }
-      "filter by positive and negative logical distance" in {
-        val converter = (node: Node) => node
-        val all = grid.root :: grid.root.entries
-        val by1 = List(camera, n1, n5, r1, n4)
-        val by2 = List(n2, n7, n15, n13, r2, n12, n14, n6) ::: by1
-        val by3 = List(n3, n9, n17, n25, n23, n21, r3, n20, n22, n24, n16, n8) ::: by2
-        val by4 = List(n11, n19, n18, n10) ::: by3
-        val filtered1 = grid.filter(all, camera, -1, 1, converter)
-        val filtered2 = grid.filter(all, camera, -2, 2, converter)
-        val filtered3 = grid.filter(all, camera, -3, 3, converter)
-        val filtered4 = grid.filter(all, camera, -4, 4, converter)
-        assert(set(filtered1) === set(by1))
-        assert(set(filtered2) === set(by2))
-        assert(set(filtered3) === set(by3))
-        assert(set(filtered4) === set(by4))
-        assert(set(filtered4) === set(all))
+      "filter by scale of children" in {
+        val cameraDeep1 = List(camera, n1, n2)
+        val cameraDeep2 = List(n19, n20) ::: cameraDeep1
+        val cameraDeep3 = List(n23, n24) ::: cameraDeep2
+        val cameraDeep4 = List(n36, n35) ::: cameraDeep3
+        val cameraDeep5 = List(n37, n38) ::: cameraDeep4
+        val r1Deep1 = List(r1, camera) ::: r1ChildrenLevel1
+        val r1Deep2 = List(n1, n2) ::: r1ChildrenLevel2 ::: r1Deep1
+        val r1Deep3 = List(n19, n20) ::: r1ChildrenLevel3 ::: r1Deep2
+        val r1Deep4 = r1Deep3 ::: cameraDeep3
+        val r1Deep5 = r1Deep3 ::: cameraDeep4
+        val r1Deep6 = r1Deep3 ::: cameraDeep5
+        val r2Deep1 = List(r2, r1) ::: r2ChildrenLevel1
+        val r2Deep2 = List(camera) ::: r2ChildrenLevel2 ::: r1ChildrenLevel1 ::: r2Deep1
+        val r3ChildrenLvel1 = List(n15, n16, n17, n18)
+        val r3Deep1 = List(r3, r2) ::: r3ChildrenLvel1
+        val r3Deep2 = r3ChildrenLevel2 ::: r2Deep1 ::: r3Deep1
+        val r3Deep3 = r3ChildrenLevel3 ::: r2Deep2 ::: r3Deep2
+        val filteredCameraDeep1 = grid.filter(all, camera, 0, 1, converter)
+        val filteredCameraDeep2 = grid.filter(all, camera, 0, 2, converter)
+        val filteredCameraDeep3 = grid.filter(all, camera, 0, 3, converter)
+        val filteredCameraDeep4 = grid.filter(all, camera, 0, 4, converter)
+        val filteredCameraDeep5 = grid.filter(all, camera, 0, 5, converter)
+        val filteredR1Deep1 = grid.filter(all, r1, 0, 1, converter)
+        val filteredR1Deep2 = grid.filter(all, r1, 0, 2, converter)
+        val filteredR1Deep3 = grid.filter(all, r1, 0, 3, converter)
+        val filteredR1Deep4 = grid.filter(all, r1, 0, 4, converter)
+        val filteredR1Deep5 = grid.filter(all, r1, 0, 5, converter)
+        val filteredR1Deep6 = grid.filter(all, r1, 0, 6, converter)
+        val filteredR2Deep1 = grid.filter(all, r2, 0, 1, converter)
+        val filteredR2Deep2 = grid.filter(all, r2, 0, 2, converter)
+        val filtered32Deep1 = grid.filter(all, r3, 0, 1, converter)
+        val filtered32Deep2 = grid.filter(all, r3, 0, 2, converter)
+        val filtered32Deep3 = grid.filter(all, r3, 0, 3, converter)
+        val filtered32Deep8 = grid.filter(all, r3, 0, 8, converter)
+        assert(set(cameraDeep1) === set(filteredCameraDeep1))
+        assert(set(cameraDeep2) === set(filteredCameraDeep2))
+        assert(set(cameraDeep3) === set(filteredCameraDeep3))
+        assert(set(cameraDeep4) === set(filteredCameraDeep4))
+        assert(set(cameraDeep5) === set(filteredCameraDeep5))
+        assert(set(r1Deep1) === set(filteredR1Deep1))
+        assert(set(r1Deep2) === set(filteredR1Deep2))
+        assert(set(r1Deep3) === set(filteredR1Deep3))
+        assert(set(r1Deep4) === set(filteredR1Deep4))
+        assert(set(r1Deep5) === set(filteredR1Deep5))
+        assert(set(r1Deep6) === set(filteredR1Deep6))
+        assert(set(r2Deep1) === set(filteredR2Deep1))
+        assert(set(r2Deep2) === set(filteredR2Deep2))
+        assert(set(r3Deep1) === set(filtered32Deep1))
+        assert(set(r3Deep2) === set(filtered32Deep2))
+        assert(set(r3Deep3) === set(filtered32Deep3))
+        assert(set(all) === set(filtered32Deep8))
+      }
+      "filter by distance from camera in trunk" in {
+        val cameraDist1Scale1 = List(camera, n1, n2, n3, n7, n21, n22, n4, n27, n8, n28)
+        val cameraDist1Scale2 = List(n19, n20, n25, n26) ::: cameraDist1Scale1
+        val cameraDist2Scale1 = r1ChildrenLevel1 ::: cameraDist1Scale1
+        val cameraDist2Scale2 = List(n19, n20) ::: r1ChildrenLevel2 ::: cameraDist2Scale1
+        val cameraDist1Scale3 = List(n23, n24) ::: cameraDist1Scale2
+        val cameraDist2Scale3 = cameraDist2Scale2 ::: cameraDist1Scale3
+        val r2Dist1Scale1 = List(r2, r1, n11, n13)
+        val r2Dist1Scale2 = List(camera) ::: r1ChildrenLevel1 ::: r1ChildrenLevel1 ::: r2Dist1Scale1
+        val r2DistScale2 = List(n33, n34, camera) ::: r1ChildrenLevel1
+        val r2Dist2Scale1 = List(n12, n14) ::: r2Dist1Scale1
+        val r2Dist2Scale2 = r2DistScale2 ::: r2Dist2Scale1
+        val r2Dist2Scale3 = List(n1, n2) ::: r2Dist2Scale2 ::: r1ChildrenLevel2
+        val filteredCameraDist1Scale1 = grid.filter(all, camera, 1, 1, converter)
+        val filteredCameraDist1Scale2 = grid.filter(all, camera, 1, 2, converter)
+        val filteredCameraDist2Scale1 = grid.filter(all, camera, 2, 1, converter)
+        val filteredCameraDist2Scale2 = grid.filter(all, camera, 2, 2, converter)
+        val filteredCameraDist2Scale3 = grid.filter(all, camera, 2, 3, converter)
+        val filteredR1Dist1Scale1 = grid.filter(all, r1, 1, 1, converter)
+        val filteredR1Dist1Scale2 = grid.filter(all, r1, 1, 2, converter)
+        val filteredR1Dist2Scale1 = grid.filter(all, r1, 2, 1, converter)
+        val filteredR1Dist2Scale2 = grid.filter(all, r1, 2, 2, converter)
+        val filteredR2Dist1Scale1 = grid.filter(all, r2, 1, 1, converter)
+        val filteredR2Dist1Scale2 = grid.filter(all, r2, 1, 2, converter)
+        val filteredR2Dist2Scale1 = grid.filter(all, r2, 2, 1, converter)
+        val filteredR2Dist2Scale2 = grid.filter(all, r2, 2, 2, converter)
+        val filteredR3Dist1Scale8 = grid.filter(all, r3, 1, 8, converter)
+        assert(set(cameraDist1Scale1) === set(filteredCameraDist1Scale1))
+        assert(set(cameraDist1Scale2) === set(filteredCameraDist1Scale2))
+        assert(set(cameraDist2Scale1) === set(filteredCameraDist2Scale1))
+        assert(set(cameraDist2Scale2) === set(filteredCameraDist2Scale2))
+        assert(set(cameraDist2Scale3) === set(filteredCameraDist2Scale3))
+        assert(set(r2Dist1Scale1) === set(filteredR2Dist1Scale1))
+        assert(set(r2Dist1Scale2) === set(filteredR2Dist1Scale2))
+        assert(set(r2Dist2Scale1) === set(filteredR2Dist2Scale1))
+        assert(set(r2Dist2Scale2) === set(filteredR2Dist2Scale2))
+        assert(set(all) === set(filteredR3Dist1Scale8))
+      }
+      "filter by distance from camera in branch" in {
+        val n9Dist1Scale1 = List(n9, n30, n7, n22)
+        val n9Dist1Scale2 = List(n26) ::: n9Dist1Scale1
+        val n9Dist2Scale1 = List(camera, n1, n2, n4, n27, n8, n28, n6, n31, n10, n32) ::: n9Dist1Scale1
+        val n9Dist2Scale2 = n9Dist1Scale2 ::: n9Dist2Scale1
+        val n9Dist2Scale3 = List(n23, n24) ::: n9Dist2Scale2
+        val n9Dist2Scale4 = List(n35, n36) ::: n9Dist2Scale3
+        val n9Dist2Scale5 = List(n37, n38) ::: n9Dist2Scale4
+        val n9Dist3Scale1 = List(n3, n21, n6, n31, n10, n32) ::: n9Dist2Scale1
+        val n9Dist3Scale2 = List(n25) ::: n9Dist2Scale2 ::: n9Dist3Scale1
+        val n9Dist4Scale1 = List(n4, n27) ::: n9Dist3Scale1
+        val n9Dist4Scale2 = n9Dist3Scale2 ::: n9Dist4Scale1
+        val n9Dist5Scale1 = List(n5, n29) ::: n9Dist4Scale1
+        val filteredN9Dist1Scale1 = grid.filter(all, n9, 1, 1, converter)
+        val filteredN9Dist1Scale2 = grid.filter(all, n9, 1, 2, converter)
+        val filteredN9Dist2Scale1 = grid.filter(all, n9, 2, 1, converter)
+        val filteredN9Dist2Scale2 = grid.filter(all, n9, 2, 2, converter)
+        val filteredN9Dist2Scale3 = grid.filter(all, n9, 2, 3, converter)
+        val filteredN9Dist2Scale4 = grid.filter(all, n9, 2, 4, converter)
+        val filteredN9Dist2Scale5 = grid.filter(all, n9, 2, 5, converter)
+        val filteredN9Dist3Scale1 = grid.filter(all, n9, 3, 1, converter)
+        val filteredN9Dist3Scale2 = grid.filter(all, n9, 3, 2, converter)
+        val filteredN9Dist4Scale1 = grid.filter(all, n9, 4, 1, converter)
+        val filteredN9Dist4Scale2 = grid.filter(all, n9, 4, 2, converter)
+        val filteredN9Dist5Scale1 = grid.filter(all, n9, 5, 1, converter)
+        assert(set(n9Dist1Scale1) === set(filteredN9Dist1Scale1))
+        assert(set(n9Dist1Scale2) === set(filteredN9Dist1Scale2))
+        assert(set(n9Dist2Scale1) === set(filteredN9Dist2Scale1))
+        assert(set(n9Dist2Scale2) === set(filteredN9Dist2Scale2))
+        assert(set(n9Dist2Scale3) === set(filteredN9Dist2Scale3))
+        assert(set(n9Dist2Scale4) === set(filteredN9Dist2Scale4))
+        assert(set(n9Dist2Scale5) === set(filteredN9Dist2Scale5))
+        assert(set(n9Dist3Scale1) === set(filteredN9Dist3Scale1))
+        assert(set(n9Dist3Scale2) === set(filteredN9Dist3Scale2))
+        assert(set(n9Dist4Scale1) === set(filteredN9Dist4Scale1))
+        assert(set(n9Dist4Scale2) === set(filteredN9Dist4Scale2))
+        assert(set(n9Dist5Scale1) === set(filteredN9Dist5Scale1))
+      }
+      "filter by distance in edge situations" in {
+        val n41Dist1Scale1 = List(n41, n45, n42, n46)
+        val n41Dist2Scale1 = List(n43, n47) ::: n41Dist1Scale1
+        val n41Dist3Scale1 = List(n40, n44) ::: n41Dist1Scale1
+        val filteredN41Dist1Scale1 = grid.filter(all, n4, 1, 1, converter)
+        val filteredN41Dist2Scale1 = grid.filter(all, n4, 2, 1, converter)
+        val filteredN41Dist3Scale1 = grid.filter(all, n4, 3, 1, converter)
+        assert(set(n41Dist1Scale1) === set(filteredN41Dist1Scale1))
+        assert(set(n41Dist2Scale1) === set(filteredN41Dist2Scale1))
+        assert(set(n41Dist3Scale1) === set(filteredN41Dist3Scale1))
       }
     }
   }

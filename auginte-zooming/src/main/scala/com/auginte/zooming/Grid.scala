@@ -491,87 +491,33 @@ abstract class Grid extends Debugable {
     }
 
   @inline
-  private def isLarger(scale: Double) = Math.log10(scale.abs) >= scaleLog10
+  private def isLarger(scale: Double) = scale != 0 && Math.log10(scale.abs) >= scaleLog10
 
   @inline
-  private def isSmaller(scale: Double) = Math.log10(scale.abs) <= -scaleLog10
+  private def isSmaller(scale: Double) = scale != 0 && Math.log10(scale.abs) <= -scaleLog10
 
   private def floor(a: Double): Double = if (a >= 0) a.floor else a.ceil
-
-  /**
-   * Distance parameter dependent on both: position and scale.
-   *
-   * @return How many connections there are between farthest node and common parent
-   * @throws IllegalArgumentException when there are no path between nodes
-   */
-  private[zooming] def logicalDistance(from: Node, to: Node): Int = {
-    // Using triangle metaphor:
-    //                        ^ P  A       Real links  o
-    //                 o      | r  k                 / |             o Parent
-    //               / |      | o  a               o   o            /|
-    //             o...o      | j                /   / |           / |
-    //           / : / |      | e  T                              /  o Projection parent
-    //         o...o...o      | c  r                             /  /'                    \ Inner
-    //       / : / : / |      | t  u                   y        /  / ' Center             / triangle
-    //     o...o...o...o      | i  n    Logical links  :
-    //   / : / : / : / |      | o  k           :   :   :           \_/
-    // o...o...o...o...o      | n          x...........o            Inner triangle
-    def calculateLevel(child: Node, parent: Node, level: Int = 0): Int = {
-      if (child eq parent) 0
-      else child.parent match {
-        case Some(p) if p eq parent => level + 1
-        case Some(p) => calculateLevel(p, parent, level + 1)
-        case None => throw new IllegalArgumentException(s"Not connected nodes: $from -> $parent -> $to")
-      }
-    }
-    def childStraightDown(parent: Node, level: Int): Node = {
-      if (level <= 0) parent else childStraightDown(getNode(parent, 0, 0, 1.0 / gridSize), level - 1)
-    }
-    def byMaxLinks(child1: Node, child2: Node, parent: Node): Int = {
-      val level1 = calculateLevel(child1, parent)
-      val level2 = calculateLevel(child2, parent)
-      val sign = if (level1 <= level2) 1 else -1
-      sign * Math.max(level1, level2)
-    }
-    def byInnerTriangle(child1: Node, child2: Node): Int =  byMaxLinks(child1, child2, getCommonParent(child1, child2))
-
-    val parent = getCommonParent(from, to)
-    val levelFrom = calculateLevel(from, parent)
-    val levelTo = calculateLevel(to, parent)
-
-    val centerFrom = childStraightDown(parent, levelFrom)
-    val centerTo = childStraightDown(parent, levelTo)
-    @inline val fromTrunk = (from eq centerFrom) || (to eq centerTo)
-
-    if (fromTrunk) byMaxLinks(from, to, parent)
-    else if (levelFrom == levelTo) Math.abs(byInnerTriangle(centerFrom, from) - byInnerTriangle(centerTo, to))
-    else byInnerTriangle(centerFrom, to)
-  }
 
   /**
    * Filters by logical distance
    *
    * @param items graphical elements with relation to node
    * @param from node to calculate distance from
-   * @param negative max negative logical distance of elements to be included. E.g. -4 < -2 < -1
-   * @param postiive max positive logical distance of elements to be included. E.g. 1 > 2 > 4
+   * @param scale absolute distance in each axis
+   * @param deep how deep (down) children should be checked
    * @param f closure to retrieve node by list item
    * @tparam A type of list items
    * @return filtered list
    */
-  def filter[A](items: Traversable[A], from: Node, negative: Int, postiive: Int, f: (A) => Node): Traversable[A] = {
-    debug_distances = new StringBuilder(items.size * 10)
-    val res = items.filter(element => {
-      val distance = logicalDistance(from, f(element))
-      negative <= distance && distance <= postiive
-    })
-    for (e <- res) {
-      debug_distances.append(s"VISIBLE: $e\n")
+  def filter[A](items: Traversable[A], from: Node, scale: Int, deep: Int, f: (A) => Node): Traversable[A] = {
+    def hasParent(element: Node, parent: Node, inDistance: Int): Boolean = if (element eq parent) true
+    else element.parent match {
+      case Some(p) if inDistance > 0 && (p eq parent) => true
+      case Some(p) if inDistance > 0 => hasParent(p, parent, inDistance - 1)
+      case Some(p) if inDistance <= 0 => false
+      case None => false
     }
-    debug_distances.append(s"-------------------\n")
-    for (element <- items) {
-      debug_distances.append(s"${logicalDistance(from, f(element))} <= $postiive\t\t$element\n")
-    }
+    val res = items.filter(element => hasParent(f(element), from, deep))
     res
   }
 
