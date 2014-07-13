@@ -357,6 +357,12 @@ abstract class Grid extends Debugable {
     }
   }
 
+  private def shallowExists(node: Node, x: Int, y: Int): Boolean = node.parent match {
+    case Some(p) if x >= 0 && y >= 0 && x < gridSize && y < gridSize => p.getChild(x, y).isDefined
+    case Some(p) => true
+    case None => false
+  }
+
   @inline
   private def needOtherNode(x: Double, y: Double, scale: Double): Boolean = {
     x.abs >= gridSize || y.abs >= gridSize ||
@@ -517,7 +523,20 @@ abstract class Grid extends Debugable {
       case Some(p) if inDistance <= 0 => false
       case None => false
     }
-    val res = items.filter(element => hasParent(f(element), from, deep))
+    def getNodesAround(center: Node, distance: Int): Iterable[Node] = {
+      @inline def zero(a: Int, b: Int): Boolean = a == 0 && b == 0
+      for (x <- -distance to distance; y <- -distance to distance) yield getNode(center, x * gridSize, y * gridSize, 0)
+    }
+
+    val parents = getNodesAround(from, scale)
+
+    d(s"from=$from")
+    for (p <- parents) d(s"PARENT: $p")
+
+    val res = items.filter(element => parents.exists(parent => hasParent(f(element), parent, deep)))
+
+    d(s"all=$items")
+    d(s"res=$res")
     res
   }
 
