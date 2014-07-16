@@ -70,6 +70,10 @@ abstract class Grid extends Debugable {
 
   var debug_distances: StringBuilder = new StringBuilder()
 
+  var debug_distances2: StringBuilder = new StringBuilder()
+
+  var debug_distances3: StringBuilder = new StringBuilder()
+
   private lazy val scaleLog10 = Math.log10(gridSize)
 
   //
@@ -533,7 +537,21 @@ abstract class Grid extends Debugable {
     d(s"from=$from")
     for (p <- parents) d(s"PARENT: $p")
 
-    val res = items.filter(element => parents.exists(parent => hasParent(f(element), parent, deep)))
+    debug_distances = new StringBuilder(5000)
+    debug_distances2 = new StringBuilder(5000)
+    debug_distances3 = new StringBuilder(5000)
+
+    val res = items.filter(element => {
+      val exists = parents.exists(parent => hasParent(f(element), parent, deep))
+      if (exists) {
+        debug_distances.append(element.toString).append("\n")
+      } else {
+        debug_distances2.append(element.toString).append("\n")
+      }
+      exists
+    })
+
+    for (p <- parents) debug_distances3.append(p.selfAndParents).append("\n");
 
     d(s"all=$items")
     d(s"res=$res")

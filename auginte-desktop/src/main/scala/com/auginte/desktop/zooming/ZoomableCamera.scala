@@ -4,6 +4,7 @@ import javafx.scene.control.TableView
 import javafx.scene.{Node => jn, layout => jfxl}
 import javafx.{scene => jfxs}
 
+import com.auginte.desktop.HelloScalaFX
 import com.auginte.desktop.nodes.MapRow
 import com.auginte.desktop.rich.RichNode
 import com.auginte.zooming.{Distance, Node}
@@ -19,6 +20,8 @@ import scalafx.scene.input.{KeyCode, KeyEvent}
  */
 trait ZoomableCamera[D <: jfxl.Pane] extends RichNode[D]
 with ZoomableElement {
+
+  var boundary = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
   val maxVisibleSize = 1E4
   val minVisibleSize = 0.5
@@ -46,22 +49,59 @@ with ZoomableElement {
    */
   protected def absoluteToCachedCoordinates(): Unit = if (revalidateZoomable) {
     val zoomable = getZoomable
-    visibleElements = grid.filter(zoomable, node, -1, 3, javaFx2zoomable).toList
+    try {
+      val scale = HelloScalaFX.filterScale.text.getValueSafe.toInt
+      val deep = HelloScalaFX.filterDeep.text.getValueSafe.toInt
+      val parents = HelloScalaFX.filterParents.text.getValueSafe.toInt
+      val parent = getParent(node, parents)
+      visibleElements = grid.filter(zoomable, parent, scale, deep, javaFx2zoomable).toList
+    } catch {
+      case e: Exception => println(e)
+    }
+
+    //TODO: http://graphviz-dev.appspot.com/
+    // digraph g {
+    // "bla" -> "bla";
+    // }
+
     //FIXME:
-    grid.debug_distances.append(s"\nCamera=${node.selfAndParents.reverse}\n\n")
+    val cameraData = "\n\nCAMERA\t\t\t" + transformation.rounded + "\t|\t" + node.selfAndParents.reverse + "\n"
+    grid.debug_distances.append(cameraData)
+    grid.debug_distances2.append(cameraData)
+    grid.debug_distances3.append(cameraData)
     val hiddenElements = zoomable diff visibleElements
     revalidateZoomable = false
+    var maxX = Double.MinValue
+    var minX = Double.MaxValue
+    var maxY = Double.MinValue
+    var minY = Double.MaxValue
+    var minScale = Double.MaxValue
+    var maxScale = Double.MinValue
     for (e <- visibleElements) {
       val absolute = grid.absolute(node, transformation, e.node, e.transformation)
-      e.d.setTranslateX(absolute.x)
-      e.d.setTranslateY(absolute.y)
-      e.d.setScaleX(absolute.scale)
-      e.d.setScaleY(absolute.scale)
-      e.d.setScaleZ(absolute.scale)
-      e.d.setVisible(true)
+      maxX = math.max(maxX, absolute.x)
+      maxY = math.max(maxY, absolute.y)
+      minX = math.min(minX, absolute.x)
+      minY = math.min(minY, absolute.y)
+      maxScale = math.max(maxScale, absolute.scale)
+      minScale = math.min(minScale, absolute.scale)
+      try {
+        e.d.setTranslateX(absolute.x)
+        e.d.setTranslateY(absolute.y)
+        e.d.setScaleX(absolute.scale)
+        e.d.setScaleY(absolute.scale)
+        e.d.setScaleZ(absolute.scale)
+        e.d.setVisible(true)
+      } catch {
+        case e: Exception => println(e)
+      }
     }
+    boundary = (minX, minY, maxX, maxY, minScale, maxScale)
     for (e <- hiddenElements) e.d.setVisible(false)
   }
+
+  private def getParent(from: Node, deep: Int): Node = if (deep <= 0) from
+  else getParent(grid.getNode(from, 0,0, 100), deep - 1)
 
   protected def debugHierarchy(): Unit = {
 //    var map: Grid#GridMap = Map()
@@ -205,7 +245,11 @@ with ZoomableElement {
 
   keyPressed += {
     (e: KeyEvent) => if (e.code == KeyCode.Z) {
-      println(grid.debug_distances + "\n_________________________________\n")
+      println("VISIBLE:\n\n" + grid.debug_distances + "\n" + boundary + "\n_________________________________\n")
+    } else if (e.code == KeyCode.X) {
+      println("HIDDEN:\n\n" + grid.debug_distances2 + "\n" + boundary + "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
+    } else if (e.code == KeyCode.C) {
+      println("PARENTS:\n\n" + grid.debug_distances3 + "\n" + boundary + "\n--------------------------------\n")
     }
   }
 }

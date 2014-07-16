@@ -1,5 +1,7 @@
 package com.auginte.desktop.actors
 
+import javafx.scene.control.TooltipBuilder
+
 import com.auginte.desktop
 import akka.actor.Actor
 import com.auginte.desktop.events._
@@ -53,7 +55,17 @@ class View extends Actor {
         case InsertElement(element, x, y) => {
           registerView(element)
           element match {
-            case e: ZoomableElement => representation.initializeInfinityZooming(e, x, y)
+            case e: ZoomableElement => {
+              representation.initializeInfinityZooming(e, x, y)
+              Platform.runLater{
+                import javafx.scene.control.Tooltip
+                val tooltip = new Tooltip(e.node.selfAndParents.reverse.toString)
+                tooltip.setPrefWidth(800)
+                tooltip.setPrefHeight(600)
+                tooltip.setWrapText(true)
+                Tooltip.install(element, tooltip)
+              }
+            }
             case _ => translateNew(element, x, y)
           }
           Platform.runLater {

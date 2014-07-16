@@ -137,7 +137,7 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
     "Delete" -> ((e: ActionEvent) => view ! DeleteElement(this))
   )
 
-  override def toString: String = "LABEL: " + text + "\t" + node.selfAndParents.reverse
+  override def toString: String = "LABEL: " + text + "\t|\t" + transformation.rounded + "\t|\t" + node.selfAndParents.reverse
 }
 
 //FIXME: debug

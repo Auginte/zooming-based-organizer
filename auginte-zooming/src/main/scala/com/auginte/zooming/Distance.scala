@@ -81,4 +81,6 @@ final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1) {
     val factor = this.scale / scale
     Distance(x * factor, y * factor, scale)
   }
+
+  def rounded = Distance(math.round(x * 100) / 100, math.round(y * 100) / 100, scale)
 }

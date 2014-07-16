@@ -26,6 +26,7 @@ import javafx.scene.{control => jfxc}
 import javafx.scene.shape.Rectangle
 import com.auginte.desktop.rich.RichNode
 import com.auginte.desktop.{nodes => an}
+import scalafx.scene.control.TextField
 
 object HelloScalaFX extends JFXApp {
   val akka = ActorSystem("auginte")
@@ -72,11 +73,21 @@ object HelloScalaFX extends JFXApp {
   val infoLabel = new Label("Double-click to add new element/edit. Enter to finish.\n" +
     "Right click for context menu. Shift enter for new line.")
 
+  val filterScale = new TextField{
+    text = "2"
+  }
+  val filterDeep = new TextField {
+    text = "4"
+  }
+  val filterParents = new TextField {
+    text = "2"
+  }
+
   stage.scene = new Scene {
     root = new BorderPane {
       center = tabPane
       bottom = new HBox {
-        content = List(infoLabel, exitButton)
+        content = List(infoLabel, exitButton, filterParents, filterScale, filterDeep)
         spacing = 5
       }
     }
