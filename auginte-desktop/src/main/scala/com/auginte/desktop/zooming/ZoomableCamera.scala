@@ -64,11 +64,14 @@ with ZoomableElement {
     // "bla" -> "bla";
     // }
 
+    grid.debug_distances4 = new StringBuilder(5000)
+
     //FIXME:
     val cameraData = "\n\nCAMERA\t\t\t" + transformation.rounded + "\t|\t" + node.selfAndParents.reverse + "\n"
     grid.debug_distances.append(cameraData)
     grid.debug_distances2.append(cameraData)
     grid.debug_distances3.append(cameraData)
+    grid.debug_distances4.append(cameraData)
     val hiddenElements = zoomable diff visibleElements
     revalidateZoomable = false
     var maxX = Double.MinValue
@@ -79,6 +82,7 @@ with ZoomableElement {
     var maxScale = Double.MinValue
     for (e <- visibleElements) {
       val absolute = grid.absolute(node, transformation, e.node, e.transformation)
+      grid.debug_distances4.append(s"${e.toString}\t$absolute\n")
       maxX = math.max(maxX, absolute.x)
       maxY = math.max(maxY, absolute.y)
       minX = math.min(minX, absolute.x)
@@ -250,6 +254,8 @@ with ZoomableElement {
       println("HIDDEN:\n\n" + grid.debug_distances2 + "\n" + boundary + "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
     } else if (e.code == KeyCode.C) {
       println("PARENTS:\n\n" + grid.debug_distances3 + "\n" + boundary + "\n--------------------------------\n")
+    } else if (e.code == KeyCode.V) {
+      println("ABSOLUTE:\n\n" + grid.debug_distances4 + "\n" + boundary + "\n--------------------------------\n")
     }
   }
 }

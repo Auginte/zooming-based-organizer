@@ -74,6 +74,8 @@ abstract class Grid extends Debugable {
 
   var debug_distances3: StringBuilder = new StringBuilder()
 
+  var debug_distances4: StringBuilder = new StringBuilder()
+
   private lazy val scaleLog10 = Math.log10(gridSize)
 
   //
@@ -551,7 +553,7 @@ abstract class Grid extends Debugable {
       exists
     })
 
-    for (p <- parents) debug_distances3.append(p.selfAndParents).append("\n");
+    for (p <- parents) debug_distances3.append(p.selfAndParents.reverse).append("\n");
 
     d(s"all=$items")
     d(s"res=$res")
