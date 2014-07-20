@@ -1,9 +1,7 @@
 package com.auginte.desktop.zooming
 
 import javafx.scene.control.TableView
-import javafx.scene.{Node => jn, layout => jfxl}
-import javafx.{scene => jfxs}
-
+import javafx.scene.{layout => jfxl}
 import com.auginte.desktop.HelloScalaFX
 import com.auginte.desktop.nodes.MapRow
 import com.auginte.desktop.rich.RichNode
@@ -45,7 +43,7 @@ with ZoomableElement {
     """.stripMargin)
 
   /**
-    * For every child, converts infinity zooming coordinates to GUI ones
+   * For every child, converts infinity zooming coordinates to GUI ones
    */
   protected def absoluteToCachedCoordinates(): Unit = if (revalidateZoomable) {
     val zoomable = getZoomable
@@ -65,6 +63,12 @@ with ZoomableElement {
     // }
 
     grid.debug_distances4 = new StringBuilder(5000)
+
+    def isInBoundaries(pos: Distance): Boolean = {
+      val boundary = 1E6
+      val boundarySize = 1E5
+      pos.x.abs < boundary && pos.y.abs < boundary && pos.scale < boundarySize && pos.scale > 1 / boundarySize
+    }
 
     //FIXME:
     val cameraData = "\n\nCAMERA\t\t\t" + transformation.rounded + "\t|\t" + node.selfAndParents.reverse + "\n"
@@ -89,37 +93,42 @@ with ZoomableElement {
       minY = math.min(minY, absolute.y)
       maxScale = math.max(maxScale, absolute.scale)
       minScale = math.min(minScale, absolute.scale)
-      try {
-        e.d.setTranslateX(absolute.x)
-        e.d.setTranslateY(absolute.y)
-        e.d.setScaleX(absolute.scale)
-        e.d.setScaleY(absolute.scale)
-        e.d.setScaleZ(absolute.scale)
-        e.d.setVisible(true)
-      } catch {
-        case e: Exception => println(e)
+      if (isInBoundaries(absolute)) {
+        try {
+          e.d.setTranslateX(absolute.x)
+          e.d.setTranslateY(absolute.y)
+          e.d.setScaleX(absolute.scale)
+          e.d.setScaleY(absolute.scale)
+          e.d.setScaleZ(absolute.scale)
+          e.d.setVisible(true)
+        } catch {
+          case e: Exception => println(e)
+        }
+      } else {
+        e.d.setVisible(false)
       }
     }
+
     boundary = (minX, minY, maxX, maxY, minScale, maxScale)
     for (e <- hiddenElements) e.d.setVisible(false)
   }
 
   private def getParent(from: Node, deep: Int): Node = if (deep <= 0) from
-  else getParent(grid.getNode(from, 0,0, 100), deep - 1)
+  else getParent(grid.getNode(from, 0, 0, 100), deep - 1)
 
   protected def debugHierarchy(): Unit = {
-//    var map: Grid#GridMap = Map()
-//    for (element <- d.getChildren) element match {
-//      case e: ZoomableNode[jn] => {
-//        val elementNode: Node = grid.getNode(node, e.t.x + t.x, e.t.y + t.y, e.t.scale * t.scale)
-//        map = map ++ Map(e.d -> elementNode)
-//        map.values
-//      }
-//      case _ => Unit
-//    }
-//    if (mapTable.isDefined) {
-//      mapTable.get.setItems(MapRow.fromMap(map))
-//    }
+    //    var map: Grid#GridMap = Map()
+    //    for (element <- d.getChildren) element match {
+    //      case e: ZoomableNode[jn] => {
+    //        val elementNode: Node = grid.getNode(node, e.t.x + t.x, e.t.y + t.y, e.t.scale * t.scale)
+    //        map = map ++ Map(e.d -> elementNode)
+    //        map.values
+    //      }
+    //      case _ => Unit
+    //    }
+    //    if (mapTable.isDefined) {
+    //      mapTable.get.setItems(MapRow.fromMap(map))
+    //    }
   }
 
   /**
