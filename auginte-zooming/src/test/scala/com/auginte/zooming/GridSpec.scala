@@ -112,19 +112,17 @@ class GridSpec extends UnitSpec {
       val n2 = grid.getNode(root, 1, 2, 1 / 102.0)
       val n3 = grid.getNode(n2, 1, 2, 1 / 199.9)
       val n4 = grid.getNode(n3, -10, -3, 1 / 123.4)
-      "create childs" in {
+      "create children" in {
         assert(n1.parent.get === root)
         assert(n2.parent.get === root)
         assert(n3.parent.get === n2)
-        assert(n4.parent.get === n3)
-        assert(n4.parent.get !== n2)
-        assert(n4.parent.get !== root)
+        assert(n4.parent.get !== n3)
       }
       "use coordinates from translation" in {
         assertXY(n1, 0, 0)
         assertXY(n2, 1, 2)
         assertXY(n3, 1, 2)
-        assertXY(n4, -10, -3)
+        assertXY(n4, 90, 97)
       }
     }
     "simple scaled" should {
@@ -271,49 +269,120 @@ class GridSpec extends UnitSpec {
           assertXY(n8, -99, -23)
         }
       }
-      "positive and negative" should {
-        val (root, grid) = rootGridPair()
-        val n1 = grid.getNode(root, 111, 222, 1)
-        val n2 = grid.getNode(root, -333, 444, 1)
-        val n3 = grid.getNode(root, -555, -666, 1)
-        val n4 = grid.getNode(root, 777, -888, 1)
-        val r1 = n1.parent.getOrElse(invalid)
-        //        n7    |    n8
-        //           n3 | n4 n9
-        //  ------------r------------------
-        //           n2 | n1
-        //        n6    |    n5
-        "create new parents for elements from center" in {
-          assert(root.parent.get === r1)
-          assert(n1.parent.get === r1)
-          assert(n2.parent.get === r1)
-          assert(n3.parent.get === r1)
-          assert(n4.parent.get === r1)
+      "positive and negative" when {
+        "around root" should {
+          val (root, grid) = rootGridPair()
+          val n1 = grid.getNode(root, 111, 222, 1)
+          val n2 = grid.getNode(root, -333, 444, 1)
+          val n3 = grid.getNode(root, -555, -666, 1)
+          val n4 = grid.getNode(root, 777, -888, 1)
+          val r1 = n1.parent.getOrElse(invalid)
+          //        n7    |    n8
+          //           n3 | n4 n9
+          //  ------------r------------------
+          //           n2 | n1
+          //        n6    |    n5
+          "create new parents for elements from center" in {
+            assert(root.parent.get === r1)
+            assert(n1.parent.get === r1)
+            assert(n2.parent.get === r1)
+            assert(n3.parent.get === r1)
+            assert(n4.parent.get === r1)
+          }
+          "use translation coordinates for elements from center" in {
+            assertXY(n1, 1, 2)
+            assertXY(n2, -3, 4)
+            assertXY(n3, -5, -6)
+            assertXY(n4, 7, -8)
+          }
+          val n5 = grid.getNode(n4, 123, 999, 1)
+          val n6 = grid.getNode(n1, -234, 333, 1)
+          val n7 = grid.getNode(n2, -111, -888, 1)
+          val n8 = grid.getNode(n3, 666, -111, 1)
+          val n9 = grid.getNode(n4, -111, 222, 1)
+          "create new parents for elements from other positions" in {
+            assert(n5.parent.get === r1)
+            assert(n6.parent.get === r1)
+            assert(n7.parent.get === r1)
+            assert(n8.parent.get === r1)
+            assert(n9.parent.get === r1)
+          }
+          "swap signs, if translation cross axis" in {
+            assertXY(n5, 8, 1)
+            assertXY(n6, -1, 5)
+            assertXY(n7, -4, -4)
+            assertXY(n8, 1, -7)
+            assertXY(n9, 6, -6)
+          }
         }
-        "use translation coordinates for elements from center" in {
-          assertXY(n1, 1, 2)
-          assertXY(n2, -3, 4)
-          assertXY(n3, -5, -6)
-          assertXY(n4, 7, -8)
-        }
-        val n5 = grid.getNode(n4, 123, 999, 1)
-        val n6 = grid.getNode(n1, -234, 333, 1)
-        val n7 = grid.getNode(n2, -111, -888, 1)
-        val n8 = grid.getNode(n3, 666, -111, 1)
-        val n9 = grid.getNode(n4, -111, 222, 1)
-        "create new parents for elements from other positions" in {
-          assert(n5.parent.get === r1)
-          assert(n6.parent.get === r1)
-          assert(n7.parent.get === r1)
-          assert(n8.parent.get === r1)
-          assert(n9.parent.get === r1)
-        }
-        "swap signs, if translation cross axis" in {
-          assertXY(n5, 8, 1)
-          assertXY(n6, -1, 5)
-          assertXY(n7, -4, -4)
-          assertXY(n8, 1, -7)
-          assertXY(n9, 6, -6)
+        "in deep positive edge situations" should {
+          val (root, grid) = rootGridPair()
+          //  root
+          //   \
+          //    n1_________________________              (1;1)
+          //    |                          \
+          //    n2_________                 n13          (50;50)                                      (51;51)
+          //    |  \   \   \                |
+          //    n3  n5  n7  n9_______       n14_         (98;98) (98;99) (99;98) (99;99)              (0;0)
+          //    |   |   |   |   \    \      |   \
+          //    n4  n6  n8  n10  n11  n12   n15  n16     (99;99) (99;0)  (0; 99) (0,0) (1,1) (99,99)  (0,0) (1,1)
+          //               <->             <->
+          //
+          //         +------+-------+  +----+----+
+          //         | n4   |  n6   |  |n12 |    |
+          //         +-----n10------+  +---n15---+
+          //         | n8   |  n11  |  |    | n16|
+          //         +----- +-------+  +----+----+
+          val n1 = grid.getNode(root, 1, 1, 0.01)
+          val n2 = grid.getNode(n1, 50, 50, 0.01)
+          val n10 = grid.getNode(n2, 99, 99, 0.0001)
+          val n9 = n10.parent.getOrElse(invalid)
+
+          val n13 = grid.getNode(n2, 100, 100, 1)
+          val n14 = grid.getNode(n13, 0, 0, 0.01)
+          val n15 = grid.getNode(n14, 0, 0, 0.01)
+
+          val n4 = grid.getNode(n10, -100, -100, 0)
+          val n6 = grid.getNode(n10, 0, -100, 0)
+          val n8 = grid.getNode(n10, -100, 0, 0)
+          val n11 = grid.getNode(n10, 100, 100, 0)
+          val n3 = n4.parent.getOrElse(invalid)
+          val n5 = n6.parent.getOrElse(invalid)
+          val n7 = n8.parent.getOrElse(invalid)
+
+          val n12 = grid.getNode(n15, -100, -100, 0)
+          val n16 = grid.getNode(n15, 100, 100, 0)
+          "have main nodes " in {
+            assertParents(n10, n9, n2, n1, root)
+            assertParents(n15, n14, n13, n1, root)
+            assertXY(n1, 1, 1)
+            assertXY(n2, 50, 50)
+            assertXY(n9, 99, 99)
+            assertXY(n10, 0, 0)
+          }
+          "use positive positions in simple coordinates space" in {
+            assertParents(n15, n14, n13, n1, root)
+            val n2_2 = grid.getNode(n13, -100, -100, 0)
+            assertXY(n13, 51, 51)
+            assert(n2 === n2_2)
+            assertXY(n14, 0, 0)
+            assertXY(n15, 0, 0)
+          }
+          "use positive positions in edge coordinates space" in {
+            assertParents(n4, n3, n2, n1, root)
+            assertParents(n6, n5, n2, n1, root)
+            assertParents(n8, n7, n2, n1, root)
+            assertParents(n11, n9, n2, n1, root)
+            assertXY(n4, 99, 99)
+            assertXY(n6, 0, 99)
+            assertXY(n8, 99, 0)
+            assertXY(n11, 1, 1)
+
+            assertParents(n12, n9, n2, n1, root)
+            assertParents(n16, n14, n13, n1, root)
+            assertXY(n12, 99, 99)
+            assertXY(n16, 1, 1)
+          }
         }
       }
     }
@@ -1267,7 +1336,7 @@ class GridSpec extends UnitSpec {
         val n9Dist2Scale5 = n9Dist2Scale4 ::: List(n38, n37)
 
         val n9Dist3Scale1 = n9Dist2Scale1 ::: List(n3) ::: List(n21)
-        val n9Dist3Scale2 = n9Dist3Scale1 ::: n9Dist2Scale2 :::  List(n25)
+        val n9Dist3Scale2 = n9Dist3Scale1 ::: n9Dist2Scale2 ::: List(n25)
         val n9Dist4Scale1 = n9Dist3Scale1 ::: List(n5) ::: List(n29)
         val n9Dist4Scale2 = n9Dist4Scale1 ::: n9Dist3Scale2
 

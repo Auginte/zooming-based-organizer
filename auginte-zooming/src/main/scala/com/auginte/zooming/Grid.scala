@@ -430,13 +430,21 @@ abstract class Grid extends Debugable {
    * Scaling will be unchanged.
    */
   private def getTranslatedNode(position: Position): Position = {
-    def diveUp(parent: Node, x: Double, y: Double, scale: Double): Position = {
+    type Sign = (Double, Double)
+    def getSign(node: Node): Sign = if (node.x == 0 && node.y == 0) node.parent match {
+      case Some(p) => getSign(p)
+      case None => (node.x, node.y)
+    } else (node.x, node.y)
+
+    def diveUp(parent: Node, x: Double, y: Double, scale: Double, sign: Sign): Position = {
+      @inline def sameSign(x: Double, y: Double, sign: Sign, parent: Node): Boolean =
+        (x * sign._1 >= 0 && y * sign._2 >= 0) || (parent eq root)
       d(s"DiveUp $parent | ${x}x${y} s {$scale}")
-      if (x.abs >= gridSize || y.abs >= gridSize) {
+      if (x.abs >= gridSize || y.abs >= gridSize || !sameSign(x, y, sign, parent)) {
         val _x = (x / gridSize) + parent.x
         val _y = (y / gridSize) + parent.y
         d(s"\tdiveUp ($x/$gridSize + ${parent.x}, $y/$gridSize + ${parent.y}) = ${_x}x${_y}")
-        diveUp(getParent(parent), _x, _y, scale * gridSize)
+        diveUp(getParent(parent), _x, _y, scale * gridSize, sign)
       } else {
         d(s"\tdived up $parent ${x}x${y} s $scale")
         Position(parent, x, y, scale)
@@ -444,10 +452,11 @@ abstract class Grid extends Debugable {
     }
 
     def diveDown(position: Position, distance: Double): Position = {
+      @inline def round8(d: Double) = (math rint d * 1E8) / 1E8
       d(s"DiveDown $position | $distance")
       val Position(parent, x, y, scale) = position
       if (distance >= gridSize) {
-        val child = getChild(parent, floor(x).toInt, floor(y).toInt)
+        val child = getChild(parent, round8(x).toInt, round8(y).toInt)
         val _x = (x * gridSize) - (child.x * gridSize) // Higher precision
         val _y = (y * gridSize) - (child.y * gridSize) // Higher precision
         val _distance = distance / gridSize
@@ -461,7 +470,9 @@ abstract class Grid extends Debugable {
     }
 
     val Position(node, x, y, scale) = position
-    val absolute = diveUp(node, x, y, 1)
+    val sign = getSign(node)
+    d(s"sign = $sign")
+    val absolute = diveUp(node, x, y, 1, sign)
     val parent = absolute.parent
     d(s"parent = $parent")
     val (_x, _y) = (absolute.x, absolute.y)
@@ -507,6 +518,7 @@ abstract class Grid extends Debugable {
 
   @inline
   private def isSmaller(scale: Double) = scale != 0 && Math.log10(scale.abs) <= -scaleLog10
+
 
   private def floor(a: Double): Double = if (a >= 0) a.floor else a.ceil
 
