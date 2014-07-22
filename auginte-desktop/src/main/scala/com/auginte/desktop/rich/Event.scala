@@ -39,11 +39,6 @@ class Event[S <: sfxe.Event, J <: jfxe.Event](delegate: => ObjectProperty[EventH
   }
   delegate.set(eventHandler)
 
-  //  private def delegateEvent[S <: Event, J <: jfxe.Event](f: S => Any, c: J => S): EventHandler[_ >: J] =
-  //    new EventHandler[J] {
-  //      def handle(event: J) = f(c(event))
-  //    }
-
   def +=(f: S => Any): EventsList = {
     events = convert(f) :: events
     events

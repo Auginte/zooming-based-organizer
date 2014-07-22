@@ -1,5 +1,7 @@
 package com.auginte.desktop.nodes
 
+import com.auginte.desktop.operations.EditableNode
+
 import scalafx.scene.input.{KeyCode, KeyEvent, MouseEvent}
 import javafx.scene.{layout => jfxl}
 import javafx.scene.{text => jfxt, control => jfxc}
@@ -8,7 +10,7 @@ import scalafx.scene.{control => sfxc}
 import com.auginte.desktop.events.{DeleteElement, ShowContextMenu}
 import com.auginte.desktop.actors.{DragableNode, ViewableNode}
 import com.auginte.desktop.rich.RichJPane
-import javafx.scene.input.MouseButton
+import scalafx.scene.input.MouseButton
 import scalafx.geometry.Pos
 import scalafx.event.ActionEvent
 import com.auginte.desktop.zooming.ZoomableNode
@@ -20,20 +22,18 @@ import javafx.scene.layout.{Pane => jp}
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class Label(val _text: String) extends RichJPane
-with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp] {
+with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp]
+with EditableNode {
   private val label = new jfxc.Label(_text)
   private val textArea = new jfxc.TextArea()
   private var editMode = false
-  private var insertingEnter = false // insertString triggers Key event
   textArea.setVisible(false)
   textArea.setText(_text)
   getChildren.addAll(label, textArea)
   updateSize(_text)
   updateStyle(editMode)
 
-  // Debug
-  override val debugId = _text
-  def this() = this(Label.getId)
+  def this() = this("")
 
 
   //
@@ -42,7 +42,7 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
 
   mouseClicked += {
     (e: MouseEvent) => if (e.clickCount > 1) {
-      editable = if (editable == true) false else true
+      editable = !editable
       e.consume()
       textArea.requestFocus()
     } else if (e.button == MouseButton.SECONDARY) {
@@ -63,7 +63,7 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
     KeyEvent.KeyReleased,
     (e: KeyEvent) => e.code match {
       case KeyCode.ENTER if e.shiftDown => insertEnter()
-      case KeyCode.ENTER if (!e.shiftDown) => finishEditing(e)
+      case KeyCode.ENTER if !e.shiftDown => finishEditing(e)
       case _ => Unit
     }
   )
@@ -93,6 +93,7 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
     textArea.setVisible(editMode)
     updateText()
     updateStyle(editMode)
+    if (editMode) textArea.requestFocus()
   }
 
 
@@ -117,7 +118,7 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
     label.setAlignment(Pos.TOP_LEFT)
   }
 
-  private def updateStyle(editable: Boolean): Unit = if (editable == true) {
+  private def updateStyle(editable: Boolean): Unit = if (editable) {
     styleClass.remove("label-active")
     styleClass.add("label-editable")
   } else {
@@ -137,15 +138,5 @@ with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp
     "Delete" -> ((e: ActionEvent) => view ! DeleteElement(this))
   )
 
-  override def toString: String = "LABEL: " + text + "\t|\t" + transformation.rounded + "\t|\t" + node.selfAndParents.reverse
-}
-
-//FIXME: debug
-object Label {
-  private var id = 0;
-
-  def getId(): String = {
-    id += 1
-    s"${id}"
-  }
+  override def toString: String = "LABEL: " + text + "\t" + transformation + "\t" + node.selfAndParents.reverse
 }

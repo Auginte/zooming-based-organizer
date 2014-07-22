@@ -3,7 +3,6 @@ package com.auginte.desktop
 import javafx.collections.ObservableList
 
 import com.auginte.desktop.nodes.MouseFocusable
-import com.auginte.desktop.operations.{AddWithMouse}
 import scalafx.Includes._
 import com.auginte.desktop.rich.RichSPane
 import javafx.scene.layout.{Pane => jp}
@@ -24,29 +23,19 @@ import scalafx.event.ActionEvent
 class View extends RichSPane
 with Container[jp] with DragableView[jp] with ZoomableView[jp]
 with ZoomableCamera[jp] with MouseFocusable[jp] {
+
   val contextMenu = initContextMenu()
 
-  val timeline = new Timeline {
+  private val grid2absoluteCron = new Timeline {
     cycleCount = Timeline.INDEFINITE
     keyFrames = Seq(
-      new KeyFrame (
+      jfxKeyFrame2sfx(new KeyFrame(
         Duration(10),
-        (e: ActionEvent) => absoluteToCachedCoordinates
-      )
+        (e: ActionEvent) => absoluteToCachedCoordinates(e)
+      ))
     )
   }
-  timeline.play()
-
-  val timeline2 = new Timeline {
-    cycleCount = Timeline.INDEFINITE
-    keyFrames = Seq(
-      new KeyFrame (
-        Duration(1000),
-        (e: ActionEvent) => debugHierarchy
-      )
-    )
-  }
-  timeline2.play()
+  grid2absoluteCron.play()
 
   private def initContextMenu() = {
     val contextMenu = new ContextMenu()

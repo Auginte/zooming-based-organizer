@@ -1,18 +1,14 @@
 package com.auginte.desktop.actors
 
-import javafx.scene.control.TooltipBuilder
-
-import com.auginte.desktop
-import akka.actor.Actor
-import com.auginte.desktop.events._
-import scalafx.application.Platform
-import language.implicitConversions
-import com.auginte.desktop.events.InsertElement
-import com.auginte.desktop.events.ShowContextMenu
-import com.auginte.desktop.events.DeleteElement
-import com.auginte.desktop.events.MoveElement
 import javafx.{scene => jfxs}
+
+import akka.actor.Actor
+import com.auginte.desktop
+import com.auginte.desktop.events._
 import com.auginte.desktop.zooming.ZoomableElement
+
+import scala.language.implicitConversions
+import scalafx.application.Platform
 
 /**
  * Actor for asynchronous actions with View object.
@@ -33,57 +29,37 @@ class View extends Actor {
   def receive = {
 
     // Initialisation events
-    case v: desktop.View => {
+    case v: desktop.View =>
       registerView(v)
       viewOption = Some(v)
-    }
     case _ if viewOption.isEmpty => throw new IllegalArgumentException("Received, but view is NOT initialised")
 
     // Events useful for all representations
-    case event if (viewOption.isDefined) => {
+    case event if viewOption.isDefined =>
       context.parent ! event
       val representation = viewOption.get
 
       // Representation specific implementation
       event match {
-        case ShowContextMenu(source) => {
-          Platform.runLater {
-            representation.contextMenu.show()
-            representation.contextMenu.showContent(source.operations)
-          }
+        case ShowContextMenu(source) => Platform.runLater {
+          representation.contextMenu.show()
+          representation.contextMenu.showContent(source.operations)
         }
-        case InsertElement(element, x, y) => {
+        case InsertElement(element, x, y) =>
           registerView(element)
           element match {
-            case e: ZoomableElement => {
-              representation.initializeInfinityZooming(e, x, y)
-              Platform.runLater{
-                import javafx.scene.control.Tooltip
-                val tooltip = new Tooltip(e.node.selfAndParents.reverse.toString)
-                tooltip.setPrefWidth(800)
-                tooltip.setPrefHeight(600)
-                tooltip.setWrapText(true)
-                Tooltip.install(element, tooltip)
-              }
-            }
+            case e: ZoomableElement => representation.initializeInfinityZooming(e, x, y)
             case _ => translateNew(element, x, y)
           }
-          Platform.runLater {
-            representation.content.add(element)
-          }
-        }
-        case DeleteElement(element) => Platform.runLater {
-          representation.remove(element)
-        }
+          Platform.runLater(representation.content.add(element))
+        case DeleteElement(element) => Platform.runLater(representation.remove(element))
         case MoveElement(element, node, diffX, diffY) => synchronized(representation.translate(node, diffX, diffY))
         case MoveView(camera, diffX, diffY) => synchronized(camera.translate(-diffX, -diffY))
         case ZoomView(camera, scale, x, y) => synchronized(representation.zoom(scale, x, y))
+        case EditElement(e, mode) => Platform.runLater(e.editable = mode)
         case _ => Unit
       }
-      Platform.runLater {
-        representation.validateZoomableElementsLater()
-      }
-    }
+      Platform.runLater (representation.validateZoomableElementsLater())
   }
 
   private def registerView(element: Any) = element match {

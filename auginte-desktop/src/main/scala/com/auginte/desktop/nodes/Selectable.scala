@@ -8,7 +8,7 @@ import javafx.collections.ObservableList
 import com.auginte.desktop.rich.RichNode
 
 /**
- * Disables editing of object, when clicked on pane (outside object)
+ * Changing selection property via mouse.
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */

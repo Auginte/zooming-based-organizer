@@ -64,23 +64,4 @@ final case class Distance(x: Double = 0, y: Double = 0, scale: Double = 1) {
   def --(d: Distance): Distance = {
     Distance((x / scale) - (d.x / d.scale), (y / scale) - (d.y / d.scale), scale / d.scale)
   }
-
-  /**
-   * Returns copy with position changed to match needed scale.
-   *
-   * For example:
-   * {{{
-   * scala> Distance(1.2, 3.4, 100) normalised 1
-   * res1: com.auginte.zooming.Distance = Distance(120.0,340.0,1.0)
-   *
-   * scala> Distance(123, 45, 1) normalised 100
-   * res2: com.auginte.zooming.Distance = Distance(1.23,0.45,100.0)
-   * }}}
-   */
-  def normalised(scale: Double): Distance = {
-    val factor = this.scale / scale
-    Distance(x * factor, y * factor, scale)
-  }
-
-  def rounded = Distance(math.round(x * 100) / 100, math.round(y * 100) / 100, scale)
 }

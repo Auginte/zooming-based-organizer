@@ -7,13 +7,11 @@ package com.auginte.zooming
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class Node(val x: Int, val y: Int) extends Iterable[Node] {
-  private[Node] val id = NodeDebug.getId()
+  private[Node] val id = NodeDebug.nextId()
 
   private var _parent: Option[Node] = None
 
   private var _children: List[Node] = List[Node]()
-
-  var debugName = ""
 
   def createParent(): Node = {
     val parentNode: Node = new Node(0, 0)
@@ -24,12 +22,11 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] {
 
   def addChild(x: Int, y: Int): Node = getChild(x, y) match {
     case Some(child) => child
-    case None => {
+    case None => 
       val child = new Node(x, y)
       child._parent = Some(this)
       addChild(child)
       child
-    }
   }
 
   def getChild(x: Int, y: Int): Option[Node] =
@@ -53,21 +50,21 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] {
     getParents(this, List(this))
   }
 
-  override def toString: String = {
+  override def toString(): String = {
     val parentId = if (parent.isDefined) parent.get.id else "ø"
-    s"[$debugName{$id}: ${x}x${y} of $parentId]"
+    s"[$id: ${x}x$y of $parentId]"
   }
 
   def isChildOf(distantParent: Node): Boolean = {
     def isChild(child: Node, end: Boolean): Boolean = {
       if (end) return child eq distantParent
       child.parent match {
-        case Some(parent) if (parent eq distantParent) => isChild(parent, true)
-        case Some(parent) => isChild(parent, false)
-        case None => isChild(child, true)
+        case Some(parent) if parent eq distantParent => isChild(parent, end=true)
+        case Some(parent) => isChild(parent, end=false)
+        case None => isChild(child, end=true)
       }
     }
-    if (this eq distantParent) false else isChild(this, false)
+    if (this eq distantParent) false else isChild(this, end=false)
   }
 
   def hierarchyAsString(indent: Int = 0): String = children.foldLeft {
@@ -98,11 +95,11 @@ object Node {
 
 //FIXME: debug
 object NodeDebug {
-  private var i = 0;
+  private var i = 0
 
   def resetId(): Unit = i = 0
 
-  def getId() = {
+  def nextId() = {
     i += 1
     i
   }
