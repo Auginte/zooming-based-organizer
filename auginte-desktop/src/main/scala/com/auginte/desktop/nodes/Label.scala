@@ -58,11 +58,13 @@ with EditableNode {
   )
   textArea.addEventFilter(
     KeyEvent.KeyReleased,
-    (e: KeyEvent) => e.code match {
-      case KeyCode.ENTER if e.shiftDown => insertEnter()
-      case KeyCode.ENTER if !e.shiftDown => finishEditing(e)
-      case KeyCode.SPACE => e.consume()
-      case _ => Unit
+    (e: KeyEvent) => {
+      e.code match {
+        case KeyCode.ENTER if e.shiftDown => insertEnter()
+        case KeyCode.ENTER if !e.shiftDown => finishEditing(e)
+        case _ => Unit
+      }
+      e.consume()
     }
   )
 

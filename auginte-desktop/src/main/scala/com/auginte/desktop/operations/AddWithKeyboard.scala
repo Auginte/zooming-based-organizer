@@ -29,6 +29,6 @@ trait AddWithKeyboard[D <: jfxs.Node] extends RichNode[D] with InsertingElements
   }
 
   protected def isAddKey(code: KeyCode) = {
-    code == KeyCode.SPACE
+    code == KeyCode.ENTER
   }
 }
