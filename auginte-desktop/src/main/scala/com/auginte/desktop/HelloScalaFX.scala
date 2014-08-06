@@ -30,10 +30,6 @@ object HelloScalaFX extends JFXApp {
   view1.stylesheets add "css/controls.css"
   view1.getStyleClass.add("view")
 
-  val exitButton = new Button("Exit") {
-    onAction = (e: ActionEvent) => quit()
-  }
-
   val grid = new Grid
   val viewsSupervisor = akka.actorOf(Props[act.Views], "views")
   viewsSupervisor ! grid
@@ -52,7 +48,7 @@ object HelloScalaFX extends JFXApp {
     root = new BorderPane {
       center = view1
       bottom = new HBox {
-        content = List(infoLabel, exitButton)
+        content = List(infoLabel)
         spacing = 5
       }
     }

@@ -2,6 +2,8 @@ package com.auginte.desktop.zooming
 
 import javafx.scene.{layout => jfxl}
 
+import com.auginte.desktop.events.ElementUpdated
+import com.auginte.desktop.nodes.InitialSize
 import com.auginte.desktop.rich.RichNode
 import com.auginte.zooming.{Distance, Node}
 
@@ -138,11 +140,14 @@ with ZoomableElement {
       val absolute = grid.absolute(node, transformation, e.node, e.transformation)
       if (isInBoundaries(absolute)) {
         try {
-          e.d.setTranslateX(absolute.x)
-          e.d.setTranslateY(absolute.y)
+          val bound = e.d.getLayoutBounds
+          val pivotX = if (bound.getWidth > 0) bound.getMinX + (bound.getWidth / 2) else InitialSize.width / 2
+          val pivotY = if (bound.getHeight > 0) bound.getMinY + (bound.getHeight / 2) else InitialSize.height / 2
           e.d.setScaleX(absolute.scale)
           e.d.setScaleY(absolute.scale)
           e.d.setScaleZ(absolute.scale)
+          e.d.setLayoutX(absolute.x - pivotX)
+          e.d.setLayoutY(absolute.y - pivotY)
           e.d.setVisible(true)
         } catch {
           case e: Exception => println(e)

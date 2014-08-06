@@ -56,7 +56,13 @@ class View extends Actor {
         case MoveElement(element, node, diffX, diffY) => synchronized(representation.translate(node, diffX, diffY))
         case MoveView(camera, diffX, diffY) => synchronized(camera.translate(-diffX, -diffY))
         case ZoomView(camera, scale, x, y) => synchronized(representation.zoom(scale, x, y))
-        case EditElement(e, mode) => Platform.runLater(e.editable = mode)
+        case EditElement(e, mode) => Platform.runLater {
+          if (mode) {
+            e.editable = mode
+          } else {
+            representation.requestFocus()
+          }
+        }
         case _ => Unit
       }
       Platform.runLater (representation.validateZoomableElementsLater())
