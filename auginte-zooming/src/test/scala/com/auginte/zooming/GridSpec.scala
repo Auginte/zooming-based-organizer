@@ -862,7 +862,7 @@ class GridSpec extends UnitSpec {
       val (n2, a2, g2) = (grid.getNode(camera, 200, 0, 1), Distance(18.0, 88.0, 1.0), Distance(324.0, 87.0, 1.0))
       val (n3, a3, g3) = (grid.getNode(camera, 0, 200, 1), Distance(89.0, 13.0, 1.0), Distance(195.0, 212.0, 1.0))
       val (n4, a4, g4) = (grid.getNode(camera, 200, 200, 1), Distance(38.0, 14.0, 1.0), Distance(344.0, 213.0, 1.0))
-      val newTranslation = grid.absoluteCamera(camera, newCamera, translation)
+      val newTranslation = grid.absolute(camera, newCamera, translation)
       "optimise camera absolute and hierarchy" in {
         assertXY(newCamera, -1, 0)
         assertXY(n1, 0, 0)
@@ -909,7 +909,7 @@ class GridSpec extends UnitSpec {
         assertXY(c1, 0, 0)
         assertXY(c2, -81, -88)
         assert(c2 isChildOf c1)
-        val t2 = grid.absoluteCamera(c1, c2, t1)
+        val t2 = grid.absolute(c1, c2, t1)
         assert(Distance(-18.769657879855117, -94.73034632515152, 0.9883452756357822) === t2)
         val gg = grid.absolute(c2, t2, n1, a1)
         assertDistance(g1, gg, precision) // Camera in other node
@@ -1009,31 +1009,59 @@ class GridSpec extends UnitSpec {
   "Element optimisation" when {
     "translating element" when {
       "in same level" should {
+        val (camera, grid) = rootGridPair()
+        val transformation = Distance(12, 34, 0.25).asCameraNode
+        val element = camera
+        val absolute = Distance(10, 20, 1.25)
+        val gui = (56.0, 78.9)
+        val (newNode, newAbsolute) = grid.translateElement(element, absolute, gui._1, gui._2, camera, transformation)
+        "switch node by translation" in {
+          val parent = camera.parent.getOrElse(invalid)
+          assertParents(newNode, parent)
+          assertXY(newNode, 2, 3)
+        }
         "use main camera scale" in {
-          val (camera, grid) = rootGridPair()
-          val transformation = Distance(12, 34, 0.25).asCameraNode
-          val element = camera
-          val absolute = Distance(10, 20, 1.25)
-          val gui = (56.0, 78.9)
-          val newAbsolute = grid.translateElement(element, absolute, gui._1, gui._2, camera, transformation)
-          assertDistance(Distance(234.0, 335.6, 1.25), newAbsolute, precision)
+          assertDistance(Distance(34.0, 35.6, 1.25), newAbsolute, precision)
         }
       }
       "in different level" should {
-        "use chain of camera scales" in {
-          val (camera1, grid) = rootGridPair()
-          val transformation1 = Distance(12, 34, 0.0025).asCameraNode
-          val element = camera1
-          val absolute = Distance(10, 20, 1.25)
-          val gui = (56.0, 78.9)
-          val (camera2, transformation2) = grid.validateCamera(camera1, transformation1)
-
+        val (camera1, grid) = rootGridPair()
+        val transformation1 = Distance(12, 34, 0.0025).asCameraNode
+        val element = camera1
+        val absolute = Distance(10, 20, 1.25)
+        val gui = (56.0, 78.9)
+        val (camera2, transformation2) = grid.validateCamera(camera1, transformation1)
+        val (node1, absolute1) = grid.translateElement(element, absolute, gui._1, gui._2, camera1, transformation1)
+        val (node2, absolute2) = grid.translateElement(element, absolute, gui._1, gui._2, camera2, transformation2)
+        "switch node by translation" in {
           assert(camera1 isChildOf camera2)
-          val expected = Distance(22410.0, 31580.0, 1.25)
-          val absolute1 = grid.translateElement(element, absolute, gui._1, gui._2, camera1, transformation1)
-          val absolute2 = grid.translateElement(element, absolute, gui._1, gui._2, camera2, transformation2)
+          val root = camera2.parent.getOrElse(invalid)
+          assert(node1 === node2)
+          val r1 = node1.parent.getOrElse(invalid)
+          assertParents(node1, r1, root)
+          assertXY(r1, 2, 3)
+          assertXY(node1, 24, 15)
+        }
+        "use chain of camera scales" in {
+          val expected = Distance(10.0, 80.0, 1.25)
           assertDistance(absolute1, absolute2, precision)
           assertDistance(expected, absolute1, precision)
+        }
+      }
+      "scaling elements" should {
+        "switch node by scale" in {
+          val (camera, grid) = rootGridPair()
+          val absolute = Distance(0, 0, 1.25).asCameraNode
+          assert(0.8 === absolute.scale)
+          val (node1, transformation1) = grid.newElement(camera, absolute, 10.0, 20.0)
+          assert(node1 === camera)
+          assert(Distance(8, 16, 0.8) === transformation1)
+
+          val (node2, transformation2) = grid.scaleElement(node1, transformation1, 100 / 0.8)
+          assert(node1 isChildOf node2)
+          assertXY(node1, 0, 0)
+          assertXY(node2, 0, 0)
+          assert(Distance(0.08, 0.16, 1) === transformation2)
         }
       }
     }
@@ -1398,18 +1426,18 @@ class GridSpec extends UnitSpec {
 
   def assertXY(node: Node, x: Int, y: Int): Unit =
     assert(node.x == x && node.y == y,
-      s"Expeced ${x}x${y}, but actual ${node.x}x${node.y} in ${node}\n")
+      s"Expected ${x}x$y, but actual ${node.x}x${node.y} in $node\n")
 
   def assertWithTolerance(expected: Double, actual: Double, tolerance: Double): Unit =
     assert(expected > actual - tolerance && expected < actual + tolerance,
-      s"Expeced ${expected} +- ${tolerance}, but actual ${actual}\n")
+      s"EExpected $expected +- $tolerance, but actual $actual\n")
 
   def assertDistance(expected: Distance, actual: Distance, tolerance: Option[Double] = None): Unit = tolerance match {
     case Some(t) => assert(expected.x > actual.x - t && expected.x < actual.x + t &&
       expected.y > actual.y - t && expected.y < actual.y + t &&
       expected.scale > actual.scale - t && expected.scale < actual.scale + t,
-      s"Expeced ${expected} +- ${t}, but actual ${actual}\t${getErrorPosition}\n")
-    case None => assert(expected === actual, s"Expeced ${expected}, but actual ${actual}\n")
+      s"EExpected $expected +- $t, but actual $actual\t$getErrorPosition\n")
+    case None => assert(expected === actual, s"Expeced $expected, but actual $actual\n")
   }
 
 
@@ -1427,11 +1455,10 @@ class GridSpec extends UnitSpec {
             s"Last $node !-> " + parents.mkString("->")))
         }
         case parent +: tail => node.parent match {
-          case Some(nodeParent) => {
+          case Some(nodeParent) =>
             assert(nodeParent === parent,
               formatError(s"Last $node !-> " + parents.mkString("->")))
             assertParents(nodeParent, tail)
-          }
           case None => fail(formatError("Not enough parents. " +
             s"Last $node !-> " + parents.mkString("->"))
           )
@@ -1451,14 +1478,14 @@ class GridSpec extends UnitSpec {
   }
 
   object invalid extends Node(-1, -1) {
-    override def toString = "Invalid node"
+    override def toString() = "Invalid node"
 
     override def equals(obj: scala.Any): Boolean = false
   }
 
-  private def getErrorPosition(): String = {
+  private def getErrorPosition: String = {
     try {
-      val stack = Thread.currentThread().getStackTrace()
+      val stack = Thread.currentThread().getStackTrace
       val element = stack(3)
       s"(${element.getFileName}:${element.getLineNumber}})\t"
     } catch {

@@ -5,7 +5,7 @@ import javafx.scene.{layout => jfxl}
 import com.auginte.desktop.events.ElementUpdated
 import com.auginte.desktop.nodes.InitialSize
 import com.auginte.desktop.rich.RichNode
-import com.auginte.zooming.{Distance, Node}
+import com.auginte.zooming.{AbsoluteDistance, Distance, Node}
 
 import scalafx.Includes._
 import scalafx.event.ActionEvent
@@ -82,9 +82,11 @@ with ZoomableElement {
    * @param y GUI translation
    * @return updated element's absolute coordinates
    */
-  def translate(element: ZoomableElement, x: Double, y: Double): Distance = {
-    element.transformation = grid.translateElement(element.node, element.transformation, x, y, node, transformation)
-    element.transformation
+  def translate(element: ZoomableElement, x: Double, y: Double): AbsoluteDistance = {
+    val (newNode, newTransformation) = grid.translateElement(element.node, element.transformation, x, y, node, transformation)
+    element.transformation = newTransformation
+    element.node = newNode
+    (newNode, newTransformation)
   }
 
   /**
@@ -92,12 +94,14 @@ with ZoomableElement {
    * as calculation involves camera's coordinates.
    *
    * @param element child element, which coordinates should be updated.
-   * @param scale amount
+   * @param scaleDiff amount
    * @return updated element's absolute coordinates
    */
-  def scale(element: ZoomableElement, scale: Double): Distance = {
-    element.transformation = element.transformation zoomed scale
-    element.transformation
+  def scale(element: ZoomableElement, scaleDiff: Double): AbsoluteDistance = {
+    val (newNode, newTransformation) = grid.scaleElement(element.node, element.transformation, scaleDiff)
+    element.node = newNode
+    element.transformation = newTransformation
+    (newNode, newTransformation)
   }
 
   /**

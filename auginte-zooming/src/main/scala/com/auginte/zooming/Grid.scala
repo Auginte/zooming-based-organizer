@@ -267,9 +267,21 @@ abstract class Grid extends Debugable {
   }
 
   def translateElement(element: Node, transformation: Distance, diffX: Double, diffY: Double,
-                       camera: Node, cameraPosition: Distance): Distance = {
+                       camera: Node, cameraPosition: Distance): AbsoluteDistance = {
     val scale = cameraPosition.scale / absoluteBetweenFirst(camera, element).scale
-    transformation.translated(diffX * scale, diffY * scale)
+    val fastTransformation = transformation.translated(diffX * scale, diffY * scale)
+    optimise(element, fastTransformation)
+  }
+
+  def scaleElement(element: Node, transformation: Distance, diffScale: Double): AbsoluteDistance = {
+    val fastTransformation = transformation zoomed diffScale
+    optimise(element, fastTransformation)
+  }
+
+  private[zooming] def optimise(element: Node, transformation: Distance): AbsoluteDistance = {
+    val newNode = getNode(element, transformation)
+    val newTransformation = absolute(element, newNode, transformation)
+    (newNode, newTransformation)
   }
 
   /**
@@ -339,17 +351,17 @@ abstract class Grid extends Debugable {
     whileSame(parentsFrom, parentsTo, parentsFrom.head)
   }
 
-  def newElement(camera: Node, cameraPosition: Distance, guiX: Double, guiY: Double): (Node, Distance) = {
+  def newElement(camera: Node, cameraPosition: Distance, guiX: Double, guiY: Double): AbsoluteDistance = {
     val absolute = absoluteNew(cameraPosition, guiX, guiY)
     val optimisedNode = getNode(camera, absolute)
     val optimisedAbsolute = absoluteNew(camera, optimisedNode, absolute)
     (optimisedNode, optimisedAbsolute)
   }
 
-  def validateCamera(camera: Node, transformation: Distance): (Node, Distance) = {
+  def validateCamera(camera: Node, transformation: Distance): AbsoluteDistance = {
     val newNode = getCameraNode(camera, transformation)
     if (newNode == camera) (camera, transformation)
-    else (newNode, absoluteCamera(camera, newNode, transformation))
+    else (newNode, absolute(camera, newNode, transformation))
   }
 
   /**
@@ -381,7 +393,7 @@ abstract class Grid extends Debugable {
    * @return absolute from second node perspective
    * @see [[getCameraNode]]
    */
-  private[zooming] def absoluteCamera(from: Node, to: Node, absoluteFrom: Distance): Distance = {
+  private[zooming] def absolute(from: Node, to: Node, absoluteFrom: Distance): Distance = {
     d(s"CAM: INPUT $from -> $to | $absoluteFrom")
     val between = absoluteBetweenFirst(from, to)
     d(s"CAM: BETWEEN $between")

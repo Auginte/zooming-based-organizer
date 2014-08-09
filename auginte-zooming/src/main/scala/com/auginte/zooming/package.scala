@@ -13,4 +13,9 @@ package object zooming {
    * E.g. ("1234567890123", "12345678", "124567891023456789")
    */
   type TextualCoordinates = (String, String, String)
+
+  /**
+   * Data structure to fully describe element's location in infinity zooming space.
+   */
+  type AbsoluteDistance = (Node, Distance)
 }
