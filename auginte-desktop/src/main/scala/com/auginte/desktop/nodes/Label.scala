@@ -9,6 +9,7 @@ import com.auginte.desktop.operations.EditableNode
 import com.auginte.desktop.rich.RichJPane
 import com.auginte.desktop.zooming.ZoomableNode
 import com.auginte.desktop.{HaveOperations, actors => act}
+import com.auginte.distribution.data.Data
 
 import scalafx.event.ActionEvent
 import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}
@@ -21,6 +22,7 @@ import scalafx.scene.{control => sfxc}
  */
 class Label(val _text: String) extends RichJPane
 with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp] with ScalableElement[jp]
+with Data
 with EditableNode {
   private val label = new jfxc.Label(_text)
   private val textArea = new jfxc.TextArea()

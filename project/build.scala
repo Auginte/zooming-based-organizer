@@ -53,13 +53,13 @@ object AuginteBuild extends sbt.Build {
 
   lazy val auginteDistribution = Project(id = "auginte-distribution",
     settings = allSettings,
-    base = file("auginte-distribution"))
+    base = file("auginte-distribution")
+  ) dependsOn auginteZooming
 
   lazy val auginteDesktop = Project(id = "auginte-desktop",
     settings = withAssembly,
     base = file("auginte-desktop")
-
-  ) dependsOn (auginteZooming) dependsOn(augitenteTest % "test->test")
+  ) dependsOn auginteDistribution dependsOn(augitenteTest % "test->test")
 
   lazy val augitenteTest = Project(id = "auginte-test",
     settings = allSettings,
