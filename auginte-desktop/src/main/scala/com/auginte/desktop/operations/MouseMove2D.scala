@@ -1,7 +1,7 @@
 package com.auginte.desktop.operations
 
-import com.auginte.desktop.rich.RichNode
 import javafx.{scene => jfxs}
+
 import scalafx.scene.input.MouseEvent
 
 /**
@@ -9,7 +9,7 @@ import scalafx.scene.input.MouseEvent
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait MouseMove2D[D <: jfxs.Node] extends RichNode[D] {
+trait MouseMove2D[D <: jfxs.Node] extends Move2D[D] {
   private var beingDragged: Boolean = false
   private var dragX: Double = 0
   private var dragY: Double = 0
@@ -34,10 +34,5 @@ trait MouseMove2D[D <: jfxs.Node] extends RichNode[D] {
     saveDraggedPosition(e.screenX - dragX, e.screenY - dragY)
     beingDragged = false
     e.consume()
-  }
-
-  protected def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
-    d.setTranslateX(d.getTranslateX + diffX)
-    d.setTranslateY(d.getTranslateY + diffY)
   }
 }
