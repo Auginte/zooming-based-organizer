@@ -88,6 +88,19 @@ with ZoomableElement {
   }
 
   /**
+   * Updates coordinates. Converts GUI element's scale to absolute coordinates,
+   * as calculation involves camera's coordinates.
+   *
+   * @param element child element, which coordinates should be updated.
+   * @param scale amount
+   * @return updated element's absolute coordinates
+   */
+  def scale(element: ZoomableElement, scale: Double): Distance = {
+    element.transformation = element.transformation zoomed scale
+    element.transformation
+  }
+
+  /**
    * Initiates absolute transformation from GUI coordinates.
    *
    * Also sets element's initial node.

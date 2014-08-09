@@ -3,7 +3,7 @@ package com.auginte.desktop.nodes
 import javafx.scene.layout.{Pane => jp}
 import javafx.scene.{control => jfxc, layout => jfxl, text => jfxt}
 
-import com.auginte.desktop.actors.{DragableNode, ViewableNode}
+import com.auginte.desktop.actors.{ScalableElement, DragableNode, ViewableNode}
 import com.auginte.desktop.events._
 import com.auginte.desktop.operations.EditableNode
 import com.auginte.desktop.rich.RichJPane
@@ -20,7 +20,7 @@ import scalafx.scene.{control => sfxc}
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class Label(val _text: String) extends RichJPane
-with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp]
+with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp] with ScalableElement[jp]
 with EditableNode {
   private val label = new jfxc.Label(_text)
   private val textArea = new jfxc.TextArea()

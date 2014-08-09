@@ -54,6 +54,7 @@ class View extends Actor {
           Platform.runLater(representation.content.add(element))
         case DeleteElement(element) => Platform.runLater(representation.remove(element))
         case MoveElement(element, node, diffX, diffY) => synchronized(representation.translate(node, diffX, diffY))
+        case ElementScaled(element, node, scale) => synchronized(representation.scale(node, scale))
         case MoveView(camera, diffX, diffY) => synchronized(camera.translate(-diffX, -diffY))
         case ZoomView(camera, scale, x, y) => synchronized(representation.zoom(scale, x, y))
         case EditElement(e, mode) => Platform.runLater {

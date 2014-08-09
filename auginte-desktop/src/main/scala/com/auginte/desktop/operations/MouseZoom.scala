@@ -12,5 +12,5 @@ import scalafx.scene.input.ScrollEvent
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait MouseZoom[D <: jfxs.Node] extends RichNode[D] with Zoom {
-  scrolled += ((e: ScrollEvent) => zoomed(delta2scale(e.deltaY), e.x, e.y))
+  scrolled += ((e: ScrollEvent) => if (e.deltaY != 0) zoomed(delta2scale(e.deltaY), e.x, e.y))
 }
