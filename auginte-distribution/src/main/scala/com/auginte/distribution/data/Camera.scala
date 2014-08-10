@@ -1,10 +1,10 @@
 package com.auginte.distribution.data
 
 /**
- * Marker for objects, that can be saved.
+ * Marker for cameras/views of data.
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait Data {
+trait Camera extends Data {
 
 }

@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 import sbt._
 import Keys._
 import sbtassembly.Plugin._
@@ -6,10 +9,26 @@ import AssemblyKeys._
 object AuginteBuild extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
-  val buildVersion      = "0.5.0-SNAPSHOT"
+  val buildVersion      = getProperty("version", default="0.0.1-SNAPSHOT")
   val buildScalaVersion = "2.10.3"
   val buildMainClass = "com.auginte.desktop.HelloScalaFX"
-  
+
+  // Custom properties (also accessable from source)
+
+  lazy val customProperties: Option[Properties] = try {
+    val properties = new Properties()
+    properties.load(new FileInputStream("./auginte-test/src/main/resources/build.properties"))
+    Some(properties)
+  } catch {
+    case e: Exception => None
+  }
+
+  private def getProperty(name: String, default: String = ""): String = customProperties match {
+    case Some(p) if p.getProperty(name) != null => p.getProperty(name)
+    case _ => default
+  }
+
+
   // Settings
 
   lazy val buildSettings = Defaults.defaultSettings ++ Seq (
@@ -54,7 +73,7 @@ object AuginteBuild extends sbt.Build {
   lazy val auginteDistribution = Project(id = "auginte-distribution",
     settings = allSettings,
     base = file("auginte-distribution")
-  ) dependsOn auginteZooming
+  ) dependsOn auginteZooming dependsOn(augitenteTest % "test->test")
 
   lazy val auginteDesktop = Project(id = "auginte-desktop",
     settings = withAssembly,

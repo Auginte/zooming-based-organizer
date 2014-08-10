@@ -8,8 +8,8 @@ import com.auginte.desktop.actors.{Container, DragableView, ZoomableView}
 import com.auginte.desktop.events.ShowContextMenu
 import com.auginte.desktop.nodes.MouseFocusable
 import com.auginte.desktop.rich.RichSPane
-import com.auginte.desktop.zooming.ZoomableCamera
-import com.auginte.distribution.data.Data
+import com.auginte.desktop.zooming.{ZoomableCamera, ZoomableElement}
+import com.auginte.distribution.data.{Camera, Data}
 import com.auginte.distribution.repository.LocalStatic
 
 import scalafx.Includes._
@@ -27,13 +27,18 @@ import scalafx.util.Duration
 class View extends RichSPane
 with Container[jp] with DragableView[jp] with ZoomableView[jp]
 with ZoomableCamera[jp] with MouseFocusable[jp]
+with Camera
 with HaveOperations {
-  val contextMenu = initContextMenu()
-
   private lazy val repository = {
-    new LocalStatic(grid, () => d.getChildren flatMap { case d: Data => Some(d) case _ => None})
+    val elements = () => d.getChildren flatMap { case d: Data => Some(d) case _ => None}
+    val cameras = () => List(this)
+    val converter = (d: Data) => d match {
+      case z: ZoomableElement => Some(z.node, z.transformation)
+      case _ => None
+    }
+    new LocalStatic(grid, elements, cameras, converter)
   }
-
+  val contextMenu = initContextMenu()
   private val grid2absoluteCron = new Timeline {
     cycleCount = Timeline.INDEFINITE
     keyFrames = Seq(
@@ -47,14 +52,11 @@ with HaveOperations {
 
   def remove(element: Node): Unit = content.remove(element)
 
-  private def initContextMenu() = {
-    val contextMenu = new ContextMenu()
-    contextMenu.layoutX <== (width - contextMenu.width) / 2
-    contextMenu.layoutY <== height - contextMenu.height
-    content += contextMenu
-    contextMenu.hide()
-    contextMenu
-  }
+  override def operations: Operations = Map(
+    "Open" -> ((e: ActionEvent) => repository.load()),
+    "Save" -> ((e: ActionEvent) => repository.save()),
+    "Exit" -> ((e: ActionEvent) => HelloScalaFX.quit())
+  )
 
   //
   // Operations
@@ -66,9 +68,12 @@ with HaveOperations {
     }
   }
 
-  override def operations: Operations = Map(
-    "Open" -> ((e: ActionEvent) => repository.load()),
-    "Save" -> ((e: ActionEvent) => repository.save()),
-    "Exit" -> ((e: ActionEvent) => HelloScalaFX.quit())
-  )
+  private def initContextMenu() = {
+    val contextMenu = new ContextMenu()
+    contextMenu.layoutX <== (width - contextMenu.width) / 2
+    contextMenu.layoutY <== height - contextMenu.height
+    content += contextMenu
+    contextMenu.hide()
+    contextMenu
+  }
 }
