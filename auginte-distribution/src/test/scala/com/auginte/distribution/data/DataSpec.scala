@@ -13,7 +13,7 @@ class DataSpec extends UnitSpec {
     "have ids of 32 chars length" in {
       for (i <- 0 to 100) {
         val data = new Data{}
-        assert(32 === data.id.length)
+        assert(32 === data.storageId.length)
       }
     }
     "generate have unique ids" in {
@@ -21,7 +21,7 @@ class DataSpec extends UnitSpec {
       val all = new Array[String](amount)
       for (i <- 1 to amount) {
         val data = new Data{}
-        all(i - 1) = data.id
+        all(i - 1) = data.storageId
       }
       assert(amount === all.toSet.size)
     }
