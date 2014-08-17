@@ -17,7 +17,7 @@ object AuginteBuild extends sbt.Build {
 
   lazy val customProperties: Option[Properties] = try {
     val properties = new Properties()
-    properties.load(new FileInputStream("./auginte-test/src/main/resources/build.properties"))
+    properties.load(new FileInputStream("./auginte-test/src/main/resources/com/auginte/build.properties"))
     Some(properties)
   } catch {
     case e: Exception => None
@@ -73,7 +73,7 @@ object AuginteBuild extends sbt.Build {
   lazy val auginteDistribution = Project(id = "auginte-distribution",
     settings = allSettings,
     base = file("auginte-distribution")
-  ) dependsOn auginteZooming dependsOn(augitenteTest % "test->test")
+  ) dependsOn auginteZooming dependsOn augitenteTest dependsOn(augitenteTest % "test->test")
 
   lazy val auginteDesktop = Project(id = "auginte-desktop",
     settings = withAssembly,

@@ -1,8 +1,9 @@
 package com.auginte.distribution.repository
 
-import com.auginte.Version
+import com.auginte.SoftwareVersion
 import com.auginte.test.UnitSpec
 import com.auginte.zooming.Grid
+import com.auginte.distribution.data.Version
 
 /**
  * Unit tests for [[com.auginte.distribution.repository.LocalStatic]] repository.
@@ -11,17 +12,25 @@ import com.auginte.zooming.Grid
  */
 class LocalStaticSpec extends UnitSpec {
   "LocalStatic repository" when {
-    "saving" should {
-      "include version number" in {
-        val repository = new LocalStatic(gridStub, () => List(), () => List(), (d) => None)
-        assert(repository.getVersion !== Version.fallBackVersion)
-        val numeric = Version.toDouble(repository.getVersion)
-        assert(numeric >= 0.006001)
+    "in description section" should {
+      val repository = emptyLocalStatic
+      val description = repository.description
+      val softwareVersion = Version(SoftwareVersion.toString)
+      val fallbackVersion = Version(SoftwareVersion.fallBackVersion)
+      "include software version number" in {
+        assert(description.version !== fallbackVersion)
+        assert(description.version == softwareVersion)
+      }
+      "include boundaries" in {
+
+      }
+      "include approximate number of elements" in {
+
       }
     }
   }
 
   private def gridStub = new Grid {}
 
-
+  private def emptyLocalStatic = new LocalStatic(gridStub, () => List(), () => List(), (d) => None)
 }

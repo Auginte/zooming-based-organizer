@@ -1,8 +1,9 @@
 package com.auginte.distribution.repository
 
-import com.auginte.Version
-import com.auginte.distribution.data.{Camera, Data}
+import com.auginte.distribution.data.Version
+import com.auginte.distribution.data.{Description, Camera, Data}
 import com.auginte.zooming.{AbsoluteDistance, Grid}
+import com.{auginte => software}
 
 /**
  * Simples repository saving everything to JSON files
@@ -28,5 +29,5 @@ class LocalStatic(
     println(s"Loading ${_parameters}")
   }
 
-  def getVersion = Version.toString
+  override def description: Description = Description(Version(software.SoftwareVersion.toString))
 }

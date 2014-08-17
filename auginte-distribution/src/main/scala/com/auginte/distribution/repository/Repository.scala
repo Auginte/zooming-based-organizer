@@ -1,5 +1,7 @@
 package com.auginte.distribution.repository
 
+import com.auginte.distribution.data.Description
+
 /**
  * Interface for modules with export/import/update capabilities
  *
@@ -7,6 +9,10 @@ package com.auginte.distribution.repository
  */
 trait Repository {
   def save()
+
   def load()
+
   def parameters_=(values: List[Symbol])
+
+  def description: Description
 }
