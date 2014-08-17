@@ -40,6 +40,10 @@ class LocalStaticSpec extends UnitSpec {
       assert(190 === r6.description.elements)
       assert(100 === r6.description.cameras)
     }
+    "be convertable to JSON string" in {
+      val r2 = new LocalStatic(grid, elements(1), cameras(1), converter)
+      println(r2.saveToString)
+    }
   }
 
   private val invalidDistance: AbsoluteDistance = (Node(0, 0), Distance())

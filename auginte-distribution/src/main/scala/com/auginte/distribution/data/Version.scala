@@ -9,7 +9,7 @@ package com.auginte.distribution.data
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Version(val version: String) {
+case class Version(version: String) {
   private val partSize = 1e3
   private val subVersionsSize = partSize * partSize
 
@@ -41,9 +41,4 @@ class Version(val version: String) {
   }
 
   override def toString: String = version
-}
-object Version {
-  def apply(version: String) = new Version(version)
-
-  def unapply(v: Version): Option[String] = Some(v.version)
 }

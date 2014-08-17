@@ -14,5 +14,12 @@ trait Data {
   /**
    * Unique 32 chars size lower case hex id. E.g. 2cb1a090dd08aecffdb51561ab2b7200
    */
-  val storageId = f"$longUniqueHexNumber%-32s".replaceAll(" ", "0")
+  val storageId: String = f"$longUniqueHexNumber%-32s".replaceAll(" ", "0")
+}
+object Data {
+  def apply(id: String) = new Data {
+    override val storageId = id
+  }
+
+  def unapply(d: Data): Option[String] = Some(d.storageId)
 }
