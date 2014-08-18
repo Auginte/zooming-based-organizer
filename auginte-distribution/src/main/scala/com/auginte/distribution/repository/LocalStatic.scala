@@ -3,7 +3,7 @@ package com.auginte.distribution.repository
 import com.auginte.SoftwareVersion
 import com.auginte.distribution.data.{Description, Version}
 import com.auginte.zooming.Grid
-import spray.json._
+import play.api.libs.json.Json
 
 /**
  * Simples repository saving everything to JSON files
@@ -24,13 +24,14 @@ class LocalStatic(grid: Grid, elements: Elements, cameras: Cameras, converter: C
 
     import com.auginte.distribution.repository.JsonConverters._
 
-    val data = Map(
-      "description" -> description.toJson,
-      "elements" -> elements().toJson,
-      "cameras" -> cameras().toJson
+    val data = Json.toJson(
+      Map(
+        "description" -> Json.toJson(description),
+        "elements" -> Json.toJson(elements()),
+        "cameras" -> Json.toJson(cameras())
+      )
     )
-    val dataJson = data.toJson
-    dataJson.prettyPrint
+    Json.stringify(data)
   }
 
   override def description: Description = Description(softwareVersion, elements().size, cameras().size)

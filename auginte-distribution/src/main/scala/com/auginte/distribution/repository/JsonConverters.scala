@@ -1,40 +1,41 @@
 package com.auginte.distribution.repository
 
 import com.auginte.distribution.data.{Camera, Data, Description, Version}
-import spray.json._
+import play.api.libs.json._
+
 
 /**
  * Provides implicit values for Data <-> Json conversion
  *
- * Helper for `spray-json` library.
+ * Helper for `play-json` library.
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-object JsonConverters extends DefaultJsonProtocol {
-  implicit val versionFormatter = jsonFormat(Version, "version")
+object JsonConverters {
+  implicit val versionJson = new Writes[Version] {
+    override def writes(o: Version): JsValue = Json.toJson(o.version)
+  }
 
-  implicit val descriptionFormatter = jsonFormat(Description, "version", "elements", "cameras")
+  implicit val descriptionJson = new Writes[Description] {
+    override def writes(o: Description): JsValue = Json.obj(
+      "auginteVersion" -> o.auginteVersion,
+      "elements" -> o.elements,
+      "cameras" -> o.cameras
+    )
+  }
 
-  implicit object DataJsonFormat extends RootJsonFormat[Data] {
-    def write(d: Data) = JsObject("id" -> JsString(d.storageId))
-
-    def read(value: JsValue) = {
-      value.asJsObject.getFields("id") match {
-        case Seq(JsString(id)) => Data(id)
-        case _ => throw new DeserializationException("Data expected")
-      }
+  implicit val elementsJson = new Writes[Data] {
+    override def writes(o: Data): JsValue = {
+      val defaultFields = Seq(
+        "storageId" -> Json.toJson(o.storageId)
+      )
+      JsObject(defaultFields ++ o.storageJsonConverter)
     }
   }
 
-  implicit object CameraJsonFormat extends RootJsonFormat[Camera] {
-    def write(c: Camera) = JsObject("id" -> JsString(c.storageId))
-
-    def read(value: JsValue) = {
-      value.asJsObject.getFields("id") match {
-        case Seq(JsString(id)) => Camera(id)
-        case _ => throw new DeserializationException("Camera expected")
-      }
-    }
+  implicit val camerasJson = new Writes[Camera] {
+    override def writes(o: Camera): JsValue = Json.obj(
+      o.storageId -> o.getClass.getName
+    )
   }
-
 }

@@ -5,4 +5,4 @@ package com.auginte.distribution.data
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-case class Description(version: Version, elements: Int, cameras: Int)
+case class Description(auginteVersion: Version, elements: Int, cameras: Int)

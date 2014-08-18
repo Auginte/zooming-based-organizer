@@ -1,3 +1,3 @@
-resolvers += "spray" at "http://repo.spray.io/"
+resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 
-libraryDependencies += "io.spray" %%  "spray-json" % "1.2.6"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.2.1"
