@@ -1,4 +1,4 @@
-package com.auginte
+package com.auginte.common
 
 import java.util.Properties
 

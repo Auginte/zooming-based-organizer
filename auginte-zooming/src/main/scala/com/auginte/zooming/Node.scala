@@ -1,12 +1,14 @@
 package com.auginte.zooming
 
+import com.auginte.common.Data
+
 /**
  * Hierarchy element.
  * Used for relative-absolute coordinates conversion.
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Node(val x: Int, val y: Int) extends Iterable[Node] {
+class Node(val x: Int, val y: Int) extends Iterable[Node] with Data {
   private[Node] val id = NodeDebug.nextId()
 
   private var _parent: Option[Node] = None

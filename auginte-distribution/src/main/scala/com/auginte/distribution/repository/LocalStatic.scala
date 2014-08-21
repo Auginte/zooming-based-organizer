@@ -1,6 +1,6 @@
 package com.auginte.distribution.repository
 
-import com.auginte.SoftwareVersion
+import com.auginte.common.SoftwareVersion
 import com.auginte.distribution.data.{Description, Version}
 import com.auginte.zooming.Grid
 import play.api.libs.json.Json

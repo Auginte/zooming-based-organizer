@@ -17,7 +17,7 @@ object AuginteBuild extends sbt.Build {
 
   lazy val customProperties: Option[Properties] = try {
     val properties = new Properties()
-    properties.load(new FileInputStream("./auginte-test/src/main/resources/com/auginte/build.properties"))
+    properties.load(new FileInputStream("./auginte-common/src/main/resources/com/auginte/common/build.properties"))
     Some(properties)
   } catch {
     case e: Exception => None
@@ -58,13 +58,13 @@ object AuginteBuild extends sbt.Build {
     auginteZooming,
     auginteTransformation,
     auginteDistribution,
-    augitenteTest
+    auginteCommon
     )
 
   lazy val auginteZooming = Project(id = "auginte-zooming",
     base = file("auginte-zooming"),
     settings = allSettings
-  ) dependsOn (augitenteTest % "test->test")
+  ) dependsOn auginteCommon dependsOn (auginteCommon % "test->test")
 
   lazy val auginteTransformation = Project(id = "auginte-transformation",
     settings = allSettings,
@@ -73,15 +73,15 @@ object AuginteBuild extends sbt.Build {
   lazy val auginteDistribution = Project(id = "auginte-distribution",
     settings = allSettings,
     base = file("auginte-distribution")
-  ) dependsOn auginteZooming dependsOn augitenteTest dependsOn(augitenteTest % "test->test")
+  ) dependsOn auginteZooming dependsOn(auginteCommon % "test->test")
 
   lazy val auginteDesktop = Project(id = "auginte-desktop",
     settings = withAssembly,
     base = file("auginte-desktop")
-  ) dependsOn auginteDistribution dependsOn(augitenteTest % "test->test")
+  ) dependsOn auginteDistribution dependsOn(auginteCommon % "test->test")
 
-  lazy val augitenteTest = Project(id = "auginte-test",
+  lazy val auginteCommon = Project(id = "auginte-common",
     settings = allSettings,
-    base = file("auginte-test"))
+    base = file("auginte-common"))
 }
 
