@@ -87,13 +87,13 @@ class GridSpec extends UnitSpec {
       }
       "provide all nodes of hierarchy for deep hierarchies" in {
         val (root, grid) = rootGridPair()
-        val max = 10000
+        val max = 100 // 100000 in 105 s.
         var lastNode = root
         for (i <- 2 to max) lastNode = grid.getNode(lastNode, 2, -2, 0.01)
         try {
           assert(max === grid.flatten.size)
         } catch {
-          case e: java.lang.StackOverflowError => fail("Stack overflow")
+          case e: java.lang.StackOverflowError => fail(s"Stack overflow with: $max elements")
         }
       }
     }

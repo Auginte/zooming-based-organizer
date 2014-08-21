@@ -1,6 +1,7 @@
 package com.auginte.zooming
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 /**
  * Class to ensure infinity scaling and translation.
@@ -460,7 +461,24 @@ abstract class Grid extends Debugable {
   // Loading and exporting nodes
   //
 
-  def flatten: Seq[Node] = root :: root.entries()
+  /**
+   * Not recursive way of getting all elements in the hierarchy (no Stack Overflow)
+   *
+   * @return list of all nodes in hierarchy
+   */
+  def flatten: Seq[Node] = {
+    val toCheck = new mutable.Stack[Node]
+    var result: List[Node] = List(root)
+    toCheck push root
+
+    while (toCheck.nonEmpty) {
+      val node = toCheck.pop()
+      toCheck pushAll node.children
+      result = result ::: node.children
+    }
+
+    result
+  }
 
   //
   // Low level node pick up function
