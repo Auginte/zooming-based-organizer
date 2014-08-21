@@ -8,9 +8,7 @@ import com.auginte.common.Data
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Node(val x: Int, val y: Int) extends Iterable[Node] with Data {
-  private[Node] val id = NodeDebug.nextId()
-
+class Node(val x: Int, val y: Int) extends Data with Iterable[Node] {
   private var _parent: Option[Node] = None
 
   private var _children: List[Node] = List[Node]()
@@ -53,8 +51,8 @@ class Node(val x: Int, val y: Int) extends Iterable[Node] with Data {
   }
 
   override def toString(): String = {
-    val parentId = if (parent.isDefined) parent.get.id else "ø"
-    s"[$id: ${x}x$y of $parentId]"
+    val parentId = if (parent.isDefined) parent.get.storageId else "ø"
+    s"[$storageId: ${x}x$y of $parentId]"
   }
 
   def isChildOf(distantParent: Node): Boolean = {
@@ -93,16 +91,4 @@ object Node {
   def unapply(node: Node): Option[(Option[Node], Seq[Node])] =
     Some(node.parent, node.children)
 
-}
-
-//FIXME: debug
-object NodeDebug {
-  private var i = 0
-
-  def resetId(): Unit = i = 0
-
-  def nextId() = {
-    i += 1
-    i
-  }
 }

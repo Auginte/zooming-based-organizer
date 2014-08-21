@@ -55,7 +55,6 @@ import scala.annotation.tailrec
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 abstract class Grid extends Debugable {
-  NodeDebug.resetId()
   private lazy val scaleLog10 = Math.log10(gridSize)
   /**
    * Distance between nodes.
@@ -456,6 +455,12 @@ abstract class Grid extends Debugable {
 
     clearTolerance(pos, 1)
   }
+
+  //
+  // Loading and exporting nodes
+  //
+
+  def flatten: Seq[Node] = root :: root.entries()
 
   //
   // Low level node pick up function

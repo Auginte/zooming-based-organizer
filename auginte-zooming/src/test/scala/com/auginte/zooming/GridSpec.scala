@@ -75,6 +75,27 @@ class GridSpec extends UnitSpec {
           standardGrid().absoluteChildParent(r3, r1)
         }
       }
+      "provide all nodes of hierarchy" in {
+        val (root, grid) = rootGridPair()
+        val n1 = grid.getNode(root, 0, 0, 0.01)
+        val n2 = grid.getNode(root, 10, 0, 0.01)
+        val n3 = grid.getNode(root, 0, -10, 0.01)
+        val n4 = grid.getNode(n2, 0, 10, 0.01)
+        val n5 = grid.getNode(n3, 0, -10, 0.01)
+        val all = List(root, n1, n2, n3, n4, n5).toSet
+        assert(all === grid.flatten.toSet)
+      }
+      "provide all nodes of hierarchy for deep hierarchies" in {
+        val (root, grid) = rootGridPair()
+        val max = 10000
+        var lastNode = root
+        for (i <- 2 to max) lastNode = grid.getNode(lastNode, 2, -2, 0.01)
+        try {
+          assert(max === grid.flatten.size)
+        } catch {
+          case e: java.lang.StackOverflowError => fail("Stack overflow")
+        }
+      }
     }
   }
 
