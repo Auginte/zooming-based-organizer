@@ -13,6 +13,8 @@ trait Text extends Data {
   def text_=(value: String): Unit = _text = value
 
   override val storageFields: Map[String, () => String] = Map(
-    "text" -> (() => text)
+    "ag:Text/text" -> (() => text)
   )
+
+  override val dataType: String = "Text"
 }

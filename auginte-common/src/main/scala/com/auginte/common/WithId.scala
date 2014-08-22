@@ -7,7 +7,7 @@ package com.auginte.common
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait Data {
+trait WithId {
   /**
    * Unique 32 chars size lower case hex id. E.g. 2cb1a090dd08aecffdb51561ab2b7200
    */

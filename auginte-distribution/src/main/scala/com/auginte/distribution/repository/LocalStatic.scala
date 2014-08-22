@@ -10,7 +10,7 @@ import play.api.libs.json.Json
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class LocalStatic(grid: Grid, elements: Elements, cameras: Cameras, converter: Converter) extends Repository {
+class LocalStatic(grid: Grid, elements: Elements, cameras: Cameras) extends Repository {
 
   private val softwareVersion = Version(SoftwareVersion.toString)
 

@@ -11,10 +11,10 @@ trait ZoomableElement extends UsingGrid {
   /**
    * Absolute coordinates and scaling.
    */
-  var transformation: Distance = new Distance()
+  var position: Distance = new Distance()
 
   @inline
-  private[zooming] def t = transformation
+  private[zooming] def t = position
 
   /**
    * Updates absolute coordinates.
@@ -24,7 +24,7 @@ trait ZoomableElement extends UsingGrid {
    * @return updated absolute coordinates
    */
   def translate(x: Double, y: Double): Distance = {
-    transformation = t.translated(t.x + x, t.y + y)
-    transformation
+    position = t.translated(t.x + x, t.y + y)
+    position
   }
 }

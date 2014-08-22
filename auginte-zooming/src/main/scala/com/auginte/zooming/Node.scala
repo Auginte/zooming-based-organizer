@@ -1,6 +1,6 @@
 package com.auginte.zooming
 
-import com.auginte.common.Data
+import com.auginte.common.WithId
 
 import scala.collection.GenTraversableOnce
 
@@ -10,7 +10,7 @@ import scala.collection.GenTraversableOnce
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-case class Node(x: Int, y: Int) extends Data with Iterable[Node] with GenTraversableOnce[Node] {
+case class Node(x: Int, y: Int) extends WithId with Iterable[Node] with GenTraversableOnce[Node] {
   private var _parent: Option[Node] = None
 
   private var _children: List[Node] = List[Node]()

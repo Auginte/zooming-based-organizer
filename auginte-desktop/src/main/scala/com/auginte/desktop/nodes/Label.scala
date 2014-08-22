@@ -109,7 +109,7 @@ with EditableNode {
   // Common functions
   //
 
-  override def toString: String = "LABEL: " + text + "\t" + transformation + "\t" + node.selfAndParents.reverse
+  override def toString: String = "LABEL: " + text + "\t" + position + "\t" + node.selfAndParents.reverse
 
   def text: String = if (editable) textArea.getText else label.getText
 

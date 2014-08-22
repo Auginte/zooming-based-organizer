@@ -38,16 +38,16 @@ with ZoomableElement {
    * @return updated coordinates
    */
   def zoom(amount: Double, x: Double = 0, y: Double): Distance = {
-    transformation = grid.zoomCamera(transformation, amount, x, y)
+    position = grid.zoomCamera(position, amount, x, y)
     validateCameraNode()
-    transformation
+    position
   }
 
   private def validateCameraNode(): Unit = {
-    val optimized = grid.validateCamera(node, transformation)
+    val optimized = grid.validateCamera(node, position)
     if (node != optimized._1) {
       node = optimized._1
-      transformation = optimized._2
+      position = optimized._2
     }
   }
 
@@ -63,11 +63,11 @@ with ZoomableElement {
    * @return updated absolute coordinates
    */
   override def translate(x: Double, y: Double): Distance = {
-    transformation = grid.translateCamera(transformation, x, y)
+    position = grid.translateCamera(position, x, y)
     if (!equalDouble(x, 0, epsilonTranslate) && !equalDouble(y, 0, epsilonTranslate)) {
       validateCameraNode()
     }
-    transformation
+    position
   }
 
   @inline
@@ -83,8 +83,8 @@ with ZoomableElement {
    * @return updated element's absolute coordinates
    */
   def translate(element: ZoomableElement, x: Double, y: Double): AbsoluteDistance = {
-    val (newNode, newTransformation) = grid.translateElement(element.node, element.transformation, x, y, node, transformation)
-    element.transformation = newTransformation
+    val (newNode, newTransformation) = grid.translateElement(element.node, element.position, x, y, node, position)
+    element.position = newTransformation
     element.node = newNode
     (newNode, newTransformation)
   }
@@ -98,9 +98,9 @@ with ZoomableElement {
    * @return updated element's absolute coordinates
    */
   def scale(element: ZoomableElement, scaleDiff: Double): AbsoluteDistance = {
-    val (newNode, newTransformation) = grid.scaleElement(element.node, element.transformation, scaleDiff)
+    val (newNode, newTransformation) = grid.scaleElement(element.node, element.position, scaleDiff)
     element.node = newNode
-    element.transformation = newTransformation
+    element.position = newTransformation
     (newNode, newTransformation)
   }
 
@@ -115,10 +115,10 @@ with ZoomableElement {
    * @return updated element's absolute coordinates
    */
   def initializeInfinityZooming(element: ZoomableElement, x: Double, y: Double): Unit = {
-    val optimised = grid.newElement(node, transformation, x, y)
+    val optimised = grid.newElement(node, position, x, y)
     element.node = optimised._1
-    element.transformation = optimised._2
-    element.transformation
+    element.position = optimised._2
+    element.position
   }
 
   /**
@@ -154,7 +154,7 @@ with ZoomableElement {
 
     revalidateZoomable = false
     for (e <- visibleElements) {
-      val absolute = grid.absolute(node, transformation, e.node, e.transformation)
+      val absolute = grid.absolute(node, position, e.node, e.position)
       if (isInBoundaries(absolute)) {
         try {
           val bound = e.d.getLayoutBounds

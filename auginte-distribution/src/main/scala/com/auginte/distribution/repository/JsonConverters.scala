@@ -5,6 +5,8 @@ import com.auginte.zooming.Node
 import play.api.libs.json._
 import play.api.libs.json.Json.toJson
 
+import scala.collection.Traversable
+
 
 /**
  * Provides implicit values for Data <-> Json conversion
@@ -26,14 +28,18 @@ object JsonConverters {
     )
   }
 
-  implicit val representationsJson = new Writes[Data] {
-    override def writes(o: Data): JsValue = o match {
-      case c: Camera => Json.obj("@id" -> s"ca:${c.storageId}")
-      case _ =>
-        val defaultFields = Seq(
-          "@id" -> Json.toJson(s"re:${o.storageId}")
-        )
-        JsObject(defaultFields ++ o.storageJsonConverter)
+  implicit val representationJson = new Writes[Data] {
+    override def writes(o: Data): JsValue = {
+      val id = o match {
+        case c: Camera => s"ca:${o.storageId}"
+        case r: Data => s"re:${r.storageId}"
+      }
+      val typeFields = o match {
+        case c: Camera => Seq()
+        case r: Data => Seq("@type" -> Json.toJson(s"ag:${r.dataType}"))
+      }
+      val defaultFields = Seq("@id" -> Json.toJson(id))
+      JsObject(defaultFields ++ typeFields ++ o.storageJsonConverter ++ o.zoomingJsonConverter)
     }
   }
 
