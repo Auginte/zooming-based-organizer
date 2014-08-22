@@ -1,11 +1,9 @@
-package com.auginte.distribution.repository
+package com.auginte.distribution.json
 
 import com.auginte.distribution.data.{Camera, Data, Description, Version}
 import com.auginte.zooming.Node
-import play.api.libs.json._
 import play.api.libs.json.Json.toJson
-
-import scala.collection.Traversable
+import play.api.libs.json._
 
 
 /**
@@ -15,7 +13,7 @@ import scala.collection.Traversable
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-object JsonConverters {
+object CommmonFormatter {
   implicit val versionJson = new Writes[Version] {
     override def writes(o: Version): JsValue = toJson(o.version)
   }
@@ -23,8 +21,8 @@ object JsonConverters {
   implicit val descriptionJson = new Writes[Description] {
     override def writes(o: Description): JsValue = Json.obj(
       "auginteVersion" -> o.auginteVersion,
-      "elements" -> o.elements,
-      "cameras" -> o.cameras
+      "countElements" -> o.elements,
+      "countCameras" -> o.cameras
     )
   }
 
@@ -48,8 +46,8 @@ object JsonConverters {
       val parent = if (o.parent.isDefined) toJson(s"gn:${o.parent.get.storageId}") else JsNull
       Json.obj(
         "@id" -> s"gn:${o.storageId}",
-        "x" -> o.x,
-        "y" -> o.y,
+        "posX" -> o.x,
+        "posY" -> o.y,
         "parent" -> parent
       )
     }
