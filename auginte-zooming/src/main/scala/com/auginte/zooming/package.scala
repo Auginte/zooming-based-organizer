@@ -18,4 +18,14 @@ package object zooming {
    * Data structure to fully describe element's location in infinity zooming space.
    */
   type AbsoluteDistance = (Node, Distance)
+
+  /**
+   * Dependency injection for new node creation
+   */
+  type NodeToNode = (Node) => Node
+
+  /**
+   * Default implementation for [[NodeToNode]] injection
+   */
+  val sameNode: NodeToNode = (n) => n
 }

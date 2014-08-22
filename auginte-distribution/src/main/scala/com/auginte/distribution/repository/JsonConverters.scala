@@ -1,7 +1,9 @@
 package com.auginte.distribution.repository
 
 import com.auginte.distribution.data.{Camera, Data, Description, Version}
+import com.auginte.zooming.Node
 import play.api.libs.json._
+import play.api.libs.json.Json.toJson
 
 
 /**
@@ -13,7 +15,7 @@ import play.api.libs.json._
  */
 object JsonConverters {
   implicit val versionJson = new Writes[Version] {
-    override def writes(o: Version): JsValue = Json.toJson(o.version)
+    override def writes(o: Version): JsValue = toJson(o.version)
   }
 
   implicit val descriptionJson = new Writes[Description] {
@@ -24,18 +26,26 @@ object JsonConverters {
     )
   }
 
-  implicit val elementsJson = new Writes[Data] {
-    override def writes(o: Data): JsValue = {
-      val defaultFields = Seq(
-        "storageId" -> Json.toJson(o.storageId)
-      )
-      JsObject(defaultFields ++ o.storageJsonConverter)
+  implicit val representationsJson = new Writes[Data] {
+    override def writes(o: Data): JsValue = o match {
+      case c: Camera => Json.obj("@id" -> s"ca:${c.storageId}")
+      case _ =>
+        val defaultFields = Seq(
+          "@id" -> Json.toJson(s"re:${o.storageId}")
+        )
+        JsObject(defaultFields ++ o.storageJsonConverter)
     }
   }
 
-  implicit val camerasJson = new Writes[Camera] {
-    override def writes(o: Camera): JsValue = Json.obj(
-      o.storageId -> o.getClass.getName
-    )
+  implicit val nodesJson = new Writes[Node] {
+    override def writes(o: Node): JsValue = {
+      val parent = if (o.parent.isDefined) toJson(s"gn:${o.parent.get.storageId}") else JsNull
+      Json.obj(
+        "@id" -> s"gn:${o.storageId}",
+        "x" -> o.x,
+        "y" -> o.y,
+        "parent" -> parent
+      )
+    }
   }
 }

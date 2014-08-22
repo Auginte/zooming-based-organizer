@@ -27,6 +27,7 @@ class LocalStatic(grid: Grid, elements: Elements, cameras: Cameras, converter: C
     val data = Json.toJson(
       Map(
         "description" -> Json.toJson(description),
+        "nodes" -> Json.toJson(nodes),
         "elements" -> Json.toJson(elements()),
         "cameras" -> Json.toJson(cameras())
       )
@@ -41,4 +42,6 @@ class LocalStatic(grid: Grid, elements: Elements, cameras: Cameras, converter: C
   override def load(): Unit = {
     println(s"Loading ${_parameters}")
   }
+
+  private def nodes = grid.flatten
 }

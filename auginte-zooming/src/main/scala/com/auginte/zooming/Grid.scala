@@ -66,7 +66,7 @@ abstract class Grid extends Debugable {
    * When calculating new absolute position, approximation used.
    */
   val absolutePrecision = 1000000
-  private var _root = new Node(0, 0)
+  private var _root = newNode(new Node(0, 0))
 
   //
   // High level absolute coordinate (Node -> absolute) functions
@@ -597,7 +597,7 @@ abstract class Grid extends Debugable {
   private def getParent(from: Node): Node = from.parent match {
     case Some(node) => node
     case None =>
-      val parent = from.createParent()
+      val parent = from.createParent()(newNode)
       d(s"getParent: ${_root} -> $parent")
       _root = parent
       parent
@@ -612,7 +612,7 @@ abstract class Grid extends Debugable {
     from.getChild(x, y) match {
       case Some(node) => node
       case None =>
-        val newChild = from.addChild(x, y)
+        val newChild = from.addChild(x, y)(newNode)
         d(s"getChild: $newChild")
         newChild
 
@@ -640,6 +640,10 @@ abstract class Grid extends Debugable {
    */
   private case class Position(parent: Node, x: Double, y: Double, scale: Double)
 
+  /**
+   * Dependency injection for node creation
+   */
+  private[auginte] def newNode: NodeToNode = sameNode
 }
 
 trait Debugable {

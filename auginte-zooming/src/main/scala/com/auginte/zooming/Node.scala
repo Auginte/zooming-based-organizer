@@ -2,28 +2,30 @@ package com.auginte.zooming
 
 import com.auginte.common.Data
 
+import scala.collection.GenTraversableOnce
+
 /**
  * Hierarchy element.
  * Used for relative-absolute coordinates conversion.
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Node(val x: Int, val y: Int) extends Data with Iterable[Node] {
+case class Node(x: Int, y: Int) extends Data with Iterable[Node] with GenTraversableOnce[Node] {
   private var _parent: Option[Node] = None
 
   private var _children: List[Node] = List[Node]()
 
-  def createParent(): Node = {
-    val parentNode: Node = new Node(0, 0)
+  protected[zooming] def createParent()(implicit newNode: NodeToNode = sameNode): Node = {
+    val parentNode: Node = newNode(new Node(0, 0))
     _parent = Some(parentNode)
     parentNode.addChild(this)
     parentNode
   }
 
-  def addChild(x: Int, y: Int): Node = getChild(x, y) match {
+  protected[zooming] def addChild(x: Int, y: Int)(implicit newNode: NodeToNode = sameNode): Node = getChild(x, y) match {
     case Some(child) => child
     case None => 
-      val child = new Node(x, y)
+      val child = newNode(new Node(x, y))
       child._parent = Some(this)
       addChild(child)
       child
@@ -48,6 +50,11 @@ class Node(val x: Int, val y: Int) extends Data with Iterable[Node] {
       case None => list
     }
     getParents(this, List(this))
+  }
+
+  override def equals(o: scala.Any): Boolean = o match {
+    case n: Node if n.x == x && n.y == y && n.parent == parent && n.children == children => true
+    case _ => false
   }
 
   override def toString(): String = {
@@ -80,15 +87,4 @@ class Node(val x: Int, val y: Int) extends Data with Iterable[Node] {
   }
 
   def entries(): List[Node] = children.foldLeft(children)((list, element) => element.entries ::: list)
-}
-
-/**
- * Companion object for [[com.auginte.zooming.Node]]
- */
-object Node {
-  def apply(x: Int, y: Int) = new Node(x, y)
-
-  def unapply(node: Node): Option[(Option[Node], Seq[Node])] =
-    Some(node.parent, node.children)
-
 }

@@ -1451,13 +1451,13 @@ class GridSpec extends UnitSpec {
 
   def assertWithTolerance(expected: Double, actual: Double, tolerance: Double): Unit =
     assert(expected > actual - tolerance && expected < actual + tolerance,
-      s"EExpected $expected +- $tolerance, but actual $actual\n")
+      s"Expected $expected +- $tolerance, but actual $actual\n")
 
   def assertDistance(expected: Distance, actual: Distance, tolerance: Option[Double] = None): Unit = tolerance match {
     case Some(t) => assert(expected.x > actual.x - t && expected.x < actual.x + t &&
       expected.y > actual.y - t && expected.y < actual.y + t &&
       expected.scale > actual.scale - t && expected.scale < actual.scale + t,
-      s"EExpected $expected +- $t, but actual $actual\t$getErrorPosition\n")
+      s"Expected $expected +- $t, but actual $actual\t$getErrorPosition\n")
     case None => assert(expected === actual, s"Expeced $expected, but actual $actual\n")
   }
 

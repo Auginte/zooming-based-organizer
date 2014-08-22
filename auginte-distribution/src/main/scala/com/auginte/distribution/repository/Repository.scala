@@ -8,9 +8,9 @@ import com.auginte.distribution.data.Description
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait Repository {
-  def save()
+  def save(): Unit
 
-  def load()
+  def load(): Unit
 
   def parameters_=(values: List[Symbol])
 
