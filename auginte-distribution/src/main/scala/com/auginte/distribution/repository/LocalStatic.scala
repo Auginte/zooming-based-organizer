@@ -2,7 +2,7 @@ package com.auginte.distribution.repository
 
 import com.auginte.common.SoftwareVersion
 import com.auginte.distribution.data.{Description, Version}
-import com.auginte.distribution.json.CommmonFormatter
+import com.auginte.distribution.json.CommonFormatter
 import com.auginte.zooming.Grid
 import play.api.libs.json.Json
 
@@ -23,7 +23,7 @@ class LocalStatic(grid: Grid, elements: Elements, cameras: Cameras) extends Repo
 
   def saveToString: String = {
 
-    import CommmonFormatter._
+    import CommonFormatter._
 
     val data = Json.obj(
       "@context" -> Json.toJson("http://auginte.com/ns/v0.6/localStatic.jsonld"),

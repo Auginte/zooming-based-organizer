@@ -1,7 +1,7 @@
 package com.auginte.distribution
 
 import com.auginte.distribution.data.{Camera, Data}
-import com.auginte.zooming.AbsoluteDistance
+import com.auginte.zooming.{Grid, AbsoluteDistance}
 
 import scala.collection.Traversable
 
@@ -14,4 +14,6 @@ package object repository {
   type Elements = () => Traversable[Data]
   type Cameras = () => Traversable[Camera]
   type Converter = (Data) => Option[AbsoluteDistance]
+
+  type SavedRepository = (Grid, Elements, Cameras)
 }

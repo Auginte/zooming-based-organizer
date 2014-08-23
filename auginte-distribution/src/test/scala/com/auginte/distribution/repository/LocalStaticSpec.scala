@@ -1,6 +1,6 @@
 package com.auginte.distribution.repository
 
-import com.auginte.common.{WithId, SoftwareVersion}
+import com.auginte.common.{ WithId, SoftwareVersion }
 import com.auginte.distribution.data._
 import com.auginte.test.UnitSpec
 import com.auginte.zooming._
@@ -101,7 +101,6 @@ class LocalStaticSpec extends UnitSpec {
     }
   }
 
-
   //
   // Helpers
   //
@@ -148,8 +147,7 @@ class LocalStaticSpec extends UnitSpec {
 
   trait ConsistentVersion extends LocalStatic {
     override def description: Description = Description(
-      Version("0.0.1-FIXTURE"), super.description.elements, super.description.cameras
-    )
+      Version("0.0.1-FIXTURE"), super.description.elements, super.description.cameras)
   }
 
   case class ZoomableElement(node: Node, position: Distance = Distance()) extends Data with LinearIds

@@ -2,9 +2,10 @@ package com.auginte.distribution.json
 
 import com.auginte.distribution.data.{Camera, Data, Description, Version}
 import com.auginte.zooming.Node
-import play.api.libs.json.Json.toJson
 import play.api.libs.json._
-
+import play.api.libs.json.Json.toJson
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 
 /**
  * Provides implicit values for Data <-> Json conversion
@@ -13,20 +14,26 @@ import play.api.libs.json._
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-object CommmonFormatter {
-  implicit val versionJson = new Writes[Version] {
+object CommonFormatter {
+  implicit val versionJson = new Format[Version] {
     override def writes(o: Version): JsValue = toJson(o.version)
+
+    override def reads(json: JsValue): JsResult[Version] = JsSuccess(new Version(json.as[String]))
   }
 
-  implicit val descriptionJson = new Writes[Description] {
-    override def writes(o: Description): JsValue = Json.obj(
-      "auginteVersion" -> o.auginteVersion,
-      "countElements" -> o.elements,
-      "countCameras" -> o.cameras
-    )
-  }
+  implicit val descriptionWrites = (
+    (__ \ "auginteVersion").write[Version] and
+      (__ \ "countElements").write[Int] and
+      (__ \ "countCameras").write[Int]
+    )(unlift(Description.unapply))
 
-  implicit val representationJson = new Writes[Data] {
+  implicit val descriptionReads = (
+    (__ \ "auginteVersion").read[Version] and
+      (__ \ "countElements").read[Int] and
+      (__ \ "countCameras").read[Int]
+    )(Description)
+
+  implicit val representationWrites = new Writes[Data] {
     override def writes(o: Data): JsValue = {
       val id = o match {
         case c: Camera => s"ca:${o.storageId}"
