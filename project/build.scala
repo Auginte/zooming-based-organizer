@@ -1,16 +1,15 @@
 import java.io.FileInputStream
 import java.util.Properties
 
+import sbt.Keys._
 import sbt._
-import Keys._
 import sbtassembly.Plugin._
-import AssemblyKeys._
 
 object AuginteBuild extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
   val buildVersion      = getProperty("version", default="0.0.1-SNAPSHOT")
-  val buildScalaVersion = "2.10.3"
+  val buildScalaVersion = "2.11.2"
   val buildMainClass = "com.auginte.desktop.HelloScalaFX"
 
   // Custom properties (also accessable from source)

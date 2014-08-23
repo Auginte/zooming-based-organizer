@@ -118,7 +118,6 @@ with ZoomableElement {
     val optimised = grid.newElement(node, position, x, y)
     element.node = optimised._1
     element.position = optimised._2
-    element.position
   }
 
   /**

@@ -16,7 +16,7 @@ unmanagedJars in Compile += Attributed.blank(file(System.getenv("JAVA_HOME") + "
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.2"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.5"
 
 // Fork a new JVM for 'run' and 'test:run', to avoid JavaFX double initialization problems
 fork := true

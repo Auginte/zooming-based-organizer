@@ -3,7 +3,7 @@ package com.auginte.desktop.nodes
 import javafx.scene.layout.{Pane => jp}
 import javafx.scene.{control => jfxc, layout => jfxl, text => jfxt}
 
-import com.auginte.desktop.actors.{ScalableElement, DragableNode, ViewableNode}
+import com.auginte.desktop.actors.{DragableNode, ScalableElement, ViewableNode}
 import com.auginte.desktop.events._
 import com.auginte.desktop.operations.EditableNode
 import com.auginte.desktop.rich.RichJPane
@@ -31,8 +31,8 @@ with EditableNode {
   textArea.setText(_text)
   getChildren.addAll(label, textArea)
   updateSize(_text)
-  updateStyle(editMode)
   private var editMode = false
+  updateStyle(editMode)
 
 
   //
