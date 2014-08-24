@@ -57,6 +57,21 @@ class BigJsonSpec extends UnitSpec {
       )
       assert(expectedCameras === cameras)
     }
+    "have functionality to cancel parsing in the middle" in {
+      val stream = getClass.getResourceAsStream("/com/auginte/distribution/repository/localStatic/reusing-nodes.json")
+      var tagNames: Set[String] = Set()
+      fixture.read(stream, event => {
+        tagNames = tagNames + event.tagName
+        event.tagName match {
+          case "@context" => true
+          case "description" => true
+          case "nodes" => false
+          case "representations" =>
+            fail(s"Continued after cancellation: $tagNames")
+            false
+        }
+      })
+    }
   }
 
   def fixture = new BigJson
