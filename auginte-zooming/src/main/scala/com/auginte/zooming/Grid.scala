@@ -2,6 +2,7 @@ package com.auginte.zooming
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+import com.auginte.common.WithParentId
 
 /**
  * Class to ensure infinity scaling and translation.
@@ -480,6 +481,43 @@ abstract class Grid extends Debugable {
     result
   }
 
+  /**
+   * Creating new Grid object with similar node structure.
+   *
+   * @param nodes imported, but not properly connected nodes
+   * @return new Grid with normal nodes structure
+   */
+  def apply(nodes: Seq[ImportedNode]): Grid = {
+    def byParent(parentId: String, elements: Seq[ImportedNode] = nodes): Seq[ImportedNode] =
+      elements.filter(_.parentId == parentId)
+
+    def withRootNodes(grid: Grid): (mutable.Stack[String], mutable.Stack[Node]) = {
+      val rootReference = byParent("")(0)
+      val toCheck = new mutable.Stack[String]
+      val realNodes = new mutable.Stack[Node]
+      toCheck push rootReference.storageId
+      realNodes push grid.root
+      (toCheck, realNodes)
+    }
+
+    def childrenToRoot(grid: Grid, toCheck: mutable.Stack[String], realNodes: mutable.Stack[Node]): Grid = {
+      while (toCheck.nonEmpty) {
+        val (parentId, parentNode)  = (toCheck.pop(), realNodes.pop())
+        val children = byParent(parentId)
+        toCheck pushAll children.map(_.storageId)
+        children.foreach { referenceNode =>
+          val child = getChild(parentNode, referenceNode.x, referenceNode.y)
+          realNodes push child
+        }
+      }
+      grid
+    }
+
+    val grid = newGrid
+    val (toCheck, realNodes) = withRootNodes(grid)
+    childrenToRoot(grid, toCheck, realNodes)
+  }
+
   //
   // Low level node pick up function
   //
@@ -644,6 +682,11 @@ abstract class Grid extends Debugable {
    * Dependency injection for node creation
    */
   private[auginte] def newNode: NodeToNode = sameNode
+
+  /**
+   * Dependency injection for node creation
+   */
+  private[auginte] def newGrid: Grid = new Grid {}
 }
 
 trait Debugable {

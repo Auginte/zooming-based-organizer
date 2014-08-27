@@ -1,5 +1,6 @@
 package com.auginte.zooming
 
+import com.auginte.common.WithParentId
 import com.auginte.test.UnitSpec
 
 /**
@@ -95,6 +96,38 @@ class GridSpec extends UnitSpec {
         } catch {
           case e: java.lang.StackOverflowError => fail(s"Stack overflow with: $max elements")
         }
+      }
+    }
+    "importing data" should {
+      "create copy with linked nodes" in {
+        //       n1       -- root
+        //     /   \
+        //  __n3    n2    -- l1
+        // |  |     |
+        // n5 n6    n4    -- l2, l3
+        // |         \
+        // n8         n7  -- l4, l5
+        val host = standardGrid()
+        val n1 = importedNode(0, 0, "", "n1")
+        val n2 = importedNode(1, 2, n1.storageId, "n2")
+        val n3 = importedNode(-2, -4, n1.storageId, "n3")
+        val n4 = importedNode(0, 0, n2.storageId, "n4")
+        val n5 = importedNode(-8, -10, n3.storageId, "n5")
+        val n6 = importedNode(0, 0, n3.storageId, "n6")
+        val n7 = importedNode(8, 5, n4.storageId, "n7")
+        val n8 = importedNode(-3, -5, n5.storageId, "n8")
+        val grid = host.apply(List(n1, n2, n3, n8, n7, n6, n5, n4))
+        val l1 = grid.root.children
+        val l2 = l1(0).children
+        val l3 = l1(1).children
+        val l4 = l2(0).children
+        val l5 = l3(0).children
+        assertXY(n1, grid.root)
+        assertXY(List(n3, n2), l1)
+        assertXY(List(n5, n6), l2)
+        assertXY(List(n4), l3)
+        assertXY(List(n8), l4)
+        assertXY(List(n7), l5)
       }
     }
   }
@@ -1445,9 +1478,22 @@ class GridSpec extends UnitSpec {
     (grid.root, grid)
   }
 
+  private def importedNode(x: Int, y: Int, _parentId: String, id: String): ImportedNode = new Node(x, y) with WithParentId {
+    override val parentId: String = _parentId
+
+    override val storageId: String = id
+
+    override def toString(): String = s"""ImportedNode($x,$y,"$storageId","$parentId")"""
+  }
+
   def assertXY(node: Node, x: Int, y: Int): Unit =
     assert(node.x == x && node.y == y,
       s"Expected ${x}x$y, but actual ${node.x}x${node.y} in $node\n")
+
+
+  def assertXY(expected: Node, node: Node): Unit = assertXY(node, expected.x, expected.y)
+
+  def assertXY(expected: List[Node], nodes: List[Node]): Unit = (expected, nodes).zipped.foreach(assertXY)
 
   def assertWithTolerance(expected: Double, actual: Double, tolerance: Double): Unit =
     assert(expected > actual - tolerance && expected < actual + tolerance,

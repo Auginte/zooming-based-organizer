@@ -1,5 +1,7 @@
 package com.auginte
 
+import com.auginte.common.WithParentId
+
 /**
  * Package is responsible for infinity zooming,
  * by preserving hierarchy of nodes and
@@ -23,6 +25,11 @@ package object zooming {
    * Dependency injection for new node creation
    */
   type NodeToNode = (Node) => Node
+
+  /**
+   * Type to mark nodes, that does not have real relations to other nodes.
+   */
+  type ImportedNode = Node with WithParentId
 
   /**
    * Default implementation for [[NodeToNode]] injection

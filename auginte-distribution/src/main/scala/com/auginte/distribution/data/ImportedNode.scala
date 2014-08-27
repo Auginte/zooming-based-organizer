@@ -1,5 +1,6 @@
 package com.auginte.distribution.data
 
+import com.auginte.common.WithParentId
 import com.auginte.zooming.Node
 
 /**
@@ -8,6 +9,6 @@ import com.auginte.zooming.Node
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class ImportedNode(override val x: Int, override val y: Int, override val storageId: String, val parentId: String) extends Node(x, y) {
+class ImportedNode(override val x: Int, override val y: Int, override val storageId: String, val parentId: String) extends Node(x, y) with WithParentId {
   override def toString(): String = s"""ImportedNode($x,$y,"$storageId","$parentId")"""
 }
