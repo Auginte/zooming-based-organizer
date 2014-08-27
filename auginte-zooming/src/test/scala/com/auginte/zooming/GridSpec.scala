@@ -116,7 +116,7 @@ class GridSpec extends UnitSpec {
         val n6 = importedNode(0, 0, n3.storageId, "n6")
         val n7 = importedNode(8, 5, n4.storageId, "n7")
         val n8 = importedNode(-3, -5, n5.storageId, "n8")
-        val grid = host.apply(List(n1, n2, n3, n8, n7, n6, n5, n4))
+        val (grid, map) = host.apply(List(n1, n2, n3, n8, n7, n6, n5, n4))
         val l1 = grid.root.children
         val l2 = l1(0).children
         val l3 = l1(1).children
@@ -128,6 +128,14 @@ class GridSpec extends UnitSpec {
         assertXY(List(n4), l3)
         assertXY(List(n8), l4)
         assertXY(List(n7), l5)
+        assert(map.get(n1.storageId) === Some(grid.root))
+        assert(map.get(n2.storageId) === Some(l1(1)))
+        assert(map.get(n3.storageId) === Some(l1(0)))
+        assert(map.get(n4.storageId) === Some(l3(0)))
+        assert(map.get(n5.storageId) === Some(l2(0)))
+        assert(map.get(n6.storageId) === Some(l2(1)))
+        assert(map.get(n7.storageId) === Some(l5(0)))
+        assert(map.get(n8.storageId) === Some(l4(0)))
       }
     }
   }

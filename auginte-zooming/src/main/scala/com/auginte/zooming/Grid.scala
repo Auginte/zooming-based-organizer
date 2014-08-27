@@ -485,22 +485,24 @@ abstract class Grid extends Debugable {
    * Creating new Grid object with similar node structure.
    *
    * @param nodes imported, but not properly connected nodes
-   * @return new Grid with normal nodes structure
+   * @return new Grid with normal nodes structure and reference-nodes map
    */
-  def apply(nodes: Seq[ImportedNode]): Grid = {
+  def apply(nodes: Seq[ImportedNode]): (Grid, IdToRealNode) = {
     def byParent(parentId: String, elements: Seq[ImportedNode] = nodes): Seq[ImportedNode] =
       elements.filter(_.parentId == parentId)
 
-    def withRootNodes(grid: Grid): (mutable.Stack[String], mutable.Stack[Node]) = {
+    def withRootNodes(grid: Grid): (mutable.Stack[String], mutable.Stack[Node], IdToRealNode) = {
       val rootReference = byParent("")(0)
       val toCheck = new mutable.Stack[String]
       val realNodes = new mutable.Stack[Node]
+      val map = Map(rootReference.storageId -> grid.root)
       toCheck push rootReference.storageId
       realNodes push grid.root
-      (toCheck, realNodes)
+      (toCheck, realNodes, map)
     }
 
-    def childrenToRoot(grid: Grid, toCheck: mutable.Stack[String], realNodes: mutable.Stack[Node]): Grid = {
+    def childrenToRoot(toCheck: mutable.Stack[String], realNodes: mutable.Stack[Node], map: IdToRealNode): IdToRealNode = {
+      var _map = map
       while (toCheck.nonEmpty) {
         val (parentId, parentNode)  = (toCheck.pop(), realNodes.pop())
         val children = byParent(parentId)
@@ -508,14 +510,16 @@ abstract class Grid extends Debugable {
         children.foreach { referenceNode =>
           val child = getChild(parentNode, referenceNode.x, referenceNode.y)
           realNodes push child
+          _map = _map + (referenceNode.storageId -> child)
         }
       }
-      grid
+      _map
     }
 
     val grid = newGrid
-    val (toCheck, realNodes) = withRootNodes(grid)
-    childrenToRoot(grid, toCheck, realNodes)
+    val (toCheck, realNodes, map1) = withRootNodes(grid)
+    val map = childrenToRoot(toCheck, realNodes, map1)
+    (grid, map)
   }
 
   //

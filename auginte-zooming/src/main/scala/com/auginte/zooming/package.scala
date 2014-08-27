@@ -35,4 +35,9 @@ package object zooming {
    * Default implementation for [[NodeToNode]] injection
    */
   val sameNode: NodeToNode = (n) => n
+
+  /**
+   * Relating imported node's id to node as an object.
+   */
+  type IdToRealNode = Map[String, Node]
 }
