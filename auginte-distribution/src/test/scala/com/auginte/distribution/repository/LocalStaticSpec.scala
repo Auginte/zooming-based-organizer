@@ -16,8 +16,8 @@ import scala.reflect.io.File
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 class LocalStaticSpec extends UnitSpec with NodeAssertions {
-  "LocalStatic repository" should {
-    "include software version number" in {
+  "LocalStatic object" should {
+    "include file format version number" in {
       val repository = new LocalStatic
       val softwareVersion = Version(SoftwareVersion.toString)
       val fallbackVersion = Version(SoftwareVersion.fallBackVersion)
@@ -27,16 +27,14 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
   }
 
   "LocalStatic repository" when {
-    "saving empty" should {
-      "should still include description and root node" in {
+    "having no data" should {
+      "still save description and root node" in {
         val repository = newRepository
         val output = repository.saveToString(emptyGrid, empty(0), cameras(0))
         val expected = readFile("localStatic/empty.json")
         assert(expected == output)
       }
-    }
-    "loading empty" should {
-      "create new grid with root element" in {
+      "load new grid with root element" in {
         val repository = newRepository
         val (grid, elements, views) = repository.loadFromStream(
           readStream("localStatic/empty.json"),
@@ -49,8 +47,8 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assert(0 === views.size)
       }
     }
-    "saving multiple nodes" should {
-      "save ids with prefixes" in {
+    "using multiple nodes" should {
+      "save ids textual ids" in {
         //  root--c1
         //   |
         //   n1--e1
@@ -67,8 +65,8 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assert(expected == output)
       }
     }
-    "saving with many elements" should {
-      "representations should reuse duplicated nodes" in {
+    "using multiple elements and views" should {
+      "save with textual ids and custom fields" in {
         //      root--c1
         //       |
         //    ___n1___
@@ -93,9 +91,7 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val expected = readFile("localStatic/reusing-nodes.json")
         assert(expected == output)
       }
-    }
-    "loading with many elements" should {
-      "create new grid, representations and cameras" in {
+      "create new grid with old ids independent representations and cameras" in {
         //      root--c1
         //       |
         //    ___n1___
