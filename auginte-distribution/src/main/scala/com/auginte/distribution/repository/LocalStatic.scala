@@ -1,6 +1,6 @@
 package com.auginte.distribution.repository
 
-import java.io.InputStream
+import java.io.{IOException, OutputStream, InputStream}
 
 import com.auginte.common.SoftwareVersion
 import com.auginte.distribution.data._
@@ -18,13 +18,18 @@ class LocalStatic extends Repository {
 
   val supportedFormatVersion = Version(SoftwareVersion.toString)
 
-  private var _parameters: List[Symbol] = List()
-
-  override def save(): Unit = {
-    println(s"Saving")
+  @throws[IOException]
+  override def save(output: OutputStream, grid: Grid, elements: Elements, cameras: Cameras): Unit = {
+    output.write(saveToString(grid, elements, cameras).getBytes)
   }
 
-  def saveToString(grid: Grid, elements: Elements, cameras: Cameras): String = {
+  override def load[A, B](
+                              input: InputStream,
+                              dataFactory: (ImportedData, IdToRealNode) => A,
+                              cameraFactory: (ImportedCamera, IdToRealNode) => B):
+  (Grid, Seq[A], Seq[B]) = loadFromStream(input, dataFactory, cameraFactory)
+
+  private[repository] def saveToString(grid: Grid, elements: Elements, cameras: Cameras): String = {
 
     def description: Description = Description(supportedFormatVersion, elements().size, cameras().size)
 
@@ -42,14 +47,8 @@ class LocalStatic extends Repository {
     Json.stringify(data)
   }
 
-  override def parameters_=(values: List[Symbol]): Unit = _parameters = values
-
-  override def load(): Unit = {
-    println(s"Loading ${_parameters}")
-  }
-
   @throws[ImportException]
-  def loadFromStream[A, B](
+  protected[repository] def loadFromStream[A, B](
                             stream: InputStream,
                             dataFactory: (ImportedData, IdToRealNode) => A,
                             cameraFactory: (ImportedCamera, IdToRealNode) => B

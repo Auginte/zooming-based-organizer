@@ -3,6 +3,6 @@ package com.auginte.desktop.events
 import javafx.{scene => jfxs}
 
 /**
- * Event to add new element to
+ * Event for user to add new element to view
  */
 case class InsertElement(element: jfxs.Node, x: Double, y: Double) extends ElementEvent

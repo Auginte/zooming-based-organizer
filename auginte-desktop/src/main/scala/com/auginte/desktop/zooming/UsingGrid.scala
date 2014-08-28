@@ -1,6 +1,6 @@
 package com.auginte.desktop.zooming
 
-import com.auginte.zooming.Node
+import com.auginte.zooming.{Grid, Node}
 
 /**
  * Functionality related to using Grid (core element for infinity zooming)

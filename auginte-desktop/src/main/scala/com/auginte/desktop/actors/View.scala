@@ -45,6 +45,9 @@ class View extends Actor {
           representation.contextMenu.show()
           representation.contextMenu.showContent(source.operations)
         }
+        case ImportElement(element) =>
+          registerView(element)
+          Platform.runLater(representation.content.add(element))
         case InsertElement(element, x, y) =>
           registerView(element)
           element match {

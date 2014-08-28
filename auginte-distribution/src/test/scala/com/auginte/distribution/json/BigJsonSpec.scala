@@ -46,9 +46,9 @@ class BigJsonSpec extends UnitSpec {
       )
       assert(expectedNodes === nodes)
       val expectedRepresentations = List(
-        new ImportedData("re:00000000000000000000000000000011","ag:Text",0.0,0.0,1.0,"gn:00000000000000000000000000000008",Set(("text","E3"))),
-        new ImportedData("re:00000000000000000000000000000010","ag:Text",0.0,0.0,1.0,"gn:00000000000000000000000000000008",Set(("text","E2"))),
-        new ImportedData("re:00000000000000000000000000000009","ag:Abstract",1.2,3.4,1.3,"gn:00000000000000000000000000000005",Set())
+        new ImportedData("re:00000000000000000000000000000011","ag:Text",0.0,0.0,1.0,"gn:00000000000000000000000000000008",Map("text" -> "E3")),
+        new ImportedData("re:00000000000000000000000000000010","ag:Text",0.0,0.0,1.0,"gn:00000000000000000000000000000008",Map("text" -> "E2")),
+        new ImportedData("re:00000000000000000000000000000009","ag:Abstract",1.2,3.4,1.3,"gn:00000000000000000000000000000005",Map())
       )
       assert(expectedRepresentations === representations)
       val expectedCameras = List(

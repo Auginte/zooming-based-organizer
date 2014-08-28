@@ -113,6 +113,8 @@ with EditableNode {
 
   def text: String = if (editable) textArea.getText else label.getText
 
+  def text_=(value: String): Unit = updateText(value)
+
   //
   // Utilities
   //

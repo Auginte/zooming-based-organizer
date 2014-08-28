@@ -56,7 +56,7 @@ import com.auginte.common.WithParentId
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-abstract class Grid extends Debugable {
+class Grid extends Debugable {
   private lazy val scaleLog10 = Math.log10(gridSize)
   /**
    * Distance between nodes.

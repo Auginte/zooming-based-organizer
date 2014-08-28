@@ -1,5 +1,6 @@
 package com.auginte.distribution.data
 
+import com.auginte.distribution.repository.CustomFields
 import com.auginte.zooming.{Node, Distance}
 
 /**
@@ -14,7 +15,7 @@ case class ImportedData(
                          y: Double,
                          scale: Double,
                          nodeId: String,
-                         customFields: Traversable[(String, String)]
+                         customFields: CustomFields
                          ) extends Data {
   override def position: Distance = Distance(x, y, scale)
 

@@ -2,7 +2,7 @@ package com.auginte.desktop.actors
 
 import com.auginte.desktop
 import akka.actor.{Props, Actor}
-import com.auginte.desktop.zooming.Grid
+import com.auginte.zooming.Grid
 
 /**
  * Actor to manage data integrity over many Views.
@@ -23,12 +23,11 @@ class Views extends Actor {
 
   override def receive = {
     case g: Grid => gridOption = Some(g)
-    case view: desktop.View => {
+    case view: desktop.View =>
       val child = context.actorOf(Props[View], s"view${context.children.size}")
       child ! view
       view.grid = grid
       view.node = grid.root
-    }
     case _ => Unit
   }
 }

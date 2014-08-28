@@ -1,6 +1,7 @@
 package com.auginte.distribution.json
 
 import com.auginte.distribution.data._
+import com.auginte.distribution.repository.CustomFields
 import com.auginte.zooming.Node
 import play.api.libs.json._
 import play.api.libs.json.Json.toJson
@@ -59,8 +60,8 @@ object CommonFormatter {
           val typePrefix = s"${typeName.get}/"
           val isCustomField: ((String, Any)) => Boolean = pair => pair._1.startsWith(typePrefix)
           val suffix = (s: String) => s.substring(typePrefix.length)
-          o.fieldSet.filter(isCustomField).map(pair => suffix(pair._1) -> pair._2.as[String])
-        case _ => List()
+          o.fieldSet.filter(isCustomField).map(pair => suffix(pair._1) -> pair._2.as[String]).toMap
+        case _ => Map[String, String]()
       }
       if (isDefined(id, typeName, x, y, scale, node)) {
         val result = ImportedData(id.get, typeName.get, x.get, y.get, scale.get, node.get, customFields)

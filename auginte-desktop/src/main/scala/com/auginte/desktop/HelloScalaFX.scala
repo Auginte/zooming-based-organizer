@@ -1,5 +1,7 @@
 package com.auginte.desktop
 
+import com.auginte.zooming.Grid
+
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene._
@@ -11,7 +13,6 @@ import scalafx.application.Platform
 import akka.actor.{Props, ActorSystem}
 import scalafx.stage.WindowEvent
 import com.auginte.desktop.{actors => act}
-import com.auginte.desktop.zooming.Grid
 
 object HelloScalaFX extends JFXApp {
   val akka = ActorSystem("auginte")

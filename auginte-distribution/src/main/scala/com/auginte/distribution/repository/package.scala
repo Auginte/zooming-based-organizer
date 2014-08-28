@@ -16,4 +16,6 @@ package object repository {
   type Converter = (Data) => Option[AbsoluteDistance]
 
   type SavedRepository = (Grid, Elements, Cameras)
+
+  type CustomFields = Map[String, String]
 }

@@ -128,8 +128,8 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assert(n2 === e1.node)
         assert(n4 === e2.node)
         assert(n4 === e3.node)
-        assert(Set(("text", "E2")) === e2.source.customFields)
-        assert(Set(("text", "E3")) === e3.source.customFields)
+        assert(Map("text" -> "E2") === e2.source.customFields)
+        assert(Map("text" -> "E3") === e3.source.customFields)
 
         assert(2 === views.size)
         val c1 = views(1)
