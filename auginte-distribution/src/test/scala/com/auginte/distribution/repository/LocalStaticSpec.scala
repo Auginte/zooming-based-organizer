@@ -1,11 +1,11 @@
 package com.auginte.distribution.repository
 
 import java.io.InputStream
-import com.auginte.zooming.NodeAssertions
+import com.auginte.distribution.exceptions.{UnsupportedElement, UnsupportedStructure, UnsupportedVersion}
+import com.auginte.zooming._
 import com.auginte.common.{ WithId, SoftwareVersion }
 import com.auginte.distribution.data._
 import com.auginte.test.UnitSpec
-import com.auginte.zooming._
 
 import scala.io.Source
 import scala.reflect.io.File
@@ -140,6 +140,26 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assert(n3 === c2.node)
       }
     }
+    "dealing with not standard files" should {
+      "stop parsing for unsupported versions" in {
+        intercept[UnsupportedVersion] {
+          newRepository.loadFromStream(readStream("localStatic/unsupportedVersion.json"), elementCreator, cameraCreator)
+        }
+      }
+      "stop parsing for different format" in {
+        intercept[UnsupportedStructure[_]] {
+          newRepository.loadFromStream(readStream("localStatic/notJson.csv"), elementCreator, cameraCreator)
+        }
+        intercept[UnsupportedStructure[_]] {
+          newRepository.loadFromStream(readStream("localStatic/noObjects.json"), elementCreator, cameraCreator)
+        }
+        for (nr <- 1 to 5) {
+          intercept[UnsupportedElement] {
+            newRepository.loadFromStream(readStream(s"localStatic/badElements$nr.json"), elementCreator, cameraCreator)
+          }
+        }
+      }
+    }
   }
 
   //
@@ -181,11 +201,17 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
 
   @throws[Exception]
   private def readStream(name: String, prefix: String = packageDir): InputStream = {
-    val strean = getClass.getResourceAsStream(prefix + name)
+    val stream = getClass.getResourceAsStream(prefix + name)
     val here = File(".").toAbsolute.path
-    require(strean != null, s"Resource not found: $prefix$name from $here")
-    strean
+    require(stream != null, s"Resource not found: $prefix$name from $here")
+    stream
   }
+
+  private val elementCreator =
+    (data: ImportedData, map: IdToRealNode) => Element(data.storageId, map(data.nodeId), data.position, data)
+
+  private val cameraCreator =
+    (camera: ImportedCamera, map: IdToRealNode) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
 
   trait ZeroPosition extends Data {
     override def node: Node = Node(0, 0)

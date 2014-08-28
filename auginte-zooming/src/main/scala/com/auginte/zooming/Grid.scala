@@ -492,13 +492,18 @@ abstract class Grid extends Debugable {
       elements.filter(_.parentId == parentId)
 
     def withRootNodes(grid: Grid): (mutable.Stack[String], mutable.Stack[Node], IdToRealNode) = {
-      val rootReference = byParent("")(0)
+      val root = byParent("")
       val toCheck = new mutable.Stack[String]
       val realNodes = new mutable.Stack[Node]
-      val map = Map(rootReference.storageId -> grid.root)
-      toCheck push rootReference.storageId
-      realNodes push grid.root
-      (toCheck, realNodes, map)
+      if (root.size == 1) {
+        val rootReference = root(0)
+        val map = Map(rootReference.storageId -> grid.root)
+        toCheck push rootReference.storageId
+        realNodes push grid.root
+        (toCheck, realNodes, map)
+      } else {
+        (toCheck, realNodes, Map())
+      }
     }
 
     def childrenToRoot(toCheck: mutable.Stack[String], realNodes: mutable.Stack[Node], map: IdToRealNode): IdToRealNode = {

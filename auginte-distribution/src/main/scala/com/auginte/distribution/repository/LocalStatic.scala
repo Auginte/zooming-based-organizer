@@ -110,10 +110,11 @@ class LocalStatic extends Repository {
           case e: Exception => error(UnsupportedElement(e))
         }
       } else {
-        error(UnsupportedStructure(getClass, None))
+        error(UnsupportedStructure(getClass, stream))
       }
     })
     if (errors.isDefined) throw errors.get
+    if (nodes.size < 1) throw UnsupportedStructure(getClass, stream)
     (grid, representations, cameras)
   }
 
