@@ -1,0 +1,10 @@
+package com.auginte.distribution.exceptions
+
+import com.auginte.distribution.data.Version
+
+/**
+ * Trying to read file with unsupported version.
+ *
+ * @author Aurelijus Banelis <aurelijus@banelis.lt>
+ */
+case class UnsupportedVersion(fileVersion: Version, neededVersion: Version) extends ImportException

@@ -32,7 +32,7 @@ with HaveOperations {
   private lazy val repository = {
     val elements = () => d.getChildren flatMap { case d: Data => Some(d) case _ => None}
     val cameras = () => List(this)
-    new LocalStatic(grid, elements, cameras)
+    new LocalStatic
   }
   val contextMenu = initContextMenu()
   private val grid2absoluteCron = new Timeline {

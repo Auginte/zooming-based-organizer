@@ -13,6 +13,4 @@ trait Repository {
   def load(): Unit
 
   def parameters_=(values: List[Symbol])
-
-  def description: Description
 }

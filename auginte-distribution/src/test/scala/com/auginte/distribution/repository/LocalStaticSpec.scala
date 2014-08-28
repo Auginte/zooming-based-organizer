@@ -1,5 +1,7 @@
 package com.auginte.distribution.repository
 
+import java.io.InputStream
+import com.auginte.zooming.NodeAssertions
 import com.auginte.common.{ WithId, SoftwareVersion }
 import com.auginte.distribution.data._
 import com.auginte.test.UnitSpec
@@ -13,45 +15,38 @@ import scala.reflect.io.File
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class LocalStaticSpec extends UnitSpec {
+class LocalStaticSpec extends UnitSpec with NodeAssertions {
   "LocalStatic repository" should {
     "include software version number" in {
-      val repository = new LocalStatic(emptyGrid, emptyWithIds(0), camerasWithIds(0))
-      val description = repository.description
+      val repository = new LocalStatic
       val softwareVersion = Version(SoftwareVersion.toString)
       val fallbackVersion = Version(SoftwareVersion.fallBackVersion)
-      assert(description.auginteVersion !== fallbackVersion)
-      assert(description.auginteVersion == softwareVersion)
-    }
-    "include approximated number of elements" in {
-      val r1 = new LocalStatic(emptyGrid, emptyWithIds(0), camerasWithIds(0))
-      val r2 = new LocalStatic(emptyGrid, emptyWithIds(1), camerasWithIds(1))
-      val r3 = new LocalStatic(emptyGrid, emptyWithIds(5), camerasWithIds(0))
-      val r4 = new LocalStatic(emptyGrid, emptyWithIds(0), camerasWithIds(6))
-      val r5 = new LocalStatic(emptyGrid, emptyWithIds(125), camerasWithIds(63))
-      val r6 = new LocalStatic(emptyGrid, emptyWithIds(190), camerasWithIds(100))
-      assert(0 === r1.description.elements)
-      assert(0 === r1.description.cameras)
-      assert(1 === r2.description.elements)
-      assert(1 === r2.description.cameras)
-      assert(5 === r3.description.elements)
-      assert(0 === r3.description.cameras)
-      assert(0 === r4.description.elements)
-      assert(6 === r4.description.cameras)
-      assert(125 === r5.description.elements)
-      assert(63 === r5.description.cameras)
-      assert(190 === r6.description.elements)
-      assert(100 === r6.description.cameras)
+      assert(repository.supportedFormatVersion !== fallbackVersion)
+      assert(repository.supportedFormatVersion == softwareVersion)
     }
   }
 
   "LocalStatic repository" when {
     "saving empty" should {
       "should still include description and root node" in {
-        val repository = new LocalStatic(emptyGrid, empty(0), cameras(0)) with ConsistentVersion
-        val output = repository.saveToString
+        val repository = newRepository
+        val output = repository.saveToString(emptyGrid, empty(0), cameras(0))
         val expected = readFile("localStatic/empty.json")
         assert(expected == output)
+      }
+    }
+    "loading empty" should {
+      "create new grid with root element" in {
+        val repository = newRepository
+        val (grid, elements, views) = repository.loadFromStream(
+          readStream("localStatic/empty.json"),
+          (data, map) => Element(data.storageId, map(data.nodeId), data.position, data),
+          (camera, map) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
+        )
+        assert(1 === grid.flatten.size)
+        assertXY(grid.root, 0, 0)
+        assert(0 === elements.size)
+        assert(0 === views.size)
       }
     }
     "saving multiple nodes" should {
@@ -66,8 +61,8 @@ class LocalStaticSpec extends UnitSpec {
         val n2 = grid.getNode(n1, 3.23, 5.56, 0.01)
         val e1 = ZoomableElement(n1)
         val c1 = ZoomableCamera(grid.root)
-        val repository = new LocalStatic(grid, list(e1), list(c1)) with ConsistentVersion
-        val output = repository.saveToString
+        val repository = newRepository
+        val output = repository.saveToString(grid, list(e1), list(c1))
         val expected = readFile("localStatic/multiple-nodes.json")
         assert(expected == output)
       }
@@ -93,10 +88,60 @@ class LocalStaticSpec extends UnitSpec {
         val e3 = ZoomableText(n4, Distance(0, 0, 1), "E3")
         val c1 = ZoomableCamera(grid.root, Distance(0, 0, 1))
         val c2 = ZoomableCamera(n3, Distance(1, 1.2, 0.987654321))
-        val repository = new LocalStatic(grid, list(e1, e2, e3), list(c1, c2)) with ConsistentVersion
-        val output = repository.saveToString
+        val repository = newRepository
+        val output = repository.saveToString(grid, list(e1, e2, e3), list(c1, c2))
         val expected = readFile("localStatic/reusing-nodes.json")
         assert(expected == output)
+      }
+    }
+    "loading with many elements" should {
+      "create new grid, representations and cameras" in {
+        //      root--c1
+        //       |
+        //    ___n1___
+        //   |       |
+        //   n2     n3--c2
+        //  :       |
+        //  e1     n4--e2
+        //  :       :
+        //  d1     e3
+        val repository = newRepository
+        val (grid, elements, views) = repository.loadFromStream(
+          readStream("localStatic/reusing-nodes.json"),
+          (data, map) => Element(data.storageId, map(data.nodeId), data.position, data),
+          (camera, map) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
+        )
+
+        assert(7 === grid.flatten.size)
+        val n1 = grid.root.children(1)
+        val n2 = grid.root.children(0).children(2)
+        val n3 = grid.root.children(0).children(1)
+        val n4 = grid.root.children(0).children(0).children(0)
+        assertXY(n1, 1, -4)
+        assertXY(n2, 3, -95)
+        assertXY(n3, 99, -67)
+        assertXY(n4, 5, -92)
+
+        assert(3 === elements.size)
+        val e1 = elements(2)
+        val e2 = elements(1)
+        val e3 = elements(0)
+        assert(Distance(1.2, 3.4, 1.3) === e1.position)
+        assert(Distance(0, 0, 1) === e2.position)
+        assert(Distance(0, 0, 1) === e3.position)
+        assert(n2 === e1.node)
+        assert(n4 === e2.node)
+        assert(n4 === e3.node)
+        assert(Set(("text", "E2")) === e2.source.customFields)
+        assert(Set(("text", "E3")) === e3.source.customFields)
+
+        assert(2 === views.size)
+        val c1 = views(1)
+        val c2 = views(0)
+        assert(Distance(0, 0, 1) === c1.position)
+        assert(Distance(1, 1.2, 0.987654321) === c2.position)
+        assert(grid.root === c1.node)
+        assert(n3 === c2.node)
       }
     }
   }
@@ -107,15 +152,18 @@ class LocalStaticSpec extends UnitSpec {
 
   private val invalidDistance: AbsoluteDistance = (Node(0, 0), Distance())
 
-  private val emptyGrid = new Grid {
+  private def emptyGrid = new Grid {
     override private[auginte] def newNode: NodeToNode = (n) => new Node(n.x, n.y) with LinearIds
   }
+
   private val packageDir = "/" + getClass.getPackage.getName.replaceAll("\\.", "/") + "/"
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()
     LinearIds.reset()
   }
+
+  private def newRepository = new LocalStatic with ConsistentVersion
 
   private def emptyWithIds(count: Int): Elements = () => for (i <- 1 to count) yield new Data with ZeroPosition
 
@@ -135,6 +183,14 @@ class LocalStaticSpec extends UnitSpec {
     Source.fromURL(resource).getLines() mkString "\n"
   }
 
+  @throws[Exception]
+  private def readStream(name: String, prefix: String = packageDir): InputStream = {
+    val strean = getClass.getResourceAsStream(prefix + name)
+    val here = File(".").toAbsolute.path
+    require(strean != null, s"Resource not found: $prefix$name from $here")
+    strean
+  }
+
   trait ZeroPosition extends Data {
     override def node: Node = Node(0, 0)
 
@@ -146,8 +202,7 @@ class LocalStaticSpec extends UnitSpec {
   }
 
   trait ConsistentVersion extends LocalStatic {
-    override def description: Description = Description(
-      Version("0.0.1-FIXTURE"), super.description.elements, super.description.cameras)
+    override val supportedFormatVersion = Version("0.0.1-FIXTURE")
   }
 
   case class ZoomableElement(node: Node, position: Distance = Distance()) extends Data with LinearIds
@@ -167,4 +222,7 @@ class LocalStaticSpec extends UnitSpec {
     def reset(): Unit = id = 1
   }
 
+  case class Element(override val storageId: String, node: Node, position: Distance, source: ImportedData) extends Data
+
+  case class View(override val storageId: String, node: Node, position: Distance, source: ImportedCamera) extends Camera
 }

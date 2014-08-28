@@ -10,7 +10,7 @@ import com.auginte.test.UnitSpec
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class GridSpec extends UnitSpec {
+class GridSpec extends UnitSpec with NodeAssertions {
 
   "Grid structure" when {
     "creating new" should {
@@ -1493,15 +1493,6 @@ class GridSpec extends UnitSpec {
 
     override def toString(): String = s"""ImportedNode($x,$y,"$storageId","$parentId")"""
   }
-
-  def assertXY(node: Node, x: Int, y: Int): Unit =
-    assert(node.x == x && node.y == y,
-      s"Expected ${x}x$y, but actual ${node.x}x${node.y} in $node\n")
-
-
-  def assertXY(expected: Node, node: Node): Unit = assertXY(node, expected.x, expected.y)
-
-  def assertXY(expected: List[Node], nodes: List[Node]): Unit = (expected, nodes).zipped.foreach(assertXY)
 
   def assertWithTolerance(expected: Double, actual: Double, tolerance: Double): Unit =
     assert(expected > actual - tolerance && expected < actual + tolerance,

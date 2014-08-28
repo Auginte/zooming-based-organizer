@@ -506,7 +506,7 @@ abstract class Grid extends Debugable {
       while (toCheck.nonEmpty) {
         val (parentId, parentNode)  = (toCheck.pop(), realNodes.pop())
         val children = byParent(parentId)
-        toCheck pushAll children.map(_.storageId)
+        toCheck pushAll children.filter(e => e.parentId != e.storageId).map(_.storageId)
         children.foreach { referenceNode =>
           val child = getChild(parentNode, referenceNode.x, referenceNode.y)
           realNodes push child
