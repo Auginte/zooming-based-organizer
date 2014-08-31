@@ -1,12 +1,11 @@
-package com.auginte.desktop
+package com.auginte.desktop.operations
 
-import scalafx.scene.layout.{HBox, Pane}
-import scalafx.scene.control.Button
-import scalafx.event.ActionEvent
+import com.auginte.desktop.HaveOperations
+
 import scalafx.Includes._
-import java.util.concurrent.atomic.AtomicBoolean
-import javafx.scene.Node
-import javafx.collections.ObservableList
+import scalafx.event.ActionEvent
+import scalafx.scene.control.Button
+import scalafx.scene.layout.HBox
 
 /**
  * Alternative to [[javafx.scene.control.ContextMenu]]
@@ -19,7 +18,7 @@ class ContextMenu extends HBox {
   styleClass.add("contextMenu")
 
   val closeButton = new Button("X") {
-    onAction = ((e: ActionEvent) => ContextMenu.this.visible = false)
+    onAction = (e: ActionEvent) => ContextMenu.this.visible = false
   }
 
   content = Seq(closeButton)

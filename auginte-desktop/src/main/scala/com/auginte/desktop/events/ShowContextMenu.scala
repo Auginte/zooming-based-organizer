@@ -11,7 +11,7 @@ import com.auginte.desktop.HaveOperations
  *   view ! ShowContextMenu(this)
  * }}}
  *
- * @see [[com.auginte.desktop.ContextMenu]]
+ * @see [[com.auginte.desktop.operations.ContextMenu]]
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 case class ShowContextMenu(source: HaveOperations)

@@ -1,4 +1,4 @@
-package com.auginte.desktop
+package com.auginte.desktop.storage
 
 import com.auginte.distribution.repository.Repository
 
@@ -7,6 +7,6 @@ import com.auginte.distribution.repository.Repository
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait Storage {
+trait UsingRepository {
   val repository: Repository
 }
