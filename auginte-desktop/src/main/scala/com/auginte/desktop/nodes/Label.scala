@@ -72,6 +72,15 @@ with EditableNode {
 
   def this() = this("")
 
+
+  //
+  // Data
+  //
+
+  override val dataType: String = "Text"
+
+  override val storageFields = Map("ag:Text/text" -> (() => text))
+
   //
   // Operations
   //
