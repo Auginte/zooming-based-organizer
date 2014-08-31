@@ -7,4 +7,6 @@ import com.auginte.distribution.data.Version
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-case class UnsupportedElement(e: Exception) extends ImportException
+case class UnsupportedElement(previous: Exception) extends ImportException {
+  override def toString = s"${super.toString}: $previous"
+}

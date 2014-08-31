@@ -1,7 +1,7 @@
 package com.auginte.distribution.repository
 
 import java.io.InputStream
-import com.auginte.distribution.exceptions.{UnsupportedElement, UnsupportedStructure, UnsupportedVersion}
+import com.auginte.distribution.exceptions.{UnconnectedIds, UnsupportedElement, UnsupportedStructure, UnsupportedVersion}
 import com.auginte.zooming._
 import com.auginte.common.{ WithId, SoftwareVersion }
 import com.auginte.distribution.data._
@@ -153,6 +153,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         intercept[UnsupportedStructure[_]] {
           newRepository.loadFromStream(readStream("localStatic/noObjects.json"), elementCreator, cameraCreator)
         }
+        intercept[UnconnectedIds] {
+          new LocalStatic().loadFromStream(readStream("localStatic/badIdRelations.json"), elementCreator, cameraCreator)
+        }
         for (nr <- 1 to 5) {
           intercept[UnsupportedElement] {
             newRepository.loadFromStream(readStream(s"localStatic/badElements$nr.json"), elementCreator, cameraCreator)
@@ -207,11 +210,18 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
     stream
   }
 
-  private val elementCreator =
-    (data: ImportedData, map: IdToRealNode) => Element(data.storageId, map(data.nodeId), data.position, data)
+  private val elementCreator = (data: ImportedData, map: IdToRealNode) =>
+    Element(data.storageId, safeMap(map, data.storageId, data.nodeId), data.position, data)
 
-  private val cameraCreator =
-    (camera: ImportedCamera, map: IdToRealNode) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
+  private val cameraCreator = (camera: ImportedCamera, map: IdToRealNode) =>
+    View(camera.storageId, safeMap(map, camera.storageId, camera.nodeId), camera.position, camera)
+
+  @throws[UnconnectedIds]
+  private def safeMap(map: IdToRealNode, from: String, to: String): Node = if (map.contains(to)) {
+    map(to)
+  } else {
+    throw UnconnectedIds(from, to)
+  }
 
   trait ZeroPosition extends Data {
     override def node: Node = Node(0, 0)

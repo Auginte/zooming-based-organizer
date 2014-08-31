@@ -106,6 +106,7 @@ class LocalStatic extends Repository {
             case o => true // Allow newer data
           }
         } catch {
+          case knownException: ImportException => error(knownException)
           case e: Exception => error(UnsupportedElement(e))
         }
       } else {

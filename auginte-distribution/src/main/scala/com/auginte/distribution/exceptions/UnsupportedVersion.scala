@@ -7,4 +7,6 @@ import com.auginte.distribution.data.Version
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-case class UnsupportedVersion(fileVersion: Version, neededVersion: Version) extends ImportException
+case class UnsupportedVersion(fileVersion: Version, neededVersion: Version) extends ImportException {
+  override def toString = s"${super.toString}: $fileVersion, but needed $neededVersion"
+}
