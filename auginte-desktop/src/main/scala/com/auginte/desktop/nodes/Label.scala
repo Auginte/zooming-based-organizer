@@ -46,6 +46,7 @@ with EditableNode {
       textArea.requestFocus()
     } else if (e.button == MouseButton.SECONDARY) {
       view ! ShowContextMenu(this)
+      e.consume()
     }
   }
 

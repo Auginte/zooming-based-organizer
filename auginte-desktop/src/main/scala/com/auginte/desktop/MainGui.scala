@@ -14,7 +14,7 @@ import akka.actor.{Props, ActorSystem}
 import scalafx.stage.WindowEvent
 import com.auginte.desktop.{actors => act}
 
-object HelloScalaFX extends JFXApp {
+object MainGui extends JFXApp {
   val akka = ActorSystem("auginte")
 
   stage = new PrimaryStage {
@@ -42,16 +42,10 @@ object HelloScalaFX extends JFXApp {
     Platform.exit()
   }
 
-  val infoLabel = new Label("Double-click to add new element/edit. Enter to finish.\n" +
-    "Right click for context menu. Shift enter for new line.")
+  val welcomeFile = "/examples/welcome.json"
+  view1.loadFromStream(getClass.getResourceAsStream(welcomeFile))
 
   stage.scene = new Scene {
-    root = new BorderPane {
-      center = view1
-      bottom = new HBox {
-        content = List(infoLabel)
-        spacing = 5
-      }
-    }
+    root = view1
   }
 }

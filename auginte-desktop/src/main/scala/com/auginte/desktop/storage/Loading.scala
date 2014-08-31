@@ -1,15 +1,17 @@
 package com.auginte.desktop.storage
 
-import java.io.FileInputStream
+import java.io.{InputStream, FileInputStream}
 import javafx.scene.{layout => jfxl}
 import javafx.{scene => jfxs}
 
 import com.auginte.desktop.events.ImportElement
 import com.auginte.desktop.nodes.Label
-import com.auginte.desktop.zooming.ZoomableElement
+import com.auginte.desktop.zooming.{UsingGrid, ZoomableElement}
 import com.auginte.distribution.data.{Camera, ImportedCamera, ImportedData}
 import com.auginte.distribution.exceptions.UnconnectedIds
 import com.auginte.zooming._
+
+import scalafx.application.Platform
 
 /**
  * Functionality for saving new project.
@@ -51,6 +53,11 @@ with Camera with ZoomableElement {
    * @throws ImportException when file foramt is not valid
    */
   protected def load(path: String): Unit = {
+    val input = new FileInputStream(path)
+    loadFromStream(input)
+  }
+
+  protected[desktop] def loadFromStream(input: InputStream): Unit = {
     def updateCamera(cameras: Seq[AbsoluteDistance]): Unit = {
       val camera: AbsoluteDistance = if (cameras.nonEmpty) cameras(0) else defaultCamera
       node = camera._1
@@ -62,7 +69,6 @@ with Camera with ZoomableElement {
       elements.flatten.foreach(view ! ImportElement(_))
     }
 
-    val input = new FileInputStream(path)
     val (newGrid, elements, cameras) = repository.load(input, elementCreator, cameraCreator)
     grid = newGrid
     updateCamera(cameras)

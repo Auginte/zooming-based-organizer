@@ -123,7 +123,7 @@ with ZoomableElement {
   /**
    * For every child, converts infinity zooming coordinates to GUI ones
    */
-  protected def absoluteToCachedCoordinates(e: ActionEvent): Unit = if (revalidateZoomable) {
+  protected def absoluteToCachedCoordinates(): Unit = if (revalidateZoomable) {
     def isInBoundaries(pos: Distance): Boolean = {
       pos.x.abs < boundary && pos.y.abs < boundary && pos.scale < boundarySize && pos.scale > 1 / boundarySize
     }

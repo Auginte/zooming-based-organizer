@@ -5,7 +5,7 @@ import com.auginte.desktop.actors.{Container, ViewableNode}
 import com.auginte.desktop.events.ShowContextMenu
 import javafx.scene.{layout => jfxl}
 
-import scalafx.scene.input.{MouseButton, MouseEvent}
+import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}
 
 
 /**
@@ -25,6 +25,14 @@ with HaveOperations with ViewableNode  {
       view ! ShowContextMenu(this)
     }
   }
+
+  keyPressed += {
+    (e: KeyEvent) => if (isContextMenuKey(e.code) && panelWithContextMenu) {
+      view ! ShowContextMenu(this)
+    }
+  }
+
+  protected def isContextMenuKey(code: KeyCode): Boolean = code == KeyCode.SPACE || code == KeyCode.F1
 
   protected def addContextMenu(): Boolean = d.getChildren.add(contextMenu)
 

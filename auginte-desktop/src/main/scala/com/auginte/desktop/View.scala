@@ -1,6 +1,6 @@
 package com.auginte.desktop
 
-import java.io.File
+import java.io.{InputStream, File}
 import javafx.animation.KeyFrame
 import javafx.scene.Node
 import javafx.scene.layout.{Pane => jp}
@@ -45,7 +45,7 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
     keyFrames = Seq(
       jfxKeyFrame2sfx(new KeyFrame(
         Duration(10),
-        (e: ActionEvent) => absoluteToCachedCoordinates(e)
+        (e: ActionEvent) => absoluteToCachedCoordinates()
       ))
     )
   }
@@ -63,7 +63,7 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
     "Open" -> ((e: ActionEvent) => open()),
     "Save" -> ((e: ActionEvent) => if (repositoryPath.isDefined) save(repositoryPath.get) else saveAs(e)),
     "Save As" -> ((e: ActionEvent) => saveAs(e)),
-    "Exit" -> ((e: ActionEvent) => HelloScalaFX.quit())
+    "Exit" -> ((e: ActionEvent) => MainGui.quit())
   )
 
   override protected def layoutContextMenu(menu: ContextMenu): Unit = {

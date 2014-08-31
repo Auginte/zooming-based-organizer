@@ -10,7 +10,7 @@ object AuginteBuild extends sbt.Build {
   val buildOrganization = "com.autinte"
   val buildVersion      = getProperty("version", default="0.0.1-SNAPSHOT")
   val buildScalaVersion = "2.11.2"
-  val buildMainClass = "com.auginte.desktop.HelloScalaFX"
+  val buildMainClass = "com.auginte.desktop.MainGui"
 
   // Custom properties (also accessable from source)
 

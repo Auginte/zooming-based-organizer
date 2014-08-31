@@ -1,5 +1,5 @@
 // Use from main project
-// mainClass in(Compile, run) := Some("com.auginte.desktop.HelloScalaFX")
+// mainClass in(Compile, run) := Some("com.auginte.desktop.MainGui")
 
 // Replaced by ScalaFx
 //libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10.0"
