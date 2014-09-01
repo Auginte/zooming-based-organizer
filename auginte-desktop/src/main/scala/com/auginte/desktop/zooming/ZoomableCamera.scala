@@ -142,6 +142,11 @@ with ZoomableElement {
       list
     }
 
+    def haveInitialSize(e: ZoomableNode[D]) = {
+      val bound = e.d.getLayoutBounds
+      bound.getWidth > 0 && bound.getHeight > 0
+    }
+
     val zoomable = getZoomable
     try {
       val parent = getParent(node, parents)
@@ -154,7 +159,8 @@ with ZoomableElement {
     revalidateZoomable = false
     for (e <- visibleElements) {
       val absolute = grid.absolute(node, position, e.node, e.position)
-      if (isInBoundaries(absolute)) {
+      val wihInitialSize = haveInitialSize(e)
+      if (isInBoundaries(absolute) && wihInitialSize) {
         try {
           val bound = e.d.getLayoutBounds
           val pivotX = if (bound.getWidth > 0) bound.getMinX + (bound.getWidth / 2) else InitialSize.width / 2
@@ -170,6 +176,9 @@ with ZoomableElement {
         }
       } else {
         e.d.setVisible(false)
+      }
+      if (!wihInitialSize) {
+        revalidateZoomable = true
       }
     }
     for (e <- hiddenElements) e.d.setVisible(false)
