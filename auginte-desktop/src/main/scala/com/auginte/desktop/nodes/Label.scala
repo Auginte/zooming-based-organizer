@@ -36,6 +36,16 @@ with EditableNode {
 
 
   //
+  // Style
+  //
+
+  getStyleClass add "label"
+  label.getStyleClass add "label"
+  textArea.getStyleClass add "textArea"
+  textArea.setLayoutY(3)
+  textArea.setLayoutX(-7)
+
+  //
   // Listeners
   //
 
