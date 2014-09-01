@@ -44,6 +44,7 @@ class View extends Actor {
         case ShowContextMenu(source) => Platform.runLater {
           representation.contextMenu.show()
           representation.contextMenu.showContent(source.operations)
+          representation.contextMenu.toFront()
         }
         case ImportElement(element) =>
           registerView(element)

@@ -18,23 +18,21 @@ with HaveOperations with ViewableNode  {
 
   lazy val contextMenu: ContextMenu = initContextMenu()
 
-  private lazy val panelWithContextMenu: Boolean = addContextMenu()
-
   mouseClicked += {
-    (e: MouseEvent) => if (e.button == MouseButton.SECONDARY && panelWithContextMenu) {
+    (e: MouseEvent) => if (e.button == MouseButton.SECONDARY) {
       view ! ShowContextMenu(this)
     }
   }
 
   keyPressed += {
-    (e: KeyEvent) => if (isContextMenuKey(e.code) && panelWithContextMenu) {
+    (e: KeyEvent) => if (isContextMenuKey(e.code)) {
       view ! ShowContextMenu(this)
     }
   }
 
   protected def isContextMenuKey(code: KeyCode): Boolean = code == KeyCode.SPACE || code == KeyCode.F1
 
-  protected def addContextMenu(): Boolean = d.getChildren.add(contextMenu)
+  protected def addContextMenu(): Unit = if (!d.getChildren.contains(contextMenu)) d.getChildren.add(contextMenu)
 
   private def initContextMenu() = {
     val contextMenu = new ContextMenu()
