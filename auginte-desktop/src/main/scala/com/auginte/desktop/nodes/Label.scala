@@ -56,6 +56,7 @@ with EditableNode {
     KeyEvent.KeyPressed,
     (e: KeyEvent) => e.code match {
       case KeyCode.ENTER => e.consume()
+      case KeyCode.SPACE => e.consume()
       case _ => Unit
     }
   )
