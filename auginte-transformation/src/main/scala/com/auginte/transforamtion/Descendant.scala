@@ -6,9 +6,9 @@ package com.auginte.transforamtion
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait Descendant {
-  private var _sources: Traversable[Relation] = List()
+  private var _sources: List[Relation] = List()
 
-  def sources: Traversable[Relation] = _sources
+  def sources: List[Relation] = _sources
 
-  def sources_=(values: Traversable[Relation]): Unit = _sources = values
+  def sources_=(values: List[Relation]): Unit = _sources = values
 }

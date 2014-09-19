@@ -1,7 +1,7 @@
 package com.auginte.transformation
 
 import com.auginte.test.UnitSpec
-import com.auginte.transforamtion.Transformable
+import com.auginte.transforamtion.{Relation, Transformable}
 
 /**
  * unit tests for [[com.auginte.transforamtion.Transformable]]
@@ -14,8 +14,8 @@ class TransformableSpec extends UnitSpec with TransformableSpecHelpers {
       "copy old content" should {
         "safe reference to source" in {
           // data1 -> transformed1 -> transformed2 -> transformed3
-          val data1 = TransformableMock("A")
-          val data2 = TransformableMock("B")
+          val data1 = TransformableString("A")
+          val data2 = TransformableString("B")
           val transformed1 = data1.transformed()
           val transformed2 = transformed1.transformed()
           val transformed3 = transformed2.transformed()
@@ -34,7 +34,7 @@ class TransformableSpec extends UnitSpec with TransformableSpecHelpers {
           }
         }
         "safe parameters of reference" in {
-          val data1 = TransformableMock("A")
+          val data1 = TransformableString("A")
           val transformed1 = data1.transformed(Map("type" -> "B"))
           val transformed2 = transformed1.transformed(Map("type" -> "C", "param" -> "D"))
           assert(data1 === transformed1.sources.head.target)
@@ -45,17 +45,47 @@ class TransformableSpec extends UnitSpec with TransformableSpecHelpers {
       }
     }
     "converting to another element" should {
-      "safe reference to source" in pending
-      "safe parameters of reference" in pending
+      "safe reference to source" in {
+        val data1 = TransformableString("A")
+        val transformed1 = data1.transformedTo(new TransformableInt(1))
+        val transformed2 = transformed1.transformedTo(new TransformableString("B"))
+        assert(data1 === transformed1.sources.head.target)
+        assert(transformed1 === transformed2.sources.head.target)
+        assert(data1.isInstanceOf[TransformableString])
+        assert(transformed1.isInstanceOf[TransformableInt])
+        assert(transformed2.isInstanceOf[TransformableString])
+      }
+      "safe parameters of reference" in {
+        val data1 = TransformableString("A")
+        val transformed1 = data1.transformedTo(new TransformableInt(1), Map("C" -> "D"))
+        val transformed2 = transformed1.transformedTo(new TransformableString("B"), Map("E" -> "F", "G" -> "H"))
+        assert(data1 === transformed1.sources.head.target)
+        assert(transformed1 === transformed2.sources.head.target)
+        assert(data1.isInstanceOf[TransformableString])
+        assert(transformed1.isInstanceOf[TransformableInt])
+        assert(transformed2.isInstanceOf[TransformableString])
+        assert(Map("C" -> "D") === transformed1.sources.head.parameters)
+        assert(Map("E" -> "F", "G" -> "H") === transformed2.sources.head.parameters)
+      }
     }
     "using multiple sources" should {
-      "safe reference to source" in pending
-      "safe parameters of reference" in pending
+      "use last source as fastest to read" in {
+        val data1 = new TransformableString("Test")
+        val data2 = data1.transformed(Map("added" -> "fist"))
+        data2.sources = Relation(data1, Map("added" -> "last")) :: data2.sources
+        assert(2 === data2.sources.size)
+        assert(Map("added" -> "last") === data2.sources.head.parameters)
+        assert(Map("added" -> "fist") === data2.sources.tail.head.parameters)
+      }
     }
   }
 }
 sealed trait TransformableSpecHelpers {
-  case class TransformableMock(data: String) extends Transformable {
-     override protected def copy: Transformable = new TransformableMock(data)
+  case class TransformableString(data: String) extends Transformable {
+     override protected def copy: Transformable = new TransformableString(data)
+  }
+
+  case class TransformableInt(data: Int) extends Transformable {
+    override protected def copy: Transformable = new TransformableInt(data)
   }
 }
