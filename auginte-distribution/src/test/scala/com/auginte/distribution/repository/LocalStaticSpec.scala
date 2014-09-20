@@ -111,7 +111,7 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val c1 = ZoomableCamera(grid.root, Distance(0, 0, 1))
         val repository = newRepository
         val output = repository.saveToString(grid, list(e1, e2), list(c1))
-        val expected = readFile("localStatic/withinnerSources.json")
+        val expected = readFile("localStatic/withInnerSources.json")
         assert(expected == output)
       }
       "create new grid with old ids independent representations and cameras" in {
@@ -142,9 +142,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assertXY(n4, 5, -92)
 
         assert(3 === elements.size)
-        val e1 = elements(2)
-        val e2 = elements(1)
-        val e3 = elements(0)
+        val e1 = elements(0)
+        val e2 = elements(2)
+        val e3 = elements(1)
         assert(Distance(1.2, 3.4, 1.3) === e1.position)
         assert(Distance(0, 0, 1) === e2.position)
         assert(Distance(0, 0, 1) === e3.position)
@@ -161,6 +161,27 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assert(Distance(1, 1.2, 0.987654321) === c2.position)
         assert(grid.root === c1.node)
         assert(n3 === c2.node)
+      }
+      "load with source relation" in {
+        //      root--c1
+        //       |
+        //    ___n1________
+        //   |            |
+        //   n2           n3--e2
+        //  :             :
+        //  e1 <~~source~~`
+        val repository = newRepository
+        val (grid, elements, views) = repository.loadFromStream(
+          readStream("localStatic/withInnerSources.json"),
+          (data, map) => Element(data.storageId, map(data.nodeId), data.position, data),
+          (camera, map) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
+        )
+        val e1 = elements(1)
+        val e2 = elements(0)
+        assert(0 === e1.sources.size)
+        assert(1 === e2.sources.size)
+        assert(e1 === e2.sources.head.target)
+        assert(Map("type" -> "clone") === e2.sources.head.parameters)
       }
     }
     "dealing with not standard files" should {
@@ -234,7 +255,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
   }
 
   private val elementCreator = (data: ImportedData, map: IdToRealNode) =>
-    Element(data.storageId, safeMap(map, data.storageId, data.nodeId), data.position, data)
+    new Element(data.storageId, safeMap(map, data.storageId, data.nodeId), data.position, data) {
+      sources = data.sources
+    }
 
   private val cameraCreator = (camera: ImportedCamera, map: IdToRealNode) =>
     View(camera.storageId, safeMap(map, camera.storageId, camera.nodeId), camera.position, camera)
@@ -277,7 +300,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
     def reset(): Unit = id = 1
   }
 
-  case class Element(override val storageId: String, node: Node, position: Distance, source: ImportedData) extends Data
+  case class Element(override val storageId: String, node: Node, position: Distance, source: ImportedData) extends Data {
+    sources = source.sources
+  }
 
   case class View(override val storageId: String, node: Node, position: Distance, source: ImportedCamera) extends Camera
 }

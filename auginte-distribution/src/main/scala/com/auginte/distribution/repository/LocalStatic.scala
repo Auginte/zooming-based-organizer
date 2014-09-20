@@ -4,10 +4,13 @@ import java.io.{IOException, OutputStream, InputStream}
 
 import com.auginte.common.SoftwareVersion
 import com.auginte.distribution.data._
-import com.auginte.distribution.exceptions.{ImportException, UnsupportedElement, UnsupportedStructure, UnsupportedVersion}
+import com.auginte.distribution.exceptions._
 import com.auginte.distribution.json.{BigJson, CommonFormatter, JsonTagEvent, KeysToJsValues}
+import com.auginte.transforamtion.{Relation, Descendant}
 import com.auginte.zooming.{Grid, IdToRealNode, Node}
 import play.api.libs.json.Json
+
+import scala.collection.mutable
 
 /**
  * Simples repository saving everything to JSON files
@@ -23,7 +26,7 @@ class LocalStatic extends Repository {
     output.write(saveToString(grid, elements, cameras).getBytes)
   }
 
-  override def load[A, B](
+  override def load[A <: Descendant, B](
                               input: InputStream,
                               dataFactory: (ImportedData, IdToRealNode) => A,
                               cameraFactory: (ImportedCamera, IdToRealNode) => B):
@@ -48,7 +51,7 @@ class LocalStatic extends Repository {
   }
 
   @throws[ImportException]
-  protected[repository] def loadFromStream[A, B](
+  protected[repository] def loadFromStream[A <: Descendant, B](
                             stream: InputStream,
                             dataFactory: (ImportedData, IdToRealNode) => A,
                             cameraFactory: (ImportedCamera, IdToRealNode) => B
@@ -56,7 +59,7 @@ class LocalStatic extends Repository {
     import com.auginte.distribution.json.KeysToJsValues.localStorage
     var errors: Option[ImportException] = None
     var nodes: List[ImportedNode] = List()
-    var representations: List[A] = List()
+    val representations = mutable.Map[String, A]()
     var cameras: List[B] = List()
     lazy val (grid, map) = newGrid.apply(nodes)
 
@@ -70,8 +73,8 @@ class LocalStatic extends Repository {
       true
     }
 
-    def representation(data: A): Boolean = {
-      representations = data :: representations
+    def representation(data: A, imported: ImportedData): Boolean = {
+      representations.put(imported.id, data)
       true
     }
 
@@ -96,7 +99,7 @@ class LocalStatic extends Repository {
               case e => error(UnsupportedStructure(Node.getClass, e))
             }
             case "representations" => decoded match {
-              case d: ImportedData => representation(dataFactory(d, map))
+              case d: ImportedData => representation(dataFactory(d, map), d)
               case e => error(UnsupportedStructure(ImportedData.getClass, e))
             }
             case "cameras" => decoded match {
@@ -113,9 +116,23 @@ class LocalStatic extends Repository {
         error(UnsupportedStructure(getClass, stream))
       }
     })
+
+    representations.values.foreach(r => {
+      var connectedSources = List[Relation]()
+      r.sources.foreach(s => {
+        val targetId = s.target.storageId
+        if (representations.contains(targetId)) {
+          connectedSources = Relation(representations(targetId), s.parameters) :: connectedSources
+        } else {
+          throw new UnconnectedIds(r.storageId, targetId)
+        }
+      })
+      r.sources = connectedSources
+    })
+
     if (errors.isDefined) throw errors.get
     if (nodes.size < 1) throw UnsupportedStructure(getClass, stream)
-    (grid, representations, cameras)
+    (grid, representations.values.toSeq, cameras)
   }
 
   private[repository] val reader = new BigJson()

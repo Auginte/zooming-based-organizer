@@ -9,6 +9,7 @@ import com.auginte.desktop.nodes.Label
 import com.auginte.desktop.zooming.{UsingGrid, ZoomableElement}
 import com.auginte.distribution.data.{Camera, ImportedCamera, ImportedData}
 import com.auginte.distribution.exceptions.UnconnectedIds
+import com.auginte.transforamtion.Relation
 import com.auginte.zooming._
 
 import scalafx.application.Platform
@@ -25,7 +26,7 @@ with Camera with ZoomableElement {
 
   private val elementCreator =
     (data: ImportedData, map: IdToRealNode) => data match {
-      case ImportedData(id, typeName, x, y, scale, nodeId, customFields) => typeName match {
+      case ImportedData(id, typeName, x, y, scale, nodeId, customFields, sourcePlaceholder) => typeName match {
         case "ag:Text" if customFields.contains("text") =>
           val label = new Label(customFields.getOrElse("text", "")) {
             position = Distance(x, y, scale)
@@ -34,6 +35,7 @@ with Camera with ZoomableElement {
             } else {
               throw UnconnectedIds(id, nodeId)
             }
+            sources = sourcePlaceholder
           }
           Some(label)
         case _ => None

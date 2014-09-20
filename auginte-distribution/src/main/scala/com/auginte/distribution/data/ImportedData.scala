@@ -1,6 +1,7 @@
 package com.auginte.distribution.data
 
 import com.auginte.distribution.repository.CustomFields
+import com.auginte.transforamtion.Relation
 import com.auginte.zooming.{Node, Distance}
 
 /**
@@ -15,7 +16,8 @@ case class ImportedData(
                          y: Double,
                          scale: Double,
                          nodeId: String,
-                         customFields: CustomFields
+                         customFields: CustomFields,
+                         override var sources: List[Relation] = List()
                          ) extends Data {
   override def position: Distance = Distance(x, y, scale)
 

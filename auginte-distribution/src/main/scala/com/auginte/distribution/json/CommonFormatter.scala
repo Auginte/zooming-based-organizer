@@ -1,7 +1,7 @@
 package com.auginte.distribution.json
 
 import com.auginte.distribution.data._
-import com.auginte.distribution.repository.CustomFields
+import com.auginte.transforamtion.{Descendant, Relation}
 import com.auginte.zooming.Node
 import play.api.libs.json._
 import play.api.libs.json.Json.toJson
@@ -34,6 +34,22 @@ object CommonFormatter {
       (__ \ "countCameras").read[Int]
     )(Description)
 
+  implicit val relationReads = new Reads[Relation] {
+    override def reads(json: JsValue): JsResult[Relation] = {
+      val targetId = (json \ "target").asOpt[String]
+      val parameters = (json \ "parameters").asOpt[Map[String, String]]
+      if (isDefined(targetId, parameters)) {
+        val targetPlaceHolder = new Descendant {
+          override val storageId = targetId.get
+        }
+        val withoutPrefix = (i: (String, String)) => i._1.substring("adt:".length) -> i._2
+        JsSuccess(Relation(targetPlaceHolder, parameters.get.map(withoutPrefix)))
+      } else {
+        JsError(s"Not valid relation: target=$targetId, parameters=$parameters")
+      }
+    }
+  }
+
   implicit val representationFormatter = new Format[Data] {
     override def writes(o: Data): JsValue = {
       val id = o match {
@@ -61,6 +77,7 @@ object CommonFormatter {
       val y = (json \ "y").asOpt[Double]
       val scale = (json \ "scale").asOpt[Double]
       val node = (json \ "node").asOpt[String]
+      val sources = (json \ "sources").asOpt[List[Relation]]
       val customFields = json match {
         case o: JsObject if typeName.isDefined =>
           val typePrefix = s"${typeName.get}/"
@@ -69,8 +86,8 @@ object CommonFormatter {
           o.fieldSet.filter(isCustomField).map(pair => suffix(pair._1) -> pair._2.as[String]).toMap
         case _ => Map[String, String]()
       }
-      if (isDefined(id, typeName, x, y, scale, node)) {
-        val result = ImportedData(id.get, typeName.get, x.get, y.get, scale.get, node.get, customFields)
+      if (isDefined(id, typeName, x, y, scale, node, sources)) {
+        val result = ImportedData(id.get, typeName.get, x.get, y.get, scale.get, node.get, customFields, sources.get)
         new JsSuccess[ImportedData](result)
       } else {
         JsError(s"Not valid representation: id=$id, type=$typeName, x=$x, y=$y, scale=$scale, node=$node customFields=$customFields")

@@ -3,6 +3,7 @@ package com.auginte.distribution.repository
 import java.io.{InputStream, IOException, OutputStream}
 
 import com.auginte.distribution.data.{ImportedCamera, ImportedData, Description}
+import com.auginte.transforamtion.Descendant
 import com.auginte.zooming._
 
 /**
@@ -14,7 +15,7 @@ trait Repository {
   @throws[IOException]
   def save(output: OutputStream, grid: Grid, elements: Elements, cameras: Cameras): Unit
 
-  def load[A, B](input: InputStream,
+  def load[A <: Descendant, B](input: InputStream,
                     dataFactory: (ImportedData, IdToRealNode) => A,
                     cameraFactory: (ImportedCamera, IdToRealNode) => B
                     ):
