@@ -77,7 +77,7 @@ object CommonFormatter {
       val y = (json \ "y").asOpt[Double]
       val scale = (json \ "scale").asOpt[Double]
       val node = (json \ "node").asOpt[String]
-      val sources = (json \ "sources").asOpt[List[Relation]]
+      val sources = (json \ "sources").asOpt[List[Relation]].getOrElse(List[Relation]())
       val customFields = json match {
         case o: JsObject if typeName.isDefined =>
           val typePrefix = s"${typeName.get}/"
@@ -86,8 +86,8 @@ object CommonFormatter {
           o.fieldSet.filter(isCustomField).map(pair => suffix(pair._1) -> pair._2.as[String]).toMap
         case _ => Map[String, String]()
       }
-      if (isDefined(id, typeName, x, y, scale, node, sources)) {
-        val result = ImportedData(id.get, typeName.get, x.get, y.get, scale.get, node.get, customFields, sources.get)
+      if (isDefined(id, typeName, x, y, scale, node)) {
+        val result = ImportedData(id.get, typeName.get, x.get, y.get, scale.get, node.get, customFields, sources)
         new JsSuccess[ImportedData](result)
       } else {
         JsError(s"Not valid representation: id=$id, type=$typeName, x=$x, y=$y, scale=$scale, node=$node customFields=$customFields")

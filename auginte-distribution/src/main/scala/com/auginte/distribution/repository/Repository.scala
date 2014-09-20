@@ -16,9 +16,9 @@ trait Repository {
   def save(output: OutputStream, grid: Grid, elements: Elements, cameras: Cameras): Unit
 
   def load[A <: Descendant, B](input: InputStream,
-                    dataFactory: (ImportedData, IdToRealNode) => A,
+                    dataFactory: (ImportedData, IdToRealNode) => Option[A],
                     cameraFactory: (ImportedCamera, IdToRealNode) => B
                     ):
-  (Grid, Seq[A], Seq[B])
+  (Grid, Seq[Option[A]], Seq[B])
 
 }

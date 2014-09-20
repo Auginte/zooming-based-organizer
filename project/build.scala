@@ -5,7 +5,7 @@ import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin._
 
-object AuginteBuild extends sbt.Build {
+object build extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
   val buildVersion      = getProperty("version", default="0.0.1-SNAPSHOT")
@@ -68,7 +68,7 @@ object AuginteBuild extends sbt.Build {
   lazy val auginteTransformation = Project(id = "auginte-transformation",
     settings = allSettings,
     base = file("auginte-transformation")
-  ) dependsOn (auginteCommon % "test->test")
+  ) dependsOn auginteCommon dependsOn (auginteCommon % "test->test")
 
   lazy val auginteDistribution = Project(id = "auginte-distribution",
     settings = allSettings,

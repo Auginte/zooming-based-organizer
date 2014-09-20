@@ -28,9 +28,9 @@ class LocalStatic extends Repository {
 
   override def load[A <: Descendant, B](
                               input: InputStream,
-                              dataFactory: (ImportedData, IdToRealNode) => A,
+                              dataFactory: (ImportedData, IdToRealNode) => Option[A],
                               cameraFactory: (ImportedCamera, IdToRealNode) => B):
-  (Grid, Seq[A], Seq[B]) = loadFromStream(input, dataFactory, cameraFactory)
+  (Grid, Seq[Option[A]], Seq[B]) = loadFromStream(input, dataFactory, cameraFactory)
 
   private[repository] def saveToString(grid: Grid, elements: Elements, cameras: Cameras): String = {
 
@@ -53,13 +53,13 @@ class LocalStatic extends Repository {
   @throws[ImportException]
   protected[repository] def loadFromStream[A <: Descendant, B](
                             stream: InputStream,
-                            dataFactory: (ImportedData, IdToRealNode) => A,
+                            dataFactory: (ImportedData, IdToRealNode) => Option[A],
                             cameraFactory: (ImportedCamera, IdToRealNode) => B
-                            ): (Grid, Seq[A], Seq[B]) = {
+                            ): (Grid, Seq[Option[A]], Seq[B]) = {
     import com.auginte.distribution.json.KeysToJsValues.localStorage
     var errors: Option[ImportException] = None
     var nodes: List[ImportedNode] = List()
-    val representations = mutable.Map[String, A]()
+    val representations = mutable.Map[String, Option[A]]()
     var cameras: List[B] = List()
     lazy val (grid, map) = newGrid.apply(nodes)
 
@@ -73,8 +73,10 @@ class LocalStatic extends Repository {
       true
     }
 
-    def representation(data: A, imported: ImportedData): Boolean = {
-      representations.put(imported.id, data)
+    def representation(data: Option[A], imported: ImportedData): Boolean = {
+      if (data.isDefined) {
+        representations.put(imported.id, data)
+      }
       true
     }
 
@@ -119,15 +121,15 @@ class LocalStatic extends Repository {
 
     representations.values.foreach(r => {
       var connectedSources = List[Relation]()
-      r.sources.foreach(s => {
+      r.get.sources.foreach(s => {
         val targetId = s.target.storageId
         if (representations.contains(targetId)) {
-          connectedSources = Relation(representations(targetId), s.parameters) :: connectedSources
+          connectedSources = Relation(representations(targetId).get, s.parameters) :: connectedSources
         } else {
-          throw new UnconnectedIds(r.storageId, targetId)
+          throw new UnconnectedIds(r.get.storageId, targetId)
         }
       })
-      r.sources = connectedSources
+      r.get.sources = connectedSources
     })
 
     if (errors.isDefined) throw errors.get

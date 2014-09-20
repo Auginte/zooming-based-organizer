@@ -39,7 +39,7 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val repository = newRepository
         val (grid, elements, views) = repository.loadFromStream(
           readStream("localStatic/empty.json"),
-          (data, map) => Element(data.storageId, map(data.nodeId), data.position, data),
+          (data, map) => Some(Element(data.storageId, map(data.nodeId), data.position, data)),
           (camera, map) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
         )
         assert(1 === grid.flatten.size)
@@ -127,7 +127,7 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val repository = newRepository
         val (grid, elements, views) = repository.loadFromStream(
           readStream("localStatic/reusing-nodes.json"),
-          (data, map) => Element(data.storageId, map(data.nodeId), data.position, data),
+          (data, map) => Some(Element(data.storageId, map(data.nodeId), data.position, data)),
           (camera, map) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
         )
 
@@ -142,9 +142,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assertXY(n4, 5, -92)
 
         assert(3 === elements.size)
-        val e1 = elements(0)
-        val e2 = elements(2)
-        val e3 = elements(1)
+        val e1 = elements(0).get
+        val e2 = elements(2).get
+        val e3 = elements(1).get
         assert(Distance(1.2, 3.4, 1.3) === e1.position)
         assert(Distance(0, 0, 1) === e2.position)
         assert(Distance(0, 0, 1) === e3.position)
@@ -173,11 +173,11 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val repository = newRepository
         val (grid, elements, views) = repository.loadFromStream(
           readStream("localStatic/withInnerSources.json"),
-          (data, map) => Element(data.storageId, map(data.nodeId), data.position, data),
+          (data, map) => Some(Element(data.storageId, map(data.nodeId), data.position, data)),
           (camera, map) => View(camera.storageId, map(camera.nodeId), camera.position, camera)
         )
-        val e1 = elements(1)
-        val e2 = elements(0)
+        val e1 = elements(1).get
+        val e2 = elements(0).get
         assert(0 === e1.sources.size)
         assert(1 === e2.sources.size)
         assert(e1 === e2.sources.head.target)
@@ -255,9 +255,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
   }
 
   private val elementCreator = (data: ImportedData, map: IdToRealNode) =>
-    new Element(data.storageId, safeMap(map, data.storageId, data.nodeId), data.position, data) {
+    Some(new Element(data.storageId, safeMap(map, data.storageId, data.nodeId), data.position, data) {
       sources = data.sources
-    }
+    })
 
   private val cameraCreator = (camera: ImportedCamera, map: IdToRealNode) =>
     View(camera.storageId, safeMap(map, camera.storageId, camera.nodeId), camera.position, camera)
