@@ -95,13 +95,15 @@ with EditableNode {
 
   override val storageFields = Map("ag:Text/text" -> (() => text))
 
+
   //
   // Transformation
   //
 
-
   override protected def createCloned(): Unit = {
-    view ! ImportElement(transformed(cloneParameters).encapsualted)
+    val clone = transformed(cloneParameters).original
+    clone.swapSources(this)
+    view ! ImportElement(clone)
   }
 
   override protected def copy: Label = {

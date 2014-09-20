@@ -35,6 +35,20 @@ trait Transformable[A <: Transformable[A]] extends Descendant {
    * @return Deep cloned object
    */
   protected def copy: Transformable[A]
+
+  /**
+   * Shortcut for self typing
+   */
+  def original = this
   
-  def encapsualted = this
+  /**
+   * Changes source parameters of both objects.
+   *
+   * Useful in drag and drop situations.
+   */
+  def swapSources(target: Descendant): Unit = {
+    val sources = target.sources
+    target.sources = this.sources
+    this.sources = sources
+  }
 }

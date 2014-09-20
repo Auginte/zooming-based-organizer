@@ -78,6 +78,19 @@ class TransformableSpec extends UnitSpec with TransformableSpecHelpers {
         assert(Map("added" -> "fist") === data2.sources.tail.head.parameters)
       }
     }
+    "using multi-directional transformation" should {
+      "be able to swap sources" in {
+        val data1 = TransformableString("A")
+        val transformed1 = data1.transformed()
+        assert(0 === data1.sources.size)
+        assert(data1 === transformed1.sources.head.target)
+        assert(data1 eq data1.original)
+        assert(transformed1 eq transformed1.original)
+        transformed1.swapSources(data1)
+        assert(transformed1 === data1.sources.head.target)
+        assert(0 === transformed1.sources.size)
+      }
+    }
   }
 }
 sealed trait TransformableSpecHelpers {
