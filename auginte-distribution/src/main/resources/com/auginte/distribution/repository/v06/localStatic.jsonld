@@ -1,6 +1,7 @@
 {
   "@context":{
     "ag":"http://auginte.com/ns/v0.6/",
+    "agt":"http://auginte.com/ns/v0.6/transformation/",
     "xsd":"http://www.w3.org/2001/XMLSchema#",
     "description":"ag:description",
     "version":{
@@ -44,6 +45,19 @@
       "@type":"xsd:double"
     },
     "node":{
+      "@id":"ag:reference/node",
+      "@type":"@id"
+    },
+    "sources":{
+      "@id":"ag:transformation/list"
+    },
+    "sources":{
+      "@id":"ag:transformation/list"
+    },
+    "parameters":{
+      "@id":"ag:transformation/parameters"
+    },
+    "target":{
       "@id":"ag:reference/node",
       "@type":"@id"
     },

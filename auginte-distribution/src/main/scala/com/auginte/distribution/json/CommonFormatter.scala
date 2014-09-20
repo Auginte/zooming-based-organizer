@@ -45,7 +45,13 @@ object CommonFormatter {
         case r: Data => Seq("@type" -> Json.toJson(s"ag:${r.dataType}"))
       }
       val defaultFields = Seq("@id" -> Json.toJson(id))
-      JsObject(defaultFields ++ typeFields ++ o.storageJsonConverter ++ o.zoomingJsonConverter)
+      JsObject(
+        defaultFields
+          ++ typeFields
+          ++ o.storageJsonConverter
+          ++ o.zoomingJsonConverter
+          ++ o.transformingJsonConverter
+      )
     }
 
     override def reads(json: JsValue): JsResult[Data] = {

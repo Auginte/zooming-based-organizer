@@ -1,7 +1,8 @@
 package com.auginte.distribution.data
 
 import com.auginte.common.WithId
-import com.auginte.distribution.json.{ZoomableFormatter, DataFormatter}
+import com.auginte.distribution.json.{TransformableFormatter, ZoomableFormatter, DataFormatter}
+import com.auginte.transforamtion.Descendant
 import com.auginte.zooming.Zoomable
 
 /**
@@ -9,6 +10,10 @@ import com.auginte.zooming.Zoomable
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait Data extends WithId with DataFormatter with ZoomableFormatter with Zoomable {
+trait Data extends WithId with DataFormatter
+with ZoomableFormatter
+with TransformableFormatter {
+
   val dataType: String = "Abstract"
+
 }

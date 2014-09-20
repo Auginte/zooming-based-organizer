@@ -5,4 +5,4 @@ package com.auginte.transforamtion
  * 
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-case class Relation(target: Descendant, parameters: Map[String, String])
+case class Relation(target: Descendant, parameters: Map[String, String] = Map())

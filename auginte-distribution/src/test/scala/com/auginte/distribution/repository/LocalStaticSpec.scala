@@ -2,6 +2,7 @@ package com.auginte.distribution.repository
 
 import java.io.InputStream
 import com.auginte.distribution.exceptions.{UnconnectedIds, UnsupportedElement, UnsupportedStructure, UnsupportedVersion}
+import com.auginte.transforamtion.Relation
 import com.auginte.zooming._
 import com.auginte.common.{ WithId, SoftwareVersion }
 import com.auginte.distribution.data._
@@ -89,6 +90,28 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val repository = newRepository
         val output = repository.saveToString(grid, list(e1, e2, e3), list(c1, c2))
         val expected = readFile("localStatic/reusing-nodes.json")
+        assert(expected == output)
+      }
+      "save with source relation" in {
+        //      root--c1
+        //       |
+        //    ___n1________
+        //   |            |
+        //   n2           n3--e2
+        //  :             :
+        //  e1 <~~source~~`
+        val grid = emptyGrid
+        val n1 = grid.getNode(grid.root, 1.23, -4.56, 0.01)
+        val n2 = grid.getNode(n1, 3.23, 5.56, 0.01)
+        val n3 = grid.getNode(n1, 99.1, 33.2, 0.01)
+        val e1 = ZoomableElement(n2, Distance(1.2, 3.4, 1.3))
+        val e2 = new ZoomableText(n3, Distance(0, 0, 1), "E2") {
+          override def sources = List(Relation(e1, Map("type" -> "clone")))
+        }
+        val c1 = ZoomableCamera(grid.root, Distance(0, 0, 1))
+        val repository = newRepository
+        val output = repository.saveToString(grid, list(e1, e2), list(c1))
+        val expected = readFile("localStatic/withinnerSources.json")
         assert(expected == output)
       }
       "create new grid with old ids independent representations and cameras" in {
