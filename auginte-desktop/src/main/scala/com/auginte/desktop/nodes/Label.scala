@@ -5,11 +5,12 @@ import javafx.scene.{control => jfxc, layout => jfxl, text => jfxt}
 
 import com.auginte.desktop.actors.{DragableNode, ScalableElement, ViewableNode}
 import com.auginte.desktop.events._
-import com.auginte.desktop.operations.EditableNode
-import com.auginte.desktop.rich.RichJPane
+import com.auginte.desktop.operations.{MouseTransformable, EditableNode}
+import com.auginte.desktop.rich.{RichNode, RichJPane}
 import com.auginte.desktop.zooming.ZoomableNode
 import com.auginte.desktop.{HaveOperations, actors => act}
 import com.auginte.distribution.data.Data
+import com.auginte.transforamtion.Transformable
 
 import scalafx.event.ActionEvent
 import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}
@@ -23,6 +24,7 @@ import scalafx.scene.{control => sfxc}
 class Label(val _text: String) extends RichJPane
 with ViewableNode with HaveOperations with DragableNode[jp] with ZoomableNode[jp] with ScalableElement[jp]
 with Data
+with Transformable[Label] with MouseTransformable[jp]
 with EditableNode {
   private val label = new jfxc.Label(_text)
   private val textArea = new jfxc.TextArea()
@@ -92,6 +94,22 @@ with EditableNode {
   override val dataType: String = "Text"
 
   override val storageFields = Map("ag:Text/text" -> (() => text))
+
+  //
+  // Transformation
+  //
+
+
+  override protected def createCloned(): Unit = {
+    view ! ImportElement(transformed(cloneParameters).encapsualted)
+  }
+
+  override protected def copy: Label = {
+    val label = new Label(_text)
+    label.node = node
+    label.position = position.clone()
+    label
+  }
 
   //
   // Operations

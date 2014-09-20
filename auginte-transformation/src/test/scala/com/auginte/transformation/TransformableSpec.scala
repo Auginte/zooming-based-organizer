@@ -81,11 +81,11 @@ class TransformableSpec extends UnitSpec with TransformableSpecHelpers {
   }
 }
 sealed trait TransformableSpecHelpers {
-  case class TransformableString(data: String) extends Transformable {
-     override protected def copy: Transformable = new TransformableString(data)
+  case class TransformableString(data: String) extends Transformable[TransformableString] {
+     override protected def copy = new TransformableString(data)
   }
 
-  case class TransformableInt(data: Int) extends Transformable {
-    override protected def copy: Transformable = new TransformableInt(data)
+  case class TransformableInt(data: Int) extends Transformable[TransformableInt] {
+    override protected def copy = new TransformableInt(data)
   }
 }

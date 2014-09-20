@@ -2,20 +2,20 @@ package com.auginte.transforamtion
 
 /**
  * Elements that can be cloned, by keeping reference to source
- * 
+ *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-trait Transformable extends Descendant {
+trait Transformable[A <: Transformable[A]] extends Descendant {
+  // self-typing for copy to return this type
+  self: A =>
+
   /**
    * Creates copy of object with relation to source.
    *
    * @param parameters context of relation. E.g. type of relation
    * @return copy, keeping relation to source
    */
-  def transformed(parameters: Map[String, String] = Map()): Transformable = {
-    val clone = copy
-    transformedTo(copy, parameters)
-  }
+  def transformed(parameters: Map[String, String] = Map()): Transformable[A] = transformedTo(copy, parameters)
 
   /**
    * Appends source with context to new object
@@ -24,7 +24,7 @@ trait Transformable extends Descendant {
    * @param parameters context of relation. E.g. type of relation
    * @return copy, keeping relation to source
    */
-  def transformedTo(target: Transformable, parameters: Map[String, String] = Map()): Transformable = {
+  def transformedTo[B <: Transformable[B]](target: Transformable[B], parameters: Map[String, String] = Map()): Transformable[B] = {
     target.sources = List(Relation(this, parameters)) ++ target.sources
     target
   }
@@ -34,5 +34,7 @@ trait Transformable extends Descendant {
    *
    * @return Deep cloned object
    */
-  protected def copy: Transformable
+  protected def copy: Transformable[A]
+  
+  def encapsualted = this
 }
