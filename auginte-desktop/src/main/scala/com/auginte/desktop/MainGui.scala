@@ -1,5 +1,7 @@
 package com.auginte.desktop
 
+import java.awt.SplashScreen
+
 import com.auginte.zooming.Grid
 
 import scalafx.application.JFXApp
@@ -47,5 +49,10 @@ object MainGui extends JFXApp {
 
   stage.scene = new Scene {
     root = view1
+  }
+
+  val splash = SplashScreen.getSplashScreen
+  if (splash != null) {
+    splash.close()
   }
 }

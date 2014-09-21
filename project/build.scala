@@ -46,7 +46,7 @@ object build extends sbt.Build {
   )
 
   // Project
-  lazy val allSettings = Project.defaultSettings ++ assemblySettings ++ buildSettings ++ scalaDocSettings
+  lazy val allSettings = Project.defaultSettings ++ buildSettings ++ scalaDocSettings
   lazy val withAssembly = allSettings ++ assemblySettings
 
   lazy val root = Project(

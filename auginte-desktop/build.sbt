@@ -1,3 +1,5 @@
+import sbtassembly.Plugin.AssemblyKeys.assembly
+
 // Use from main project
 // mainClass in(Compile, run) := Some("com.auginte.desktop.MainGui")
 
@@ -20,3 +22,6 @@ libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.5"
 
 // Fork a new JVM for 'run' and 'test:run', to avoid JavaFX double initialization problems
 fork := true
+
+// Deployment settings
+packageOptions in assembly += Package.ManifestAttributes("SplashScreen-Image" -> "com/auginte/common/splash.gif")
