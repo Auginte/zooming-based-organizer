@@ -1,6 +1,7 @@
 package com.auginte.desktop
 
 import java.awt.SplashScreen
+import javafx.scene.image.Image
 
 import com.auginte.zooming.Grid
 
@@ -23,6 +24,7 @@ object MainGui extends JFXApp {
     title = "Auginte"
     width = 600
     height = 450
+    icons add new Image(getClass.getResourceAsStream("/com/auginte/common/splash.gif"))
   }
 
   val view1 = new View {
