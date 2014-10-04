@@ -4,6 +4,7 @@ import java.util.Properties
 import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin._
+import xerial.sbt.Pack._
 
 object build extends sbt.Build {
   val buildName = "auginte"
@@ -44,9 +45,14 @@ object build extends sbt.Build {
     scalacOptions in(Compile, doc) += "-implicits",
     scalacOptions in(Compile, doc) += "-groups"
   )
+  
+  
+  val packCustomSettings = Seq(
+	packExtraClasspath := Map("javafx" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar"))
+  ) 
 
   // Project
-  lazy val allSettings = Project.defaultSettings ++ buildSettings ++ scalaDocSettings
+  lazy val allSettings = Project.defaultSettings ++ buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings
   lazy val withAssembly = allSettings ++ assemblySettings
 
   lazy val root = Project(

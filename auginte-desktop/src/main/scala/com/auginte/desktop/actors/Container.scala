@@ -16,6 +16,7 @@ trait Container[D <: jfxs.Node] extends ViewableNode with AddWithMouse[D] with A
     view ! InsertElement(element, x, y)
     element match {
       case e: EditableNode => view ! EditElement(e, mode=true)
+      case _ => Unit
     }
   }
 }

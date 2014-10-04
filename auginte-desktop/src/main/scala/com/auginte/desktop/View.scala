@@ -6,7 +6,8 @@ import javafx.scene.Node
 import javafx.scene.layout.{Pane => jp}
 
 import com.auginte.desktop.actors.{Container, DragableView, ZoomableView}
-import com.auginte.desktop.nodes.MouseFocusable
+import com.auginte.desktop.events.{EditElement, InsertElement}
+import com.auginte.desktop.nodes.{Image, Label, MouseFocusable}
 import com.auginte.desktop.operations._
 import com.auginte.desktop.rich.RichSPane
 import com.auginte.desktop.storage.{Loading, Saving, WithFileChooser}
@@ -60,6 +61,8 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
 
   override def operations: Operations = Map(
     "New" -> ((e: ActionEvent) => clearElements()),
+    "Add text" -> ((e: ActionEvent) => addElement(new Label(""))),
+    "Add image" -> ((e: ActionEvent) => addElement(new Image())),
     "Open" -> ((e: ActionEvent) => open()),
     "Save" -> ((e: ActionEvent) => if (repositoryPath.isDefined) save(repositoryPath.get) else saveAs(e)),
     "Save As" -> ((e: ActionEvent) => saveAs(e)),
@@ -98,6 +101,15 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
     fileChooser.showSaveDialog(nonBlockingWindow) match {
       case f: File => save(withExtension(f.getPath))
       case cancelled => Unit
+    }
+  }
+
+  private def addElement[T <: Node](element: T): Unit =
+  {
+    view ! InsertElement(element, d.getWidth / 2, d.getHeight / 2)
+    element match {
+      case e: EditableNode => view ! EditElement(e, mode=true)
+      case _ => Unit
     }
   }
 

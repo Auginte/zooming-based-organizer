@@ -25,3 +25,6 @@ fork := true
 
 // Deployment settings
 packageOptions in assembly += Package.ManifestAttributes("SplashScreen-Image" -> "com/auginte/common/splash.gif")
+
+packageOptions in (Compile, packageBin) += Package.ManifestAttributes("SplashScreen-Image" -> "com/auginte/common/splash.gif")
+
