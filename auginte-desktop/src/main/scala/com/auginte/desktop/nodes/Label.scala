@@ -107,7 +107,7 @@ with EditableNode {
   }
 
   override protected def copy: Label = {
-    val label = new Label(_text)
+    val label = new Label(text)
     label.node = node
     label.position = position.clone()
     label
