@@ -25,6 +25,15 @@ gen-idea
 project
 ```
 
+Deployment
+----------
+
+```
+pack
+```
+
+See results in `/auginte-desktop/target/pack`.
+
 Coding standard
 ---------------
 

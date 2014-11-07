@@ -31,7 +31,7 @@ object build extends sbt.Build {
 
   // Settings
 
-  lazy val buildSettings = Defaults.defaultSettings ++ Seq (
+  lazy val buildSettings = Seq (
     organization := buildOrganization,
     version      := buildVersion,
     scalaVersion := buildScalaVersion,
@@ -48,11 +48,11 @@ object build extends sbt.Build {
   
   
   val packCustomSettings = Seq(
-	packExtraClasspath := Map("javafx" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar"))
+	  packExtraClasspath := Map("main-gui" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar"))
   ) 
 
   // Project
-  lazy val allSettings = Project.defaultSettings ++ buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings
+  lazy val allSettings = buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings
   lazy val withAssembly = allSettings ++ assemblySettings
 
   lazy val root = Project(
