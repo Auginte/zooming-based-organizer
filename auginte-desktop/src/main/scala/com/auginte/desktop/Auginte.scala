@@ -17,7 +17,7 @@ import akka.actor.{Props, ActorSystem}
 import scalafx.stage.WindowEvent
 import com.auginte.desktop.{actors => act}
 
-object MainGui extends JFXApp {
+object Auginte extends JFXApp {
   val akka = ActorSystem("auginte")
 
   stage = new PrimaryStage {

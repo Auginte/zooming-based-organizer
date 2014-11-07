@@ -11,7 +11,7 @@ object build extends sbt.Build {
   val buildOrganization = "com.autinte"
   val buildVersion      = getProperty("version", default="0.0.1-SNAPSHOT")
   val buildScalaVersion = "2.11.2"
-  val buildMainClass = "com.auginte.desktop.MainGui"
+  val buildMainClass = "com.auginte.desktop.Auginte"
 
   // Custom properties (also accessable from source)
 
@@ -48,8 +48,10 @@ object build extends sbt.Build {
   
   
   val packCustomSettings = Seq(
-	  packExtraClasspath := Map("main-gui" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar"))
-  ) 
+	  packExtraClasspath := Map("auginte" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar")),
+    packBashTemplate := "./project/templates/launch.mustache",
+    packResourceDir += (baseDirectory.value / "auginte-desktop/src/pack" -> "")
+  )
 
   // Project
   lazy val allSettings = buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings

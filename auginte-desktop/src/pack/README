@@ -1,0 +1,43 @@
+Auginte - a tool to augment the meaning of complex and heterogeneous information
+================================================================================
+
+WARNING
+-------
+
+    This is only ALPHA version of the software.
+    Some functionality is not supported, software can crash or corrupt opened data.
+    Do not use with sensitive information! Always consider making backups.
+
+
+Requirements
+------------
+
+ * Java 7+ (JRE 1.7 or higher): http://www.oracle.com/technetwork/java/javase/downloads/jre7-downloads-1880261.html
+
+
+Running from Linux/Unix
+-----------------------
+
+    Execute ./bin/auginte
+
+
+Running from Windows
+--------------------
+
+    Execute bin\auginte.bat
+
+
+
+Installing globally on Linux
+----------------------------
+
+    sudo make install PREFIX="/usr/local"
+    auginte
+
+
+Author
+------
+
+    Aurelijus Banelis
+    aurelijus@auginte.com
+    http://auginte.com
