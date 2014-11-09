@@ -1,10 +1,13 @@
 package com.auginte.desktop
 
+import java.awt.Desktop
 import java.io.{InputStream, File}
+import java.net.URI
 import javafx.animation.KeyFrame
 import javafx.scene.Node
 import javafx.scene.layout.{Pane => jp}
 
+import com.auginte.common.SoftwareVersion
 import com.auginte.desktop.actors.{Container, DragableView, ZoomableView}
 import com.auginte.desktop.events.{EditElement, InsertElement}
 import com.auginte.desktop.nodes.{Image, Label, MouseFocusable}
@@ -16,6 +19,7 @@ import com.auginte.distribution.data.Camera
 import com.auginte.distribution.exceptions.ImportException
 import com.auginte.distribution.repository.LocalStatic
 
+import scala.collection.immutable.{HashMap, SortedMap}
 import scalafx.Includes._
 import scalafx.animation.Timeline
 import scalafx.event.ActionEvent
@@ -59,13 +63,13 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
   // Operations and context menu
   //
 
-  override def operations: Operations = Map(
+  override def operations: Operations = HashMap(
     "New" -> ((e: ActionEvent) => clearElements()),
     "Add text" -> ((e: ActionEvent) => addElement(new Label(""))),
-    "Add image" -> ((e: ActionEvent) => addElement(new Image())),
     "Open" -> ((e: ActionEvent) => open()),
     "Save" -> ((e: ActionEvent) => if (repositoryPath.isDefined) save(repositoryPath.get) else saveAs(e)),
     "Save As" -> ((e: ActionEvent) => saveAs(e)),
+    "Feedback" -> ((e: ActionEvent) => feedback()),
     "Exit" -> ((e: ActionEvent) => Auginte.quit())
   )
 
@@ -101,6 +105,15 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
     fileChooser.showSaveDialog(nonBlockingWindow) match {
       case f: File => save(withExtension(f.getPath))
       case cancelled => Unit
+    }
+  }
+
+  private def feedback(): Unit = {
+    try {
+      val version = SoftwareVersion.toString
+      Desktop.getDesktop.mail(new URI(s"mailto:aurelijus@auginte.com?subject=Feedback%20$version"))
+    } catch {
+      case e: Exception => Desktop.getDesktop.browse(new URI(s"http://auginte.com/en/contact"))
     }
   }
 
