@@ -1,6 +1,7 @@
 import java.io._
 import java.text.SimpleDateFormat
 import java.util.{Date, Properties}
+import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import sbt.Keys._
 import sbt.Process
@@ -12,25 +13,11 @@ import java.{io => jio}
 object build extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
-  val buildVersion      = getProperty("version", default="0.0.1-SNAPSHOT")
+  val buildVersion      = ProjectProperties.getProperty("version", default="0.0.1-SNAPSHOT")
   val buildScalaVersion = "2.11.2"
   val buildMainClass = "com.auginte.desktop.Auginte"
 
   // Custom properties (also accessable from source)
-
-  lazy val customProperties: Option[Properties] = try {
-    val properties = new Properties()
-    properties.load(new FileInputStream("./auginte-common/src/main/resources/com/auginte/common/build.properties"))
-    Some(properties)
-  } catch {
-    case e: Exception => None
-  }
-
-  private def getProperty(name: String, default: String = ""): String = customProperties match {
-    case Some(p) if p.getProperty(name) != null => p.getProperty(name)
-    case _ => default
-  }
-
 
   // Settings
 
@@ -98,6 +85,21 @@ object build extends sbt.Build {
     base = file("auginte-common"))
 }
 
+object ProjectProperties {
+  lazy val customProperties: Option[Properties] = try {
+    val properties = new Properties()
+    properties.load(new FileInputStream("./auginte-common/src/main/resources/com/auginte/common/build.properties"))
+    Some(properties)
+  } catch {
+    case e: Exception => None
+  }
+
+  def getProperty(name: String, default: String = ""): String = customProperties match {
+    case Some(p) if p.getProperty(name) != null => p.getProperty(name)
+    case _ => default
+  }
+}
+
 object CustomTasks {
   private val proguardPath = "/usr/bin/proguard"
   private val proguardTemplate = "project/proguard/auginte-template.pro"
@@ -122,7 +124,10 @@ object CustomTasks {
         proguardPath
       )
       log.info(s"Obfuscated: $executed")
-      log.info(s"You can run: " + runFile.head)
+      log.info(s"Can be executed via: " + runFile.head)
+      log.info("Creating archive...")
+      val zipped = createArchive(packedTo)
+      log.info(s"Archive placed in: " + zipped)
     }
   }
 
@@ -134,6 +139,43 @@ object CustomTasks {
     out.println(s"buildDate:=$date")
     out.close()
     revision
+  }
+
+  private def createArchive(path: String, project: String = "auginte"): String = {
+    def writeData(file: File, out: ZipOutputStream): Unit = {
+      val buffer = new Array[Byte](1024)
+      var bytesRead: Int = 0
+      val input = new FileInputStream(file)
+      do {
+        bytesRead = input.read(buffer)
+        if (bytesRead > 0) {
+          out.write(buffer, 0, bytesRead)
+        }
+      } while (bytesRead > 0)
+      input.close()
+    }
+
+    val version = ProjectProperties.getProperty("version", default = "")
+    val destination = new jio.File(s"$path/../$project-$version.zip").getAbsoluteFile
+    if (destination.exists()) {
+      destination.delete()
+    }
+
+    val archive = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(destination)))
+    archive.setLevel(9)
+    for (file <- getRecursiveListOfFiles(new File(path)) if file.isFile) {
+      val pathInArchive = file.toString.substring(path.length)
+      archive.putNextEntry(new ZipEntry(pathInArchive))
+      writeData(file, archive)
+      archive.closeEntry()
+    }
+    archive.close()
+    destination.toString
+  }
+
+  private def getRecursiveListOfFiles(dir: File): Array[File] = {
+    val these = dir.listFiles
+    these ++ these.filter(_.isDirectory).flatMap(getRecursiveListOfFiles)
   }
 
   private def findRunFiles(path: String) = new File(path + "/bin").listFiles().find(!_.getName.endsWith(".bat"))
