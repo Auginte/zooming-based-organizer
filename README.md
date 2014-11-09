@@ -29,7 +29,7 @@ Deployment
 ----------
 
 ```
-pack
+deploy
 ```
 
 See results in `/auginte-desktop/target/pack`.

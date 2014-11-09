@@ -1,10 +1,13 @@
-import java.io.FileInputStream
-import java.util.Properties
+import java.io._
+import java.text.SimpleDateFormat
+import java.util.{Date, Properties}
 
 import sbt.Keys._
+import sbt.Process
 import sbt._
 import sbtassembly.Plugin._
 import xerial.sbt.Pack._
+import java.{io => jio}
 
 object build extends sbt.Build {
   val buildName = "auginte"
@@ -45,16 +48,18 @@ object build extends sbt.Build {
     scalacOptions in(Compile, doc) += "-implicits",
     scalacOptions in(Compile, doc) += "-groups"
   )
-  
-  
+
+
   val packCustomSettings = Seq(
 	  packExtraClasspath := Map("auginte" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar")),
     packBashTemplate := "./project/templates/launch.mustache",
     packResourceDir += (baseDirectory.value / "auginte-desktop/src/pack" -> "")
   )
 
+  val customTasks = Seq(CustomTasks.deployTask)
+
   // Project
-  lazy val allSettings = buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings
+  lazy val allSettings = buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings ++ customTasks
   lazy val withAssembly = allSettings ++ assemblySettings
 
   lazy val root = Project(
@@ -93,3 +98,85 @@ object build extends sbt.Build {
     base = file("auginte-common"))
 }
 
+object CustomTasks {
+  private val proguardPath = "/usr/bin/proguard"
+  private val proguardTemplate = "project/proguard/auginte-template.pro"
+  private val java7Dependencies = List(
+    "<java.home>/lib/jfxrt.jar",
+    "<java.home>/lib/rt.jar"
+  )
+
+  private val deploy = TaskKey[Unit]("deploy", "Prints 'Hello World'")
+
+  val deployTask = deploy := {
+    val log = streams.value.log
+    val packedTo = pack.value.getAbsolutePath
+    log.info(s"Packed to: $packedTo")
+    val runFile = findRunFiles(packedTo)
+    if (runFile.isDefined) {
+      val revision = saveGitVersion(s"$packedTo/VERSION")
+      log.info(s"GIT revision: $revision")
+      log.info("Running Proguard...")
+      val executed = Proguard.obfuscateAuginte(
+        ProguardTemplate(proguardTemplate, java7Dependencies, packedTo + "/lib"),
+        proguardPath
+      )
+      log.info(s"Obfuscated: $executed")
+      log.info(s"You can run: " + runFile.head)
+    }
+  }
+
+  private def saveGitVersion(path: String): String = {
+    val revision: String = "git rev-parse HEAD".!!
+    val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())
+    val out = new PrintWriter(new BufferedWriter(new FileWriter(path, true)))
+    out.println(s"gitRevision:=${revision.trim}")
+    out.println(s"buildDate:=$date")
+    out.close()
+    revision
+  }
+
+  private def findRunFiles(path: String) = new File(path + "/bin").listFiles().find(!_.getName.endsWith(".bat"))
+}
+
+case class ProguardTemplate(path: String, additionalLibraries: Seq[String], libraryPath: String) {
+  protected val projectPrefix = "auginte-"
+
+  private val libraries = new jio.File(libraryPath).listFiles
+
+  def auginteLibraries: Seq[String] = libraries filter (_.getName.startsWith(projectPrefix)) map (_.toString)
+
+  def otherLibraries: Seq[String] = libraries map (_.toString) diff auginteLibraries
+}
+
+object Proguard {
+  private def prepareConfiguration(template: ProguardTemplate): String = {
+    val configuration = File.createTempFile("proguardConfiguration-", ".pro")
+
+    val writer = new PrintWriter(new BufferedWriter(new FileWriter(configuration)))
+    for (inJar <- template.auginteLibraries) {
+      writer.println(s"-injars $inJar")
+    }
+    writer.println(s"-outjars ${template.libraryPath}/auginte.jar")
+    for (libraryJar <- template.otherLibraries ++ template.additionalLibraries) {
+      writer.println(s"-libraryjars $libraryJar")
+    }
+    writer.println()
+    for (line <- io.Source.fromFile(template.path).getLines()) {
+      writer.println(line)
+    }
+    writer.close()
+
+    configuration.toString
+  }
+
+  def obfuscateAuginte(template: ProguardTemplate, proguard: String): String = {
+    val configuration = prepareConfiguration(template)
+    val command = s"$proguard @$configuration"
+    command.!
+    for (duplicate <- template.auginteLibraries) {
+      new File(duplicate).delete()
+    }
+    command
+  }
+}
