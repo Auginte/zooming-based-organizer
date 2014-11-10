@@ -38,7 +38,7 @@ object build extends sbt.Build {
 
 
   val packCustomSettings = Seq(
-	  packExtraClasspath := Map("auginte" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar")),
+	  packExtraClasspath := Map("auginte" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar", "%JAVA_HOME%\\lib\\jfxrt.jar")),
     packBashTemplate := "./project/templates/launch.mustache",
     packResourceDir += (baseDirectory.value / "auginte-desktop/src/pack" -> "")
   )
@@ -197,7 +197,8 @@ object Proguard {
 
     val writer = new PrintWriter(new BufferedWriter(new FileWriter(configuration)))
     for (inJar <- template.auginteLibraries) {
-      writer.println(s"-injars $inJar")
+      val manifest = if (inJar.contains("-desktop_")) "" else "(!META-INF/MANIFEST.MF)"
+      writer.println(s"-injars $inJar$manifest")
     }
     writer.println(s"-outjars ${template.libraryPath}/auginte.jar")
     for (libraryJar <- template.otherLibraries ++ template.additionalLibraries) {

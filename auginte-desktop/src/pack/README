@@ -27,6 +27,13 @@ Running from Windows
     Execute bin\auginte.bat
 
 
+Running from other OS
+---------------------
+
+	java -cp "lib/*:$JAVA_HOME/jre/lib/jfxrt.jar" com.auginte.desktop.Auginte
+
+	Where $JAVA_HOME is something like /usr/lib/jvm/java-7-oracle
+
 
 Installing globally on Linux
 ----------------------------
