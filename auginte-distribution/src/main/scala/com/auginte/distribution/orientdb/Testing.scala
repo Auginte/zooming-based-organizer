@@ -1,4 +1,4 @@
-package com.auginte.distribution.oreintdb
+package com.auginte.distribution.orientdb
 
 import java.io.File
 
