@@ -2,6 +2,8 @@ package com.auginte.distribution.orientdb
 
 import com.auginte.test.UnitSpec
 import com.auginte.zooming.{Node, Grid}
+import com.orientechnologies.orient.core.command.script.OCommandScript
+import com.orientechnologies.orient.core.db.ODatabase.ATTRIBUTES
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
 
 /**
@@ -76,6 +78,92 @@ class PositionSpec extends UnitSpec with PositionSpecHelpers{
         on5.addEdge("Parent", on6)
         on7.addEdge("Parent", on6)
 
+        val gridIds = Position.absoluteIds(grid).keys
+        val orientDbIds = Position.absoluteIds(db).keys
+        assert(orientDbIds === gridIds)
+      }
+      "store root for empty grid" in {
+        val db = newDb
+        val grid = newGrid
+        val root = grid.root
+        assert(0 === root.x)
+        assert(0 === root.y)
+        assert(List() === root.children)
+        db.setUseLightweightEdges(false)
+        assert(0 === db.countVertices("Node"))
+        assert(0 === db.countEdges("Parent"))
+        Position.store(grid, db)
+        assert(1 === db.countVertices("Node"))
+        assert(0 === db.countEdges("Parent"))
+        val rootVetex = db.getVerticesOfClass("Node").iterator().next()
+        assert(0 === rootVetex.getProperty[Byte]("x"))
+        assert(0 === rootVetex.getProperty[Byte]("y"))
+      }
+      "create Node vertexes and Parent edges" in {
+        val db = newDb
+        val grid = newGrid
+        //          n6
+        //        n5  n7
+        //        n4
+        //      root
+        //     n1   n2
+        //   n3
+        val root = grid.root
+        val n1 = grid.getNode(root, 0, 0, 0.01)
+        val n2 = grid.getNode(root, 99, 99, 0.01)
+        val n3 = grid.getNode(n1, -44, -55, 0.01)
+        val n4 = grid.getNode(root, 0, 0, 100)
+        val n5 = grid.getNode(root, 0, 0, 10000)
+        val n6 = grid.getNode(n5, 0, 0, 100)
+        val n7 = grid.getNode(n5, 9800, 7600, 1)
+        assert(99 === n2.x)
+        assert(-44 === n3.x)
+        assert(0 === n4.x)
+        assert(grid.root === n6)
+        assert(98 === n7.x)
+
+        Position.store(grid, db)
+        val gridIds = Position.absoluteIds(grid).keys
+        val orientDbIds = Position.absoluteIds(db).keys
+        assert(orientDbIds === gridIds)
+      }
+    }
+    "loading data from database" should {
+      "do nothing is database empty" in {
+        val db = newDb
+        val grid = newGrid
+        val oldRoot = grid.root
+
+        Position.load(db, grid)
+        assert(1 === grid.flatten.size)
+        assert(oldRoot === grid.root)
+      }
+      "create node hierarchy from Node-Parent relations" in {
+        val db = newDb
+        val grid = newGrid
+        //          n6
+        //        n5  n7
+        //        n4
+        //      root
+        //     n1   n2
+        //   n3
+        val oRoot = newDbNode(db, 9, 9)
+        val on1 = newDbNode(db, 1, 1)
+        val on2 = newDbNode(db, 99, 99)
+        val on3 = newDbNode(db, 44, 55)
+        val on4 = newDbNode(db, 4, 4)
+        val on5 = newDbNode(db, 5, 5)
+        val on6 = newDbNode(db, 0, 0)
+        val on7 = newDbNode(db, 98, 76)
+        on3.addEdge("Parent", on1)
+        on1.addEdge("Parent", oRoot)
+        on2.addEdge("Parent", oRoot)
+        oRoot.addEdge("Parent", on4)
+        on4.addEdge("Parent", on5)
+        on5.addEdge("Parent", on6)
+        on7.addEdge("Parent", on6)
+
+        Position.load(db, grid)
         val gridIds = Position.absoluteIds(grid).keys
         val orientDbIds = Position.absoluteIds(db).keys
         assert(orientDbIds === gridIds)

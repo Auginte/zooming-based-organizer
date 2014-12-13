@@ -18,6 +18,48 @@ object Position {
   val nodeSeparator = "|"
   val propertySeparator = ","
 
+  def store(grid: Grid, db: OrientBaseGraph): Unit = {
+    val newVertex = (x: Int, y: Int) => db.addVertex("class:Node", "x", Byte.box(x.toByte), "y", Byte.box(y.toByte))
+    val nodes = grid.flatten
+    val node2vertex: Map[Node, OrientVertex] = nodes.map(node => node -> newVertex(node.x, node.y)).toMap
+    for (parent <- nodes; child <- parent.children) {
+      node2vertex(child).addEdge("Parent", node2vertex(parent))
+    }
+  }
+
+  def load(db: OrientBaseGraph, grid: Grid): Unit = {
+    val noParentRID = ""
+    val levelDown = 1.0 / grid.gridSize
+    def getRids(path: String): (String, String) = {
+      val elements = path.split("\\.in_Parent\\[\\d+\\]").map(inBrackets).reverse
+      val current = if (elements.nonEmpty) elements.head else noParentRID
+      val parent = if (elements.nonEmpty && elements.tail.nonEmpty) elements.tail.head else noParentRID
+      (current, parent)
+    }
+    val traverseNodesQuery = new OCommandSQL(
+      """
+        |SELECT $path, x, y FROM (
+        |   TRAVERSE in_Parent
+        |   FROM (SELECT FROM Node where out_Parent IS NULL LIMIT 1)
+        |   WHILE true
+        |)
+      """.stripMargin)
+    val nodes = db.command(traverseNodesQuery).execute[jl.Iterable[Vertex]]()
+    if (nodes.nonEmpty) {
+      val rid2node = new mutable.HashMap[String, Node]()
+      for ((v, key) <- nodes.zipWithIndex) {
+        val (currentRID, parentRID) = getRids(v.getProperty[String]("$path"))
+        if (parentRID == noParentRID) {
+          rid2node.put(currentRID, grid.root)
+        } else {
+          val parent = rid2node(parentRID)
+          val child = grid.getNode(parent, v.getProperty[Byte]("x"), v.getProperty[Byte]("y"), levelDown)
+          rid2node.put(currentRID, child)
+        }
+      }
+    }
+  }
+
   def absoluteIds(positions: Grid): Map[String, Node] = {
     val node2pos = new mutable.HashMap[Node, String]()
     val nodes = positions.flatten
