@@ -51,13 +51,13 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
         assert(-3 === afterException.getProperty[Byte]("x"))
         assert(-4 === afterException.getProperty[Byte]("y"))
       }
-      "ensure tree structure of Nodes" in {
+      "suggest tree structure of Nodes" in {
         val db = Structure.createRepository(testDbName, "memory")
         val n0 = db.addVertex("class:Node", "x", Byte.box(0), "y", Byte.box(0))
         val n1 = db.addVertex("class:Node", "x", Byte.box(1), "y", Byte.box(2))
         val n2 = db.addVertex("class:Node", "x", Byte.box(3), "y", Byte.box(4))
         val e1 = n1.addEdge("Parent", n0)
-        val e2 =n2.addEdge("Parent", n0)
+        val e2 = n2.addEdge("Parent", n0)
         //      n0
         // e1  / \  e2
         //   n1   n2
@@ -72,15 +72,48 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
             assert(1 === v.field[Byte]("x"))
             assert(2 === v.field[Byte]("y"))
             assert(null == v.field[ORidBag]("in_Parent"))
-            assert(Set(id0) === v.field[ORidBag]("out_Parent").toIterator.toSet)
+            assert(Set(id0) === v.field[ORidBag]("out_Parent").toIterator.map(_.getIdentity).toSet)
           case id if id == id2 =>
             assert(3 === v.field[Byte]("x"))
             assert(4 === v.field[Byte]("y"))
             assert(null == v.field[ORidBag]("in_Parent"))
-            assert(Set(id0) === v.field[ORidBag]("out_Parent").toIterator.toSet)
+            assert(Set(id0) === v.field[ORidBag]("out_Parent").toIterator.map(_.getIdentity).toSet)
           case other =>
             fail("Unexpected row:" + dump[String](v))
         }
+      }
+      "create Representation vertex and Inside edge" in {
+        val db = Structure.createRepository(testDbName, "memory")
+        assert(true === schema(db).existsClass("Representation"))
+        assert(true === schema(db).existsClass("Inside"))
+      }
+      "ensure Representation(x,y,scale) fields are mandatory" in {
+        val db = Structure.createRepository(testDbName, "memory")
+        val valid = db.addVertex("class:Representation", "x", double(1.1), "y", double(2.2), "scale", double(3.3))
+        assert(1.1 === valid.getProperty[Double]("x"))
+        assert(2.2 === valid.getProperty[Double]("y"))
+        assert(3.3 === valid.getProperty[Double]("scale"))
+        intercept[OValidationException] {
+          db.addVertex("Representation", "Representation")
+        }
+        intercept[OValidationException] {
+          db.addVertex("class:Representation", "x", Double.box(1.1))
+        }
+        intercept[OValidationException] {
+          db.addVertex("class:Representation", "y", Double.box(2.2))
+        }
+        val after = db.addVertex("class:Representation", "x", double(-1.1), "y", double(-2.2), "scale", double(0.9))
+        assert(-1.1 === after.getProperty[Double]("x"))
+        assert(-2.2 === after.getProperty[Double]("y"))
+        assert(0.9 === after.getProperty[Double]("scale"))
+      }
+      "suggest Representations can be attached to Nodes " in {
+        val db = Structure.createRepository(testDbName, "memory")
+        val node = db.addVertex("class:Node", "x", Byte.box(1), "y", Byte.box(2))
+        val r1 = db.addVertex("class:Representation", "x", double(1.1), "y", double(2.2), "scale", double(3.3))
+        val r2 = db.addVertex("class:Representation", "x", double(3), "y", double(-4), "scale", double(0.9))
+        r1.addEdge("Inside", node)
+        r2.addEdge("Inside", node)
       }
     }
     "old database exists" should {
@@ -107,18 +140,38 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
       }
     }
     "up-to-date database exists" should {
-      "leave Node and Parent structures unchanged" in {
+      "leave old Node and Parent data unchanged" in {
         val path = testDbName
-        val db = Structure.createRepository(path, "memory")
-        val n0 = db.addVertex("class:Node", "x", Byte.box(0), "y", Byte.box(0))
-        val n1 = db.addVertex("class:Node", "x", Byte.box(1), "y", Byte.box(2))
+        val connectionType = "memory"
+        val db = new OrientGraphNoTx(s"$connectionType:$path")
+        val n0 = db.addVertex("class:Node", "x", Byte.box(0))
+        val n1 = db.addVertex("class:Node", "x", Byte.box(1))
         val e1 = n1.addEdge("Parent", n0)
-        val db2 = Structure.createRepository(path, "memory")
+        val db2 = Structure.createRepository(path, connectionType)
         assert(true === schema(db).existsClass("Node"))
         assert(true === schema(db).existsClass("Parent"))
         assert(2 === db.countVertices("Node"))
         for (v <- db.getVertices) {
           assert(1 === v.getEdges(Direction.BOTH, "Parent").toIterator.size)
+          assert(!v.getPropertyKeys.contains("y"))
+        }
+      }
+      "leave old Representation and Inside data unchanged" in {
+        val path = testDbName
+        val connectionType = "memory"
+        val db = new OrientGraphNoTx(s"$connectionType:$path")
+        val n0 = db.addVertex("class:Node", "x", Byte.box(0))
+        val r1 = db.addVertex("class:Representation", "x", Byte.box(1))
+        val e1 = r1.addEdge("Inside", n0)
+        val db2 = Structure.createRepository(path, connectionType)
+        assert(true === schema(db).existsClass("Node"))
+        assert(true === schema(db).existsClass("Representation"))
+        assert(true === schema(db).existsClass("Inside"))
+        assert(1 === db.countVertices("Node"))
+        assert(1 === db.countVertices("Representation"))
+        for (v <- db.getVertices) {
+          assert(1 === v.getEdges(Direction.BOTH, "Inside").toIterator.size)
+          assert(!v.getPropertyKeys.contains("y"))
         }
       }
     }
@@ -144,4 +197,6 @@ trait StructuresSpecHelpers {
   }
 
   def rid(row: ODocument) = row.field[ORID]("rid").getIdentity
+
+  def double(d: Double) = Double.box(d)
 }
