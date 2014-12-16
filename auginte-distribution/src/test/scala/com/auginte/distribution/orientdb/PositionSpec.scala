@@ -5,6 +5,7 @@ import com.auginte.zooming.{Node, Grid}
 import com.orientechnologies.orient.core.command.script.OCommandScript
 import com.orientechnologies.orient.core.db.ODatabase.ATTRIBUTES
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
+import TestDbHelpers._
 
 /**
  * Unit tests for [[com.auginte.distribution.orientdb.Position]]
@@ -173,10 +174,6 @@ class PositionSpec extends UnitSpec with PositionSpecHelpers{
 }
 
 trait PositionSpecHelpers {
-  def testDbName = s"test${System.currentTimeMillis()}"
-
-  def newDb = Structure.createRepository(testDbName, "memory")
-
   def newGrid = new Grid
 
   def newDbNode(db: OrientBaseGraph, x: Byte, y: Byte) =
