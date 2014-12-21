@@ -1,17 +1,61 @@
 package com.auginte.distribution.orientdb
 
-import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
+import com.tinkerpop.blueprints.Vertex
+import com.tinkerpop.blueprints.impls.orient.OrientVertex
+import scala.language.implicitConversions
+import java.{lang => jl}
+import scala.collection.JavaConversions.iterableAsScalaIterable
 
-class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double = 1) {
+/**
+ * Data representation in infinity zooming grid.
+ *
+ * Storing absolute coordinates (`x`, `y`, `scale`)
+ *
+ * Using without database (Scala object only)
+ * {{{
+ *   val r = Representation(1.1, 2.2, 3.3)
+ *   println(s"${r.x} ${r.y} ${r.scale}")
+ *   r.x = 3.3
+ *   println(r)
+ * }}}
+ *
+ * Inserting into database (binding to database object)
+ * {{{
+ *   val db = new OrientGraphNoTx(s"memory:databaseWithStructures")
+ *   val r = Representation(1.1, 2.2, 3.3)
+ *   r.store(db)
+ *   r.x = 3.3
+ * }}}
+ *
+ * Loading from database (binding to database object)
+ * {{{
+ *   val db = new OrientGraphNoTx(s"memory:databaseWithVertices")
+ *   val creator: Creator = {
+ *     case "Text" => new Text()
+ *     case "Image" => new Image()
+ *     case _ => new Representation()
+ *   }
+ *   val representations = Representation.load(db.getVertices, creator)
+ *   representations.foreach {
+ *     case Image(path, representation) => // Working with Image representation
+ *     case Text(text, representation) => // Working with Text representation
+ *     case representation: Representation => // Working with other types
+ *   }
+ * }}}
+ */
+class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double = 1)
+  extends Persistable[Representation] {
 
-  private def this(data: OrientVertex) {
-    this()
-    _persisted = Some(data.getRecord)
-  }
+  import PersistableImplicits._
 
-  private var _persisted: Option[ODocument] = None
+  override protected[orientdb] def tableName: String = "Representation"
+
+  override protected[orientdb] def fields: Map[String, (this.type) => Object] = Map(
+    "x" -> (_.x.boxed),
+    "y" -> (_.y.boxed),
+    "scale" -> (_.scale.boxed)
+  )
 
 
   def x = get[Double]("x", _x)
@@ -28,42 +72,42 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
   def scale_=(scale: Double): Unit = set[Double]("scale", scale, _scale = _)
 
 
-  private[orientdb] def boxedX = Double.box(x)
+  def representation: Representation = this
 
-  private[orientdb] def boxedY = Double.box(y)
-
-  private[orientdb] def boxedScale = Double.box(scale)
-
-
-  private def get[A <: Double](parameter: String, default: A): A = persisted match {
-    case Some(p) =>
-      try {
-        p.field[A](parameter)
-      } catch {
-        case e: ClassCastException => e.getMessage match {
-          case "java.lang.Float cannot be cast to java.lang.Double" =>
-            p.field[Float](parameter).toDouble.asInstanceOf[A]
-          case _ => default
-        }
-      }
-    case None => default
+  def representation_=(r: Representation): Unit = {
+    x = r.x
+    y = r.y
+    scale = r.scale
   }
-
-  private def set[A](parameter: String, value: A, default: A => Unit): Unit =
-    if (persisted.isDefined) persisted.get.field(parameter, value) else default(value)
-
-  def persisted: Option[ODocument] = _persisted
 
   override def toString = s"{Representation: x=$x, y=$y, scale=$scale}"
 }
 
 object Representation {
-  def store(representation: Representation, storage: OrientBaseGraph): OrientVertex = {
-    val r = representation
-    val vertex = storage.addVertex("class:Representation", "x", r.boxedX, "y", r.boxedY, "scale", r.boxedScale)
-    r._persisted = Some(vertex.getRecord)
-    vertex
+  type Creator = (String) => Representation
+
+  def apply(data: ODocument) = new Representation() {
+    persisted = data
   }
 
-  def load(elements: Iterable[OrientVertex]): Iterable[Representation] = elements.map(d => new Representation(d))
+  def apply(data: OrientVertex): Representation = apply(data.getRecord)
+
+  def apply(x: Double, y: Double, scale: Double) = new Representation(x, y, scale)
+
+  def unapply(r: Representation): Option[(Double, Double, Double)] = Some((r.x, r.y, r.scale))
+
+  def load(rows: jl.Iterable[Vertex], creator: Creator): Iterable[Representation] =
+    load(toOrientVertex(rows), creator)
+
+
+  private def toOrientVertex(rows: jl.Iterable[Vertex]) = iterableAsScalaIterable(rows) flatMap {
+    case v: OrientVertex => Some(v)
+    case _ => None
+  }
+
+  def load(rows: Iterable[OrientVertex], creator: Creator): Iterable[Representation] = rows.map { v =>
+    val representationByClass = creator(v.getProperty[String]("@class"))
+    representationByClass.persisted = v.getRecord
+    representationByClass
+  }
 }

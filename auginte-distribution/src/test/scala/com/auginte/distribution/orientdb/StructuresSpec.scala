@@ -4,20 +4,18 @@ import java.{lang => jl}
 
 import com.auginte.test.UnitSpec
 import com.orientechnologies.orient.core.command.script.OCommandScript
-import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.exception.OValidationException
 import com.orientechnologies.orient.core.id.ORID
-import com.orientechnologies.orient.core.iterator.ORecordIteratorClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
 import com.tinkerpop.blueprints.{Direction, Vertex}
 import com.tinkerpop.blueprints.impls.orient.{OrientGraphNoTx, OrientBaseGraph}
 
 import collection.JavaConversions._
 import scala.language.implicitConversions
+import TestDbHelpers._
 
 /**
  * Unit test for [[com.auginte.distribution.orientdb.Structure]]
@@ -114,6 +112,18 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
         val r2 = db.addVertex("class:Representation", "x", double(3), "y", double(-4), "scale", double(0.9))
         r1.addEdge("Inside", node)
         r2.addEdge("Inside", node)
+      }
+      "create Text representation with constrains" in {
+        val db = Structure.createRepository(testDbName, "memory")
+        assert(true === schema(db).existsClass("Text"))
+        assert(classMeta(db, "Text").getProperty("x").isMandatory, "Parent class fields")
+        assert(classMeta(db, "Text").getProperty("text").isMandatory)
+      }
+      "create Image representation constrains" in {
+        val db = Structure.createRepository(testDbName, "memory")
+        assert(true === schema(db).existsClass("Image"))
+        assert(classMeta(db, "Image").getProperty("x").isMandatory, "Parent class fields")
+        assert(classMeta(db, "Image").getProperty("path").isMandatory)
       }
     }
     "old database exists" should {

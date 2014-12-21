@@ -6,6 +6,7 @@ import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientGraphNoTx}
 /**
  * Creating initial structures to store data in database.
  *
+ * Vertices and edges:
  * {{{
  * Node
  *  ^
@@ -19,6 +20,13 @@ import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientGraphNoTx}
  *  :
  * Representation (x, y, scale)
  * }}}
+ *
+ * Type hierarchy:
+ * {{{
+ *   Representation(x, y, scale)
+ *      Text(..., text)
+ *      Image(..., path)
+ * }}}
  */
 object Structure {
   def createRepository(path: String, connectionType: String = "plocal"): OrientBaseGraph = {
@@ -28,11 +36,20 @@ object Structure {
     val parent = createdParentEdge(schema)
     val representation = createdRepresentationVertex(schema)
     val inside = createdInsideEdge(schema)
+    createRawDataVertices(schema)
     ensureNodeVertexConstrains(node)
     ensureParentEdgeConstrains(parent, node)
     ensureRepresentationVertexConstrains(representation)
     ensureInsideEdgeConstrains(inside, representation, node)
     database
+  }
+
+  private def createRawDataVertices(schema: OSchema): List[OClass] = {
+    val text = createClass(schema, "Text", schema.getClass("Representation"))
+    ensureConstraints(text, List("text"), OType.STRING)
+    val image = createClass(schema, "Image", schema.getClass("Representation"))
+    ensureConstraints(image, List("path"), OType.STRING)
+    List(text, image)
   }
 
   private def createdNodeVertex(schema: OSchema) = createClass(schema, "Node", schema.getClass("V"))
@@ -59,8 +76,12 @@ object Structure {
 
   private def ensureRepresentationVertexConstrains(representation: OClass): Unit = {
     val parameters = List("x", "y", "scale")
-    removeOldProperties(representation, parameters)
-    parameters.map(representation.createProperty(_, OType.DOUBLE)).foreach { property =>
+    ensureConstraints(representation, parameters, OType.DOUBLE)
+  }
+
+  private def ensureConstraints(document: OClass, parameters: List[String], fieldType: OType) = {
+    removeOldProperties(document, parameters)
+    parameters.map(document.createProperty(_, fieldType)).foreach { property =>
       property.setMandatory(true)
       property.setNotNull(true)
     }
