@@ -10,10 +10,16 @@ import scala.collection.GenTraversableOnce
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-case class Node(x: Int, y: Int) extends WithId with Iterable[Node] with GenTraversableOnce[Node] {
+case class Node(private val _x: Byte, private val  _y: Byte)
+  extends WithId with Iterable[Node] with GenTraversableOnce[Node] {
+
   private var _parent: Option[Node] = None
 
   private var _children: List[Node] = List[Node]()
+
+  def x: Byte = _x
+
+  def y: Byte = _y
 
   protected[zooming] def createParent()(implicit newNode: NodeToNode = sameNode): Node = {
     val parentNode: Node = newNode(new Node(0, 0))
@@ -22,7 +28,7 @@ case class Node(x: Int, y: Int) extends WithId with Iterable[Node] with GenTrave
     parentNode
   }
 
-  protected[zooming] def addChild(x: Int, y: Int)(implicit newNode: NodeToNode = sameNode): Node = getChild(x, y) match {
+  protected[zooming] def addChild(x: Byte, y: Byte)(implicit newNode: NodeToNode = sameNode): Node = getChild(x, y) match {
     case Some(child) => child
     case None => 
       val child = newNode(new Node(x, y))
@@ -31,7 +37,7 @@ case class Node(x: Int, y: Int) extends WithId with Iterable[Node] with GenTrave
       child
   }
 
-  def getChild(x: Int, y: Int): Option[Node] =
+  def getChild(x: Byte, y: Byte): Option[Node] =
     children find (node => node.x == x && node.y == y)
 
   private def addChild(child: Node): Unit = {

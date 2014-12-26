@@ -9,6 +9,6 @@ import com.auginte.zooming.Node
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class ImportedNode(override val x: Int, override val y: Int, override val storageId: String, val parentId: String) extends Node(x, y) with WithParentId {
+class ImportedNode(override val x: Byte, override val y: Byte, override val storageId: String, val parentId: String) extends Node(x, y) with WithParentId {
   override def toString(): String = s"""ImportedNode($x,$y,"$storageId","$parentId")"""
 }

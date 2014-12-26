@@ -116,8 +116,8 @@ object CommonFormatter {
       val parent = if (o.parent.isDefined) toJson(s"gn:${o.parent.get.storageId}") else JsNull
       Json.obj(
         "@id" -> s"gn:${o.storageId}",
-        "posX" -> o.x,
-        "posY" -> o.y,
+        "posX" -> toJson(o.x.toInt),
+        "posY" -> toJson(o.y.toInt),
         "parent" -> parent
       )
     }
@@ -130,7 +130,7 @@ object CommonFormatter {
       val y = (json \ "posY").asOpt[Int]
       val parent = (json \ "parent").asOpt[String].getOrElse("")
       if (isDefined(x, y, id)) {
-        val result = new ImportedNode(x.get, y.get, id.get, parent)
+        val result = new ImportedNode(x.get.toByte, y.get.toByte, id.get, parent)
         JsSuccess[ImportedNode](result)
       } else {
         JsError(s"Not valid node: id=$id, x=$x, y=$y, parent=$parent")

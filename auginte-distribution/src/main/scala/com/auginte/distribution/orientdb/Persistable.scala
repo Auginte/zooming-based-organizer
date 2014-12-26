@@ -25,9 +25,15 @@ import java.{lang => jl}
  */
 trait Persistable[T] {
   this: T =>
-  private var _persisted: Option[ODocument] = None
+  private var _persistedDocument: Option[ODocument] = None
+  private var _persistedVertex: Option[OrientVertex] = None
 
-  protected def get[A](parameter: String, default: A): A = persisted match {
+
+  //
+  // Persisting and binding local fields with database fields
+  //
+
+  protected def get[A](parameter: String, default: A): A = persistedDocument match {
     case Some(p) if default.isInstanceOf[Double] => // For: "java.lang.Float cannot be cast to java.lang.Double"
       p.field[Object](parameter) match {
         case f: jl.Float => f.toDouble.asInstanceOf[A]
@@ -42,13 +48,23 @@ trait Persistable[T] {
   }
 
   protected def set[A](parameter: String, value: A, default: A => Unit): Unit =
-    if (persisted.isDefined) persisted.get.field(parameter, value) else default(value)
+    if (persistedDocument.isDefined) persistedDocument.get.field(parameter, value) else default(value)
+
+  def persisted: Option[OrientVertex] = _persistedVertex
+
+  protected def persistedDocument: Option[ODocument] = _persistedDocument
+
+  protected final def isPersisted = _persistedVertex.isDefined && _persistedDocument.isDefined
+
+  protected[orientdb] def persisted_=(vertex: OrientVertex): Unit = {
+    _persistedVertex = Some(vertex)
+    _persistedDocument = Some(vertex.getRecord)
+  }
 
 
-  def persisted: Option[ODocument] = _persisted
-
-  protected[orientdb] def persisted_=(document: ODocument): Unit = _persisted = Some(document)
-
+  //
+  // Metadata and whole document storage
+  //
 
   protected[orientdb] def tableName: String
 
@@ -57,7 +73,10 @@ trait Persistable[T] {
   def storeTo(storage: OrientBaseGraph): OrientVertex = {
     val values = fields.map(d => d._1 -> d._2(this)).flatten(r => List(r._1, r._2))
     val vertex = storage.addVertex(s"class:$tableName", values.toSeq: _*)
-    persisted = vertex.getRecord
+    persisted = vertex
     vertex
   }
+
+  protected def createVertex(values: Map[String, Object]): OrientVertex =
+    persisted.get.getGraph.addVertex(s"class:$tableName", values.flatten(r => List(r._1, r._2)).toSeq: _*)
 }

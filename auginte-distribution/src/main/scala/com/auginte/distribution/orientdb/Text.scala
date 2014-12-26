@@ -17,7 +17,7 @@ class Text(var _text: String = "") extends Representation {
 
     def text_=(text: String): Unit = set[String]("text", text, _text = _)
 
-    override def toString = "{Text: text=" + text + " {" + super.toString + "}}"
+    override def toString = "{Text: text=" + text + " " + super.toString + "}"
 }
 
 object Text {

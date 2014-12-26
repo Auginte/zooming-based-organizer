@@ -566,7 +566,7 @@ class Grid extends Debugable {
       d(s"DiveDown $position | $distance")
       val Position(parent, x, y, scale) = position
       if (distance >= gridSize) {
-        val child = getChild(parent, round8(x).toInt, round8(y).toInt)
+        val child = getChild(parent, round8(x).toByte, round8(y).toByte)
         val _x = (x * gridSize) - (child.x * gridSize) // Higher precision
         val _y = (y * gridSize) - (child.y * gridSize) // Higher precision
         val _distance = distance / gridSize
@@ -610,8 +610,8 @@ class Grid extends Debugable {
       getScaledNode(Position(parent, x, y, scale))
     } else if (isSmaller(pos.scale)) {
       d(s"Scale:Smaller: $pos")
-      val childX = floor(pos.x % gridSize).toInt
-      val childY = floor(pos.y % gridSize).toInt
+      val childX = floor(pos.x % gridSize).toByte
+      val childY = floor(pos.y % gridSize).toByte
       val child = getChild(pos.parent, childX, childY)
       d(s" child=$child")
       val x = (pos.x - childX) * gridSize
@@ -655,7 +655,7 @@ class Grid extends Debugable {
    *
    * Relative position should not go out of gridSize boundaries
    */
-  private def getChild(from: Node, x: Int, y: Int): Node =
+  private def getChild(from: Node, x: Byte, y: Byte): Node =
     from.getChild(x, y) match {
       case Some(node) => node
       case None =>

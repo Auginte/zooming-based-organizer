@@ -1,18 +1,15 @@
 package com.auginte.distribution.orientdb
 
+import com.auginte.distribution.orientdb.Representation.Creator
 import com.auginte.test.UnitSpec
-import com.auginte.zooming.{Node, Grid}
-import com.orientechnologies.orient.core.command.script.OCommandScript
-import com.orientechnologies.orient.core.db.ODatabase.ATTRIBUTES
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
 import TestDbHelpers._
 
 /**
- * Unit tests for [[com.auginte.distribution.orientdb.Position]]
+ * Unit tests for [[com.auginte.distribution.orientdb.Position]] and [[com.auginte.distribution.orientdb]]
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class PositionSpec extends UnitSpec with PositionSpecHelpers{
+class PositionSpec extends UnitSpec {
   "OrientDB Positions storage" when {
     "using as helpers" should {
       "calculate absolute ids from orientdb path" in {
@@ -130,7 +127,7 @@ class PositionSpec extends UnitSpec with PositionSpecHelpers{
       }
     }
     "loading data from database" should {
-      "do nothing is database empty" in {
+      "do nothing if database empty" in {
         val db = newDb
         val grid = newGrid
         val oldRoot = grid.root
@@ -169,16 +166,85 @@ class PositionSpec extends UnitSpec with PositionSpecHelpers{
         val orientDbIds = Position.absoluteIds(db).keys
         assert(orientDbIds === gridIds)
       }
+      "create node and representation objects from fetched data" in {
+          //      n1___________
+          //     /  \          \
+          //    n2  n3___       r4
+          //    |    |   \
+          //    r1   r2   r3
+          val db = newDb
+          val nodeCache = new Cache[Node]
+          val representationCache = new Cache[Representation]
+          val sql = execSql(db) _
+          if (db.countVertices() == 0) {
+            val n1 = newDbNode(db, 0, 0)
+            val n2 = newDbNode(db, -1, -1)
+            val n3 = newDbNode(db, 5, 5)
+            n2.addEdge("Parent", n1)
+            n3.addEdge("Parent", n1)
+            val d1 = Text("hello")
+            val d2 = Text("word")
+            val d3 = Image("some.jpg")
+            val d4 = Image("another.png")
+            d1.representation = Representation(0, 0, 1)
+            d2.representation = Representation(1.1, 2.2, 3.3)
+            d3.representation = Representation(0.1, 0.2, 0.3)
+            d4.representation = Representation(-1, -2, 0.9)
+            val r1 = d1.storeTo(db)
+            val r2 = d2.storeTo(db)
+            val r3 = d3.storeTo(db)
+            val r4 = d4.storeTo(db)
+            r1.addEdge("Inside", n2)
+            r2.addEdge("Inside", n3)
+            r3.addEdge("Inside", n3)
+            r4.addEdge("Inside", n1)
+          }
+          assert(7 === db.countVertices())
+
+          assert(0 === nodeCache.size)
+          assert(0 === representationCache.size)
+          val creator: Creator = {
+            case "Text" => new Text()
+            case "Image" => new Image()
+            case _ => new Representation()
+          }
+          val rows = select("SELECT @rid, x, y, in_Parent, in_Inside FROM Node")
+          val nodes = Node.load(db, rows)(nodeCache)
+          assert(3 === nodeCache.size)
+          assert(3 === nodes.size)
+          for (node <- nodes) {
+            val representations = node.representations(creator)(representationCache)
+            node match {
+              case Node(x, y) if x == 0 && y == 0 => // n1
+                assert(None === node.parent)
+                assert(2 === node.children.size)
+                assert(1 === representations.size)
+                representations.head match {
+                  case Image(path, r) if Representation(-1.0, -2.0, 0.9) == r => assert("another.png" === path)
+                  case r => fail(s"Not n1<-r4 representation: $r")
+                }
+              case Node(x, y) if x == -1 && y == -1 => // n2
+                assert(node.parent.isDefined)
+                assert(node.children.isEmpty)
+                assert(1 === representations.size)
+                representations.head match {
+                  case Text(text, r) if Representation(0, 0, 1) == r => assert("hello" === text)
+                  case r => fail(s"Not n2<-r1 representation: $r")
+                }
+              case Node(x, y) if x == 5 && y == 5 => // n3
+                assert(node.parent.isDefined)
+                assert(node.children.isEmpty)
+                assert(2 === representations.size)
+                representations.head match {
+                  case Text(text, r) if Representation(1.1, 2.2, 3.3) == r => assert("word" === text)
+                  case Image(path, r) if Representation(0.1, 0.2, 0.3) == r => assert("some.jpg" === path)
+                  case r => fail(s"Not n3<-r2, n3<-r3 representation: $r")
+                }
+              case n => fail(s"Unknown node: $n")
+            }
+          }
+          assert(4 === representationCache.size)
+      }
     }
   }
-}
-
-trait PositionSpecHelpers {
-  def newGrid = new Grid
-
-  def newDbNode(db: OrientBaseGraph, x: Byte, y: Byte) =
-    db.addVertex("class:Node", "x", Byte.box(x), "y", Byte.box(y))
-
-  // Do not output OLogManager creation and shut down of database
-  System.setProperty("log.console.level", "FINE")
 }

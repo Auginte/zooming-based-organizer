@@ -1,8 +1,10 @@
 package com.auginte.distribution.orientdb
 
+import com.orientechnologies.orient.core.db.record.OIdentifiable
+import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.tinkerpop.blueprints.Vertex
-import com.tinkerpop.blueprints.impls.orient.OrientVertex
+import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
 import scala.language.implicitConversions
 import java.{lang => jl}
 import scala.collection.JavaConversions.iterableAsScalaIterable
@@ -81,33 +83,57 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
   }
 
   override def toString = s"{Representation: x=$x, y=$y, scale=$scale}"
-}
 
-object Representation {
-  type Creator = (String) => Representation
 
-  def apply(data: ODocument) = new Representation() {
-    persisted = data
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Representation]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: Representation =>
+      (that canEqual this) &&
+        x == that.x &&
+        y == that.y &&
+        scale == that.scale
+    case _ => false
   }
 
-  def apply(data: OrientVertex): Representation = apply(data.getRecord)
+  override def hashCode(): Int = {
+    val state = Seq(_x, _y, _scale)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+
+object Representation extends DefaultCache[Representation] {
+  type Creator = (String) => Representation
+
+  type Cached = Cache[Representation]
+
+  def apply(data: OrientVertex): Representation = new Representation() {
+    persisted = data
+  }
 
   def apply(x: Double, y: Double, scale: Double) = new Representation(x, y, scale)
 
   def unapply(r: Representation): Option[(Double, Double, Double)] = Some((r.x, r.y, r.scale))
 
-  def load(rows: jl.Iterable[Vertex], creator: Creator): Iterable[Representation] =
-    load(toOrientVertex(rows), creator)
+  def loadAll(rows: jl.Iterable[_ <: Vertex], creator: Creator)(implicit cache: Cached = defaultCache): Iterable[Representation] =
+    toOrientVertex(rows) map (load(_, creator))
 
-
-  private def toOrientVertex(rows: jl.Iterable[Vertex]) = iterableAsScalaIterable(rows) flatMap {
+  private def toOrientVertex(rows: jl.Iterable[_ <: Vertex]) = iterableAsScalaIterable(rows) flatMap {
     case v: OrientVertex => Some(v)
     case _ => None
   }
 
-  def load(rows: Iterable[OrientVertex], creator: Creator): Iterable[Representation] = rows.map { v =>
-    val representationByClass = creator(v.getProperty[String]("@class"))
-    representationByClass.persisted = v.getRecord
+  def load(vertex: OrientVertex, creator: Creator)(implicit cache: Cached = defaultCache): Representation = {
+    val representationByClass = creator(vertex.getRecord.getClassName)
+    representationByClass.persisted = vertex
+    cache += vertex.getRecord -> representationByClass
     representationByClass
   }
+
+  def loadDocuments(storage: OrientBaseGraph, rows: Iterable[ODocument], creator: Creator): Iterable[Representation] =
+    rows.map { document =>
+      val representationByClass = creator(document.field[String]("@class"))
+      representationByClass.persisted = storage.getVertex(document)
+      representationByClass
+    }
 }

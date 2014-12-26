@@ -2,7 +2,8 @@ package com.auginte.distribution.orientdb
 
 import java.{lang => jl}
 
-import com.auginte.zooming.{Node, Grid}
+import com.auginte.zooming
+import com.auginte.zooming.Grid
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.tinkerpop.blueprints.Vertex
@@ -19,9 +20,9 @@ object Position {
   val propertySeparator = ","
 
   def store(grid: Grid, db: OrientBaseGraph): Unit = {
-    val newVertex = (x: Int, y: Int) => db.addVertex("class:Node", "x", Byte.box(x.toByte), "y", Byte.box(y.toByte))
+    val newVertex = (x: Byte, y: Byte) => db.addVertex("class:Node", "x", Byte.box(x), "y", Byte.box(y))
     val nodes = grid.flatten
-    val node2vertex: Map[Node, OrientVertex] = nodes.map(node => node -> newVertex(node.x, node.y)).toMap
+    val node2vertex: Map[zooming.Node, OrientVertex] = nodes.map(node => node -> newVertex(node.x, node.y)).toMap
     for (parent <- nodes; child <- parent.children) {
       node2vertex(child).addEdge("Parent", node2vertex(parent))
     }
@@ -46,7 +47,7 @@ object Position {
       """.stripMargin)
     val nodes = db.command(traverseNodesQuery).execute[jl.Iterable[Vertex]]()
     if (nodes.nonEmpty) {
-      val rid2node = new mutable.HashMap[String, Node]()
+      val rid2node = new mutable.HashMap[String, zooming.Node]()
       for ((v, key) <- nodes.zipWithIndex) {
         val (currentRID, parentRID) = getRids(v.getProperty[String]("$path"))
         if (parentRID == noParentRID) {
@@ -60,8 +61,8 @@ object Position {
     }
   }
 
-  def absoluteIds(positions: Grid): Map[String, Node] = {
-    val node2pos = new mutable.HashMap[Node, String]()
+  def absoluteIds(positions: Grid): Map[String, zooming.Node] = {
+    val node2pos = new mutable.HashMap[zooming.Node, String]()
     val nodes = positions.flatten
     nodes.foreach(n => node2pos.put(n, position(n)))
     Map(nodes.map(n => parents2absoluteIds(n) -> n): _*)
@@ -89,15 +90,15 @@ object Position {
   private[orientdb] def path2absoluteIds(path: String, rid2pos: collection.Map[String, String]): String =
     path.split("\\.in_Parent\\[\\d+\\]").map(inBrackets).map(rid2pos).mkString(nodeSeparator)
 
-  private[orientdb] def parents2absoluteIds(node: Node): String = {
-    def absoluteIds(node: Node, result: String): String = node.parent match {
+  private[orientdb] def parents2absoluteIds(node: zooming.Node): String = {
+    def absoluteIds(node: zooming.Node, result: String): String = node.parent match {
       case Some(n) => absoluteIds(n, position(n) + nodeSeparator + result)
       case None => result
     }
     absoluteIds(node, position(node))
   }
 
-  private def position(n: Node): String = n.x + propertySeparator + n.y
+  private def position(n: zooming.Node): String = n.x + propertySeparator + n.y
 
   private def position(v: Vertex): String = v.getProperty[Byte]("x") + propertySeparator + v.getProperty[Byte]("y")
 

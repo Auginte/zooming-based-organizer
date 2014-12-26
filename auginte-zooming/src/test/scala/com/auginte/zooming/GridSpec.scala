@@ -1486,7 +1486,7 @@ class GridSpec extends UnitSpec with NodeAssertions {
     (grid.root, grid)
   }
 
-  private def importedNode(x: Int, y: Int, _parentId: String, id: String): ImportedNode = new Node(x, y) with WithParentId {
+  private def importedNode(x: Byte, y: Byte, _parentId: String, id: String): ImportedNode = new Node(x, y) with WithParentId {
     override val parentId: String = _parentId
 
     override val storageId: String = id

@@ -10,6 +10,7 @@ package com.auginte.common
 trait WithId {
   /**
    * Unique 32 chars size lower case hex id. E.g. 2cb1a090dd08aecffdb51561ab2b7200
+   * @deprecated moving to OrientDb storage with delegating methods.
    */
   val storageId: String = f"$longUniqueHexNumber%-32s".replaceAll(" ", "0")
 

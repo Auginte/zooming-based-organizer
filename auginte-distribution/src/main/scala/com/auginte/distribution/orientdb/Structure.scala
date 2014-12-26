@@ -1,5 +1,6 @@
 package com.auginte.distribution.orientdb
 
+import com.orientechnologies.orient.core.intent.OIntentMassiveInsert
 import com.orientechnologies.orient.core.metadata.schema.{OSchema, OType, OClass}
 import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientGraphNoTx}
 
@@ -29,8 +30,9 @@ import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientGraphNoTx}
  * }}}
  */
 object Structure {
-  def createRepository(path: String, connectionType: String = "plocal"): OrientBaseGraph = {
-    val database = new OrientGraphNoTx(s"$connectionType:$path")
+  def createRepository(path: String, connectionType: String = "plocal",
+                       user: String = "admin", password: String = "admin"): OrientBaseGraph = {
+    val database = new OrientGraphNoTx(s"$connectionType:$path", user, password)
     val schema = database.getRawGraph.getMetadata.getSchema
     val node = createdNodeVertex(schema)
     val parent = createdParentEdge(schema)

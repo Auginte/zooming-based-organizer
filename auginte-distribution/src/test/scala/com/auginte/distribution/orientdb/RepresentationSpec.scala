@@ -69,7 +69,7 @@ class RepresentationSpec extends UnitSpec {
         val query = new OCommandSQL("SELECT FROM Representation WHERE scale > 4")
         val results = db.command(query).execute[jl.Iterable[OrientVertex]]()
 
-        val representations = Representation.load(results, representationCreator).toList
+        val representations = Representation.loadAll(results, representationCreator).toList
         assert(2 === representations.size)
         assert(4.4 === representations(0).x)
         assert(5.5 === representations(0).y)
@@ -90,7 +90,7 @@ class RepresentationSpec extends UnitSpec {
         sql("CREATE VERTEX Representation, set x=7.7, y=8.8")
         val select = selectVertex(db) _
         val results = select("SELECT FROM Representation")
-        val representations = Representation.load(results, representationCreator).toList
+        val representations = Representation.loadAll(results, representationCreator).toList
 
         val precision = floatToDoublePrecision
         assert(withPrecision(4.4, representations(0).x, precision))
@@ -102,7 +102,7 @@ class RepresentationSpec extends UnitSpec {
 
         representations(1).scale = 1.23
         val results2 = select("SELECT FROM Representation WHERE scale < 4")
-        val representations2 = Representation.load(results2, representationCreator).toList
+        val representations2 = Representation.loadAll(results2, representationCreator).toList
         assert(withPrecision(1.23, representations2(0).scale, precision))
       }
     }
@@ -140,7 +140,7 @@ class RepresentationSpec extends UnitSpec {
           case "Image" => new Image()
           case _ => new Representation()
         }
-        val representations = Representation.load(db.getVertices, creator).toList
+        val representations = Representation.loadAll(db.getVertices, creator).toList
         assert(3 === representations.size)
         representations.foreach {
           case Image(path, representation) =>

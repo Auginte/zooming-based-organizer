@@ -17,7 +17,7 @@ class Image(var _path: String = "") extends Representation {
 
     def path_=(path: String): Unit = set[String]("path", path, _path = _)
 
-    override def toString = "{Image: path=" + path + " {" + super.toString + "}}"
+    override def toString = "{Image: path=" + path + " " + super.toString + "}"
 }
 
 object Image {
