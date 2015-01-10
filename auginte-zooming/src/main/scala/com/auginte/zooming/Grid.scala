@@ -293,7 +293,7 @@ class Grid extends Debugable {
   /**
    * Absolute position between nodes from first node perspective.
    */
-  private[zooming] def absoluteBetweenFirst(from: Node, to: Node): Coordinates = {
+  private[auginte] def absoluteBetweenFirst(from: Node, to: Node): Coordinates = {
     d(s"BTW INPUT#absoluteBetweenFirst#: $from -> $to")
     val parent = getCommonParent(from, to)
     d(s"BTW Parent=$parent")
@@ -344,7 +344,7 @@ class Grid extends Debugable {
       absolute(child, parent, Coordinates(child.x, child.y, 1))
     }
 
-  private def getCommonParent(from: Node, to: Node): Node = {
+  private[auginte] def getCommonParent(from: Node, to: Node): Node = {
     def whileSame(nodes1: List[Node], nodes2: List[Node], same: Node): Node = {
       nodes1 match {
         case head :: tail if nodes2.nonEmpty && head == nodes2.head => whileSame(tail, nodes2.tail, head)

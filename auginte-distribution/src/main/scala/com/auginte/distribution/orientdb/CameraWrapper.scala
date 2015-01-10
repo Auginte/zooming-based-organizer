@@ -3,7 +3,7 @@ package com.auginte.distribution.orientdb
 /**
  * Wraps GUI view to have links to camera and representations
  */
-trait CameraWrapper {
+trait CameraWrapper extends DelayedPersistence {
   private var _camera: Option[Camera] = None
 
   def camera = _camera

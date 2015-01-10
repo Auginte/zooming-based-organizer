@@ -1,6 +1,7 @@
 package com.auginte.distribution.orientdb
 
 import com.auginte.zooming.Grid
+import com.orientechnologies.orient.core.command.script.OCommandScript
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
@@ -25,6 +26,8 @@ object TestDbHelpers {
   def get(db: ODB) = db.getVertices.toList
 
   def execSql(db: ODB)(sql: String) = db.command(new OCommandSQL(sql)).execute[Unit]()
+
+  def scriptSql[A](db: ODB)(sql: String) = db.command(new OCommandScript("sql", sql)).execute[A]()
 
   def selectVertex(db: ODB)(sql: String) = db.command(new OCommandSQL(sql)).execute[jl.Iterable[OrientVertex]]()
 

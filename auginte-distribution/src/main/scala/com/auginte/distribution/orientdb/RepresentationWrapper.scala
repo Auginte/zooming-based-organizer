@@ -4,7 +4,7 @@ package com.auginte.distribution.orientdb
  * Wrapper for data storage, so multiple GUI elements could use same data.
  * So there are 3 layers: GUI <-> storage <-> Database
  */
-trait RepresentationWrapper {
+trait RepresentationWrapper extends DelayedPersistence {
   def storage: Representation
 }
 

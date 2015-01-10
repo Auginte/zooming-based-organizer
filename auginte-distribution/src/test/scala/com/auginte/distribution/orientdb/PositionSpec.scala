@@ -3,6 +3,8 @@ package com.auginte.distribution.orientdb
 import com.auginte.distribution.orientdb.Representation.Creator
 import com.auginte.test.UnitSpec
 import TestDbHelpers._
+import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientDynaElementIterable}
+import scala.collection.JavaConversions._
 
 /**
  * Unit tests for [[com.auginte.distribution.orientdb.Position]] and [[com.auginte.distribution.orientdb]]
@@ -252,6 +254,27 @@ class PositionSpec extends UnitSpec {
         assert(1 === db.countVertices("Node"))
         val root2 = Position.rootNode(db)
         assert(root1.persisted.get === root2.persisted.get)
+      }
+    }
+    "debuging" should {
+      "calculate common parent between nodes" in {
+        val db = newDb
+        val grid = newGrid
+        val script = scriptSql[OrientDynaElementIterable](db) _
+        val vertices = script(
+          """
+            |let left = create vertex Node set x=1, y=2
+            |let right = create vertex Node set x=4, y=3
+            |let top = create vertex Node set x=0, y=0
+            |let leftEdge = create edge Parent from $left to $top
+            |let rightEdge = create edge Parent from $right to $top
+            |return [$left, $top, $right]
+          """.stripMargin).toList
+        val left = Node(vertices(0).asInstanceOf[OrientVertex])
+        val top = Node(vertices(1).asInstanceOf[OrientVertex])
+        val right = Node(vertices(2).asInstanceOf[OrientVertex])
+        val common = grid.getCommonParent(left, right)
+        assert(top === common)
       }
     }
   }

@@ -7,6 +7,7 @@ import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.OCommandSQL
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 
 object CommonSql {
@@ -25,4 +26,5 @@ object CommonSql {
     else proxyIterable[OIdentifiable, ODocument](links, _.getRecord[ODocument])
   }
 
+  def select(sql: String) = new OSQLSynchQuery[ODocument](sql.replace("\n", " ").trim)
 }

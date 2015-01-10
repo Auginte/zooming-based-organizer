@@ -13,7 +13,7 @@ import scalafx.application.Platform
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait Clearing[D <: jfxl.Pane] extends Container[D] with WithContextMenu[D] {
-  protected def clearElements(): Unit = Platform.runLater {
+  def clearElements(): Unit = Platform.runLater {
     d.getChildren.clear()
     withContextMenu()
   }

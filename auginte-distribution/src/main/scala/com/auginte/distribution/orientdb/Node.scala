@@ -12,6 +12,7 @@ import com.orientechnologies.orient.core.record.impl.ODocument
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 import java.{lang => jl}
 import scala.collection.JavaConversions._
+import com.auginte.distribution.orientdb.CommonSql._
 
 /**
  * Representing relative position in infinity zooming,
@@ -22,6 +23,7 @@ import scala.collection.JavaConversions._
 class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] = Node.defaultCache)
   extends zooming.Node(_x, _y) with Persistable[Node] {
 
+  private[auginte] val checkParentsConsistency = false // Useful for testing, but disabled in production
 
   //
   // Structure
@@ -70,6 +72,7 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
         val parentNode = new Node(0, 0, cache)
         val parentVertex = createVertex(Map("x" -> 0.boxed, "y" -> 0.boxed))
         parentNode.persisted = parentVertex
+        cache += parentVertex.getRecord -> parentNode
         reloadAnd(persisted, parentVertex){
           persisted.addEdge("Parent", parentVertex)
         }
@@ -96,10 +99,20 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
   // Representation
   //
 
-  override def isChildOf(distantParent: zooming.Node): Boolean = {
-    //FIXME: useCache
-    true
-  }
+  override def isChildOf(distantParent: zooming.Node): Boolean = if (checkParentsConsistency) distantParent match {
+    case parent: Node if isPersisted && parent.isPersisted =>
+      val sql =
+        s"""
+        |SELECT COUNT(*) AS c FROM (
+        |  TRAVERSE out_Parent
+        |  FROM ${persisted.get.getIdentity}
+        |  WHILE true
+        |) WHERE @rid = ${parent.persisted.get.getIdentity}
+      """.stripMargin
+      val rows = select(sql)
+      if (rows.iterator().hasNext) rows.iterator().next().field[Long]("c") > 0 else false
+    case _ => true
+  } else true
 
   def representations(creator: Creator)(implicit cache: Representation.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
     persisted match {
@@ -117,6 +130,19 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
   // Miscellaneous
   //
 
+
+  override def hashCode(): Int = persisted match {
+    case Some(p) => p.getIdentity.hashCode()
+    case None => super.hashCode()
+  }
+
+  override def equals(o: Any): Boolean = o match {
+    case n: Node if n.isPersisted && isPersisted => persisted.get.getIdentity == n.persisted.get.getIdentity
+    case _ => super.equals(o)
+  }
+
+  override def iterator: Iterator[zooming.Node] = children.iterator
+
   override def toString() = if (isPersisted) s"{ONode: ${persisted.get}}" else "{Node: x=" + x + ", y=" + y + "}"
 }
 
@@ -125,7 +151,18 @@ object Node extends DefaultCache[Node] {
 
   def apply(x: Byte, y: Byte, storage: OrientBaseGraph): Node = new Node(x, y, new Cache())
 
-  def apply(vertex: OrientVertex): Node = new Node() {
+  def apply(n: Node, _checkParentsConsistency: Boolean): Node = new Node(n.x, n.y, n.cache) {
+    override val checkParentsConsistency = _checkParentsConsistency
+
+    n.persisted match {
+      case Some(p) => persisted = p
+      case _ => Unit
+    }
+  }
+
+  def apply(vertex: OrientVertex)(implicit cache: Cached = defaultCache): Node = new Node() {
+    //FIXME: depnedency inection for cache
+    cache += vertex.getRecord -> this
     persisted = vertex
   }
 

@@ -51,6 +51,11 @@ trait Persistable[T] {
   protected def set[A](parameter: String, value: A, default: A => Unit): Unit =
     if (persistedDocument.isDefined) persistedDocument.get.field(parameter, value) else default(value)
 
+  def save(): Boolean = persisted match {
+    case Some(p) => p.save(); true
+    case None => false
+  }
+
   def persisted: Option[OrientVertex] = _persistedVertex
 
   protected def persistedDocument: Option[ODocument] = _persistedDocument

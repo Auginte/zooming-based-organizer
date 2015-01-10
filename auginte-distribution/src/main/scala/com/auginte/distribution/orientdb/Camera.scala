@@ -1,10 +1,7 @@
 package com.auginte.distribution.orientdb
 
-import com.auginte.common.Unexpected
 import com.auginte.distribution.orientdb.CommonSql._
-import com.orientechnologies.orient.core.record.impl.ODocument
-import com.orientechnologies.orient.core.tx.OTransaction
-import com.tinkerpop.blueprints.{Edge, Direction}
+import com.tinkerpop.blueprints.{Direction}
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 import scala.collection.JavaConversions._
 
@@ -66,7 +63,9 @@ object Camera extends DefaultCache[Camera] {
         camera
     }
     def withView(camera: Camera): Camera = {
-      def addView(camera: OrientVertex, node: OrientVertex): Unit = camera.addEdge("View", node)
+      def addView(camera: OrientVertex, node: OrientVertex): Unit =
+        reloadAnd(camera, node)(camera.addEdge("View", node))
+
       rootNode match {
         case Some(node) if camera.persisted.isDefined && node.persisted.isDefined =>
           addView(camera.persisted.get, node.persisted.get)
