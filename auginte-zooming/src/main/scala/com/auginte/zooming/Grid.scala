@@ -69,6 +69,11 @@ class Grid extends Debugable {
   val absolutePrecision = 1000000
   private var _root = newNode(new Node(0, 0))
 
+  def this(root: Node) = {
+    this()
+    _root = root
+  }
+
   //
   // High level absolute coordinate (Node -> absolute) functions
   //

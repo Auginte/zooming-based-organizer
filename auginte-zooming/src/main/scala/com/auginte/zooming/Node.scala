@@ -51,7 +51,7 @@ case class Node(private val _x: Byte, private val  _y: Byte)
   override def iterator: Iterator[Node] = _children.iterator
 
   def selfAndParents: List[Node] = {
-    def getParents(node: Node, list: List[Node]): List[Node] = node._parent match {
+    def getParents(node: Node, list: List[Node]): List[Node] = node.parent match {
       case Some(parent) => getParents(parent, parent :: list)
       case None => list
     }
