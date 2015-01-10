@@ -125,6 +125,19 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
         assert(classMeta(db, "Image").getProperty("x").isMandatory, "Parent class fields")
         assert(classMeta(db, "Image").getProperty("path").isMandatory)
       }
+      "create Camera with View edge to Node" in {
+        val db = Structure.createRepository(testDbName, "memory")
+        assert(true === schema(db).existsClass("Camera"))
+        assert(classMeta(db, "Camera").getProperty("x").isMandatory)
+        assert(classMeta(db, "Camera").getProperty("y").isMandatory)
+        assert(classMeta(db, "Camera").getProperty("scale").isMandatory)
+        assert(true === schema(db).existsClass("View"))
+        val node = db.addVertex("class:Node", "x", Byte.box(1), "y", Byte.box(2))
+        val camera1 = db.addVertex("class:Camera", "x", double(1.1), "y", double(2.2), "scale", double(3.3))
+        val camera2 = db.addVertex("class:Camera", "x", double(3), "y", double(-4), "scale", double(0.9))
+        camera1.addEdge("View", node)
+        camera2.addEdge("View", node)
+      }
     }
     "old database exists" should {
       "add or update fields of Node and Parent" in {

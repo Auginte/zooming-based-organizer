@@ -38,11 +38,17 @@ object Structure {
     val parent = createdParentEdge(schema)
     val representation = createdRepresentationVertex(schema)
     val inside = createdInsideEdge(schema)
+    val vertex = schema.getClass("V")
+    val edge = schema.getClass("E")
+    val camera = createClass(schema, "Camera", vertex)
+    val view = createClass(schema, "View", edge)
     createRawDataVertices(schema)
     ensureNodeVertexConstrains(node)
     ensureParentEdgeConstrains(parent, node)
     ensureRepresentationVertexConstrains(representation)
     ensureInsideEdgeConstrains(inside, representation, node)
+    ensureCameraVertexConstrains(camera)
+    ensureViewEdgeConstrains(view, camera, node)
     database
   }
 
@@ -61,6 +67,7 @@ object Structure {
   private def createdRepresentationVertex(schema: OSchema) = createClass(schema, "Representation", schema.getClass("V"))
 
   private def createdInsideEdge(schema: OSchema) = createClass(schema, "Inside", schema.getClass("E"))
+
 
   private def createClass(schema: OSchema, name: String, parent: OClass) =
     if (schema.existsClass(name)) schema.getClass(name).setSuperClass(parent)
@@ -81,6 +88,11 @@ object Structure {
     ensureConstraints(representation, parameters, OType.DOUBLE)
   }
 
+  private def ensureCameraVertexConstrains(camera: OClass): Unit = {
+    val parameters = List("x", "y", "scale")
+    ensureConstraints(camera, parameters, OType.DOUBLE)
+  }
+
   private def ensureConstraints(document: OClass, parameters: List[String], fieldType: OType) = {
     removeOldProperties(document, parameters)
     parameters.map(document.createProperty(_, fieldType)).foreach { property =>
@@ -99,6 +111,12 @@ object Structure {
     removeOldProperties(inside, List("in", "out"))
     inside.createProperty("in", OType.LINKSET, node)
     inside.createProperty("out", OType.LINK, representation)
+  }
+
+  private def ensureViewEdgeConstrains(view: OClass, camera: OClass, node: OClass): Unit = {
+    removeOldProperties(view, List("in", "out"))
+    view.createProperty("in", OType.LINKSET, node)
+    view.createProperty("out", OType.LINK, camera)
   }
 
   private def removeOldProperties(table: OClass, properties: Seq[String]): Unit =
