@@ -20,7 +20,8 @@ import scalafx.Includes._
  */
 trait View
   extends GridWrapper
-  with CameraWrapper {
+  with CameraWrapper
+{
 
   private val scale = 2
   private val deep = 4

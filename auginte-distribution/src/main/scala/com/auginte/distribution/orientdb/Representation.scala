@@ -86,6 +86,11 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
     scale = r.scale
   }
 
+  def remove(): Unit = persisted match {
+    case Some(persisted) => persisted.remove()
+    case _ => Unit
+  }
+
   override def toString = s"{Representation: x=$x, y=$y, scale=$scale}"
 
 

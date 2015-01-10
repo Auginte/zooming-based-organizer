@@ -1,5 +1,13 @@
 .contextMenu {
-    -fx-background-color: rgba(128, 255, 255, 0.5);
-    -fx-border-width: 1px;
-    -fx-border-color: rgba(0, 128, 128, 1);
+    -fx-text-fill: derive(#d3f0ff, 20%);
+    -fx-background-color: derive(#101b20, 10%);
+}
+.contextMenuButton {
+    -fx-text-fill: derive(#d3f0ff, 30%);
+    -fx-background-color: derive(#101b20, 30%);
+    -fx-background-radius: 0;
+}
+.contextMenuButton:hover {
+    -fx-text-fill: derive(#d3f0ff, 40%);
+    -fx-background-color: derive(#101b20, 40%);
 }

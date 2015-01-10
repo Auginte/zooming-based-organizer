@@ -11,6 +11,7 @@ import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}
 /**
  * Functionality for elements, showing context menu
  *
+ * @deprecated Will not depend on Akka. See [[ContextMenuWrapper]]
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait WithContextMenu[D <: jfxl.Pane] extends Container[D]

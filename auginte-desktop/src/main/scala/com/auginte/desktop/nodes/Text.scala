@@ -16,7 +16,7 @@ import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}
 /**
  * Representing plain text field
  */
-class Text extends RichJPane
+class Text extends Node
 with RepresentationWrapper with ViewWrapper
 with persistable.MouseMove2D[jp] with persistable.MouseScale[jp]
 {
@@ -107,10 +107,6 @@ with persistable.MouseMove2D[jp] with persistable.MouseScale[jp]
   //
   // Operations
   //
-
-  def operations = Map(
-    "Edit" -> ((e: ActionEvent) => editable = true)
-  )
 
   def editable = editMode
 

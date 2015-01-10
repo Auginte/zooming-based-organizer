@@ -1,9 +1,13 @@
 package com.auginte.desktop
 
+import java.awt.Desktop
+import java.net.URI
 import javafx.animation.KeyFrame
 import javafx.scene.layout.{Pane => jp}
 
+import com.auginte.common.SoftwareVersion
 import com.auginte.desktop.nodes.MouseFocusable
+import com.auginte.desktop.operations.{ContextMenu, ContextMenuWrapper}
 import com.auginte.desktop.persistable._
 import com.auginte.desktop.rich.RichSPane
 import com.auginte.distribution.orientdb.Representation
@@ -35,9 +39,11 @@ class RepositoryView extends RichSPane
 with DragableView[jp] with MouseZoom[jp]
 with MouseFocusable[jp]
 with persistable.View
+with persistable.Container
 with CameraWrapper
 with GridWrapper
 with DatabaseWrapper
+with ContextMenuWrapper
 {
 
   val creator: Creator = {
@@ -159,5 +165,24 @@ with DatabaseWrapper
     }
     loading.layoutX <== width / 2 - loading.width / 2
     loading.layoutY <== height / 2 - loading.height / 2
+  }
+
+
+  //
+  // Operations
+  //
+
+  override def operations: Operations = Map(
+    "Exit" -> ((e: ActionEvent) => Auginte.quit()),
+    "Feedback" -> ((e: ActionEvent) => feedback())
+  )
+
+  private def feedback(): Unit = {
+    try {
+      val version = SoftwareVersion.toString
+      Desktop.getDesktop.mail(new URI(s"mailto:aurelijus@auginte.com?subject=Feedback%20$version"))
+    } catch {
+      case e: Exception => Desktop.getDesktop.browse(new URI(s"http://auginte.com/en/contact"))
+    }
   }
 }

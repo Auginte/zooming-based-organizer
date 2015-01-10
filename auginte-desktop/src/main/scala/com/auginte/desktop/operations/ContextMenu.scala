@@ -19,6 +19,8 @@ class ContextMenu extends HBox {
 
   val closeButton = new Button("X") {
     onAction = (e: ActionEvent) => ContextMenu.this.visible = false
+    stylesheets add "css/contextMenu.css"
+    styleClass.add("contextMenuButton")
   }
 
   content = Seq(closeButton)
@@ -31,6 +33,8 @@ class ContextMenu extends HBox {
         element._2(e)
         hide()
       }
+      stylesheets add "css/contextMenu.css"
+      styleClass.add("contextMenuButton")
     }
     content += closeButton
     content.get(0).requestFocus()
