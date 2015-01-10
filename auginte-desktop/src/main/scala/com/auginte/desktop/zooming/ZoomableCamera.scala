@@ -5,7 +5,7 @@ import javafx.scene.{layout => jfxl}
 import com.auginte.desktop.events.ElementUpdated
 import com.auginte.desktop.nodes.InitialSize
 import com.auginte.desktop.rich.RichNode
-import com.auginte.zooming.{AbsoluteDistance, Distance, Node}
+import com.auginte.zooming.{GlobalCoordinates, Coordinates, Node}
 
 import scalafx.Includes._
 import scalafx.event.ActionEvent
@@ -37,14 +37,14 @@ with ZoomableElement {
    * @param y GUI zoom center
    * @return updated coordinates
    */
-  def zoom(amount: Double, x: Double = 0, y: Double): Distance = {
+  def zoom(amount: Double, x: Double = 0, y: Double): Coordinates = {
     position = grid.zoomCamera(position, amount, x, y)
     validateCameraNode()
     position
   }
 
   private def validateCameraNode(): Unit = {
-    val optimized = grid.validateCamera(node, position)
+    val optimized = grid.optimiseCamera(node, position)
     if (node != optimized._1) {
       node = optimized._1
       position = optimized._2
@@ -62,7 +62,7 @@ with ZoomableElement {
    * @param y GUI translation
    * @return updated absolute coordinates
    */
-  override def translate(x: Double, y: Double): Distance = {
+  override def translate(x: Double, y: Double): Coordinates = {
     position = grid.translateCamera(position, x, y)
     if (!equalDouble(x, 0, epsilonTranslate) && !equalDouble(y, 0, epsilonTranslate)) {
       validateCameraNode()
@@ -82,7 +82,7 @@ with ZoomableElement {
    * @param y GUI translation
    * @return updated element's absolute coordinates
    */
-  def translate(element: ZoomableElement, x: Double, y: Double): AbsoluteDistance = {
+  def translate(element: ZoomableElement, x: Double, y: Double): GlobalCoordinates = {
     val (newNode, newTransformation) = grid.translateElement(element.node, element.position, x, y, node, position)
     element.position = newTransformation
     element.node = newNode
@@ -97,7 +97,7 @@ with ZoomableElement {
    * @param scaleDiff amount
    * @return updated element's absolute coordinates
    */
-  def scale(element: ZoomableElement, scaleDiff: Double): AbsoluteDistance = {
+  def scale(element: ZoomableElement, scaleDiff: Double): GlobalCoordinates = {
     val (newNode, newTransformation) = grid.scaleElement(element.node, element.position, scaleDiff)
     element.node = newNode
     element.position = newTransformation
@@ -124,7 +124,7 @@ with ZoomableElement {
    * For every child, converts infinity zooming coordinates to GUI ones
    */
   protected def absoluteToCachedCoordinates(): Unit = if (revalidateZoomable) {
-    def isInBoundaries(pos: Distance): Boolean = {
+    def isInBoundaries(pos: Coordinates): Boolean = {
       pos.x.abs < boundary && pos.y.abs < boundary && pos.scale < boundarySize && pos.scale > 1 / boundarySize
     }
 

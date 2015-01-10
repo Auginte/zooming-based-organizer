@@ -2,7 +2,7 @@ package com.auginte.distribution.data
 
 import com.auginte.distribution.repository.CustomFields
 import com.auginte.transforamtion.Relation
-import com.auginte.zooming.{Node, Distance}
+import com.auginte.zooming.{Node, Coordinates}
 
 /**
  * Place holder for Graphical user interface implementations of Data container
@@ -19,7 +19,7 @@ case class ImportedData(
                          customFields: CustomFields,
                          override var sources: List[Relation] = List()
                          ) extends Data {
-  override def position: Distance = Distance(x, y, scale)
+  override def position: Coordinates = Coordinates(x, y, scale)
 
   override def node: Node = nodePlaceHolder
 

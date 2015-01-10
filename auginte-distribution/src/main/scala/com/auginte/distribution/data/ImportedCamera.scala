@@ -1,6 +1,6 @@
 package com.auginte.distribution.data
 
-import com.auginte.zooming.{Node, Distance}
+import com.auginte.zooming.{Node, Coordinates}
 
 /**
  * Place holder for [[Camera]],
@@ -9,7 +9,7 @@ import com.auginte.zooming.{Node, Distance}
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 case class ImportedCamera(id: String, x: Double, y: Double, scale: Double, nodeId: String) extends Camera {
-  override def position: Distance = Distance(x, y, scale)
+  override def position: Coordinates = Coordinates(x, y, scale)
 
   override def node: Node = nodePlaceHolder
 

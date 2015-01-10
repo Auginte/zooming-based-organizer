@@ -1,7 +1,7 @@
 package com.auginte.distribution.data
 
 import com.auginte.test.UnitSpec
-import com.auginte.zooming.{Node, Distance}
+import com.auginte.zooming.{Node, Coordinates}
 
 /**
  * Unit test for [[com.auginte.distribution.data.Data]]
@@ -30,6 +30,6 @@ class DataSpec extends UnitSpec {
   
   def dataFixture = new Data {
     override def node: Node = Node(0, 0)
-    override def position: Distance = Distance()
+    override def position: Coordinates = Coordinates()
   }
 }

@@ -82,11 +82,11 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val n2 = grid.getNode(n1, 3.23, 5.56, 0.01)
         val n3 = grid.getNode(n1, 99.1, 33.2, 0.01)
         val n4 = grid.getNode(n3, 5, 8, 0.01)
-        val e1 = ZoomableElement(n2, Distance(1.2, 3.4, 1.3))
-        val e2 = ZoomableText(n4, Distance(0, 0, 1), "E2")
-        val e3 = ZoomableText(n4, Distance(0, 0, 1), "E3")
-        val c1 = ZoomableCamera(grid.root, Distance(0, 0, 1))
-        val c2 = ZoomableCamera(n3, Distance(1, 1.2, 0.987654321))
+        val e1 = ZoomableElement(n2, Coordinates(1.2, 3.4, 1.3))
+        val e2 = ZoomableText(n4, Coordinates(0, 0, 1), "E2")
+        val e3 = ZoomableText(n4, Coordinates(0, 0, 1), "E3")
+        val c1 = ZoomableCamera(grid.root, Coordinates(0, 0, 1))
+        val c2 = ZoomableCamera(n3, Coordinates(1, 1.2, 0.987654321))
         val repository = newRepository
         val output = repository.saveToString(grid, list(e1, e2, e3), list(c1, c2))
         val expected = readFile("localStatic/reusing-nodes.json")
@@ -104,11 +104,11 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val n1 = grid.getNode(grid.root, 1.23, -4.56, 0.01)
         val n2 = grid.getNode(n1, 3.23, 5.56, 0.01)
         val n3 = grid.getNode(n1, 99.1, 33.2, 0.01)
-        val e1 = ZoomableElement(n2, Distance(1.2, 3.4, 1.3))
-        val e2 = new ZoomableText(n3, Distance(0, 0, 1), "E2") {
+        val e1 = ZoomableElement(n2, Coordinates(1.2, 3.4, 1.3))
+        val e2 = new ZoomableText(n3, Coordinates(0, 0, 1), "E2") {
           override def sources = List(Relation(e1, Map("type" -> "clone")))
         }
-        val c1 = ZoomableCamera(grid.root, Distance(0, 0, 1))
+        val c1 = ZoomableCamera(grid.root, Coordinates(0, 0, 1))
         val repository = newRepository
         val output = repository.saveToString(grid, list(e1, e2), list(c1))
         val expected = readFile("localStatic/withInnerSources.json")
@@ -145,9 +145,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         val e1 = elements(0).get
         val e2 = elements(2).get
         val e3 = elements(1).get
-        assert(Distance(1.2, 3.4, 1.3) === e1.position)
-        assert(Distance(0, 0, 1) === e2.position)
-        assert(Distance(0, 0, 1) === e3.position)
+        assert(Coordinates(1.2, 3.4, 1.3) === e1.position)
+        assert(Coordinates(0, 0, 1) === e2.position)
+        assert(Coordinates(0, 0, 1) === e3.position)
         assert(n2 === e1.node)
         assert(n4 === e2.node)
         assert(n4 === e3.node)
@@ -157,8 +157,8 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
         assert(2 === views.size)
         val c1 = views(1)
         val c2 = views(0)
-        assert(Distance(0, 0, 1) === c1.position)
-        assert(Distance(1, 1.2, 0.987654321) === c2.position)
+        assert(Coordinates(0, 0, 1) === c1.position)
+        assert(Coordinates(1, 1.2, 0.987654321) === c2.position)
         assert(grid.root === c1.node)
         assert(n3 === c2.node)
       }
@@ -213,7 +213,7 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
   // Helpers
   //
 
-  private val invalidDistance: AbsoluteDistance = (Node(0, 0), Distance())
+  private val invalidDistance: GlobalCoordinates = (Node(0, 0), Coordinates())
 
   private def emptyGrid = new Grid {
     override private[auginte] def newNode: NodeToNode = (n) => new Node(n.x, n.y) with LinearIds
@@ -272,7 +272,7 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
   trait ZeroPosition extends Data {
     override def node: Node = Node(0, 0)
 
-    override def position: Distance = Distance()
+    override def position: Coordinates = Coordinates()
   }
 
   trait LinearIds extends WithId {
@@ -283,11 +283,11 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
     override val supportedFormatVersion = Version("0.0.1-FIXTURE")
   }
 
-  case class ZoomableElement(node: Node, position: Distance = Distance()) extends Data with LinearIds
+  case class ZoomableElement(node: Node, position: Coordinates = Coordinates()) extends Data with LinearIds
 
-  case class ZoomableText(node: Node, position: Distance = Distance(), override val text: String) extends Text with LinearIds
+  case class ZoomableText(node: Node, position: Coordinates = Coordinates(), override val text: String) extends Text with LinearIds
 
-  case class ZoomableCamera(node: Node, position: Distance = Distance()) extends Camera with LinearIds
+  case class ZoomableCamera(node: Node, position: Coordinates = Coordinates()) extends Camera with LinearIds
 
   object LinearIds {
     var id = 0
@@ -300,9 +300,9 @@ class LocalStaticSpec extends UnitSpec with NodeAssertions {
     def reset(): Unit = id = 1
   }
 
-  case class Element(override val storageId: String, node: Node, position: Distance, source: ImportedData) extends Data {
+  case class Element(override val storageId: String, node: Node, position: Coordinates, source: ImportedData) extends Data {
     sources = source.sources
   }
 
-  case class View(override val storageId: String, node: Node, position: Distance, source: ImportedCamera) extends Camera
+  case class View(override val storageId: String, node: Node, position: Coordinates, source: ImportedCamera) extends Camera
 }

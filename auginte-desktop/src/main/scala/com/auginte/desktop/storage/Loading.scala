@@ -22,14 +22,14 @@ import scalafx.application.Platform
 trait Loading[D <: jfxl.Pane] extends UsingRepository
 with Clearing[D]
 with Camera with ZoomableElement {
-  private def defaultCamera: AbsoluteDistance = (grid.root, Distance(0, 0, 1))
+  private def defaultCamera: GlobalCoordinates = (grid.root, Coordinates(0, 0, 1))
 
   private val elementCreator =
     (data: ImportedData, map: IdToRealNode) => data match {
       case ImportedData(id, typeName, x, y, scale, nodeId, customFields, sourcePlaceholder) => typeName match {
         case "ag:Text" if customFields.contains("text") =>
           val label = new Label(customFields.getOrElse("text", "")) {
-            position = Distance(x, y, scale)
+            position = Coordinates(x, y, scale)
             if (map.contains(nodeId)) {
               node = map(nodeId)
             } else {
@@ -44,7 +44,7 @@ with Camera with ZoomableElement {
     }
 
   private val cameraCreator =
-    (camera: ImportedCamera, map: IdToRealNode) => (map(camera.nodeId), Distance(camera.x, camera.y, camera.scale))
+    (camera: ImportedCamera, map: IdToRealNode) => (map(camera.nodeId), Coordinates(camera.x, camera.y, camera.scale))
 
   /**
    * Loads elements and grid from file.
@@ -60,8 +60,8 @@ with Camera with ZoomableElement {
   }
 
   protected[desktop] def loadFromStream(input: InputStream): Unit = {
-    def updateCamera(cameras: Seq[AbsoluteDistance]): Unit = {
-      val camera: AbsoluteDistance = if (cameras.nonEmpty) cameras(0) else defaultCamera
+    def updateCamera(cameras: Seq[GlobalCoordinates]): Unit = {
+      val camera: GlobalCoordinates = if (cameras.nonEmpty) cameras(0) else defaultCamera
       node = camera._1
       position = camera._2
     }

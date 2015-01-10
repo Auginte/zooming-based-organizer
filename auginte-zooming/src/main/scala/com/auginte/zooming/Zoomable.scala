@@ -8,5 +8,5 @@ package com.auginte.zooming
 trait Zoomable {
   def node: Node
 
-  def position: Distance
+  def position: Coordinates
 }
