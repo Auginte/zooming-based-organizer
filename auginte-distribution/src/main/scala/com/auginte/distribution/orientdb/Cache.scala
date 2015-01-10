@@ -32,4 +32,6 @@ class Cache[A] {
   def -=(document: ODocument): Unit = _map = _map - document
 
   def -=(wrapper: A): Unit = _map = _map.filterNot(_._2 equals wrapper)
+
+  private[auginte] def clear() = _map = Map()
 }

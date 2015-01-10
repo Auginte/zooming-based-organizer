@@ -1,6 +1,7 @@
 package com.auginte.distribution.orientdb
 
 import com.orientechnologies.orient.core.record.impl.ODocument
+import com.tinkerpop.blueprints.Direction
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 import java.{lang => jl}
 

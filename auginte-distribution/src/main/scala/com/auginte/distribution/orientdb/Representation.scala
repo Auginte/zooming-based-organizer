@@ -1,9 +1,10 @@
 package com.auginte.distribution.orientdb
 
+import com.auginte.common.Unexpected
 import com.orientechnologies.orient.core.db.record.OIdentifiable
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.Vertex
+import com.tinkerpop.blueprints.{Direction, Vertex}
 import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
 import scala.language.implicitConversions
 import java.{lang => jl}
@@ -47,7 +48,9 @@ import scala.collection.JavaConversions.iterableAsScalaIterable
  * }}}
  */
 class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double = 1)
-  extends Persistable[Representation] {
+  extends Persistable[Representation]
+  with NodeLink[Representation]
+  with GlobalCoordinatesWrapper {
 
   import PersistableImplicits._
 
@@ -59,6 +62,7 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
     "scale" -> (_.scale.boxed)
   )
 
+  override protected def nodeEdge: (Direction, String) = (Direction.OUT, "Inside")
 
   def x = get[Double]("x", _x)
 
@@ -102,10 +106,8 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
   }
 }
 
-object Representation extends DefaultCache[Representation] {
-  type Creator = (String) => Representation
-
-  type Cached = Cache[Representation]
+object Representation extends DefaultCache[RepresentationWrapper] {
+  type Creator = (String) => RepresentationWrapper
 
   def apply(data: OrientVertex): Representation = new Representation() {
     persisted = data
@@ -115,7 +117,7 @@ object Representation extends DefaultCache[Representation] {
 
   def unapply(r: Representation): Option[(Double, Double, Double)] = Some((r.x, r.y, r.scale))
 
-  def loadAll(rows: jl.Iterable[_ <: Vertex], creator: Creator)(implicit cache: Cached = defaultCache): Iterable[Representation] =
+  def loadAll(rows: jl.Iterable[_ <: Vertex], creator: Creator)(implicit cache: Cached = defaultCache): Iterable[RepresentationWrapper] =
     toOrientVertex(rows) map (load(_, creator))
 
   private def toOrientVertex(rows: jl.Iterable[_ <: Vertex]) = iterableAsScalaIterable(rows) flatMap {
@@ -123,17 +125,10 @@ object Representation extends DefaultCache[Representation] {
     case _ => None
   }
 
-  def load(vertex: OrientVertex, creator: Creator)(implicit cache: Cached = defaultCache): Representation = {
-    val representationByClass = creator(vertex.getRecord.getClassName)
-    representationByClass.persisted = vertex
-    cache += vertex.getRecord -> representationByClass
-    representationByClass
+  def load(vertex: OrientVertex, creator: Creator)(implicit cache: Cached = defaultCache): RepresentationWrapper = {
+    val wrapperByClass = creator(vertex.getRecord.getClassName)
+    wrapperByClass.storage.persisted = vertex
+    cache += vertex.getRecord -> wrapperByClass
+    wrapperByClass
   }
-
-  def loadDocuments(storage: OrientBaseGraph, rows: Iterable[ODocument], creator: Creator): Iterable[Representation] =
-    rows.map { document =>
-      val representationByClass = creator(document.field[String]("@class"))
-      representationByClass.persisted = storage.getVertex(document)
-      representationByClass
-    }
 }

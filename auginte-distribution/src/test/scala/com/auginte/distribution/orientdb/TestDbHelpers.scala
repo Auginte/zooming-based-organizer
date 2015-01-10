@@ -28,7 +28,7 @@ object TestDbHelpers {
 
   def selectVertex(db: ODB)(sql: String) = db.command(new OCommandSQL(sql)).execute[jl.Iterable[OrientVertex]]()
 
-  def select(sql: String) = new OSQLSynchQuery[ODocument](sql)
+  def select(sql: String) = new OSQLSynchQuery[ODocument](sql.replace("\n", " ").trim)
 
   def withPrecision(a: Double, b: Double, precision: Double) = (a - b).abs < precision
 
@@ -37,7 +37,7 @@ object TestDbHelpers {
   // Do not output OLogManager creation and shut down of database
   System.setProperty("log.console.level", "FINE")
 
-  lazy val representationCreator: Representation.Creator = s => new Representation()
+  lazy val representationCreator: Representation.Creator = s => RepresentationWrapper(new Representation())
 
   def classMeta(db: ODB, className: String) = db.getRawGraph.getMetadata.getSchema.getClass(className)
 

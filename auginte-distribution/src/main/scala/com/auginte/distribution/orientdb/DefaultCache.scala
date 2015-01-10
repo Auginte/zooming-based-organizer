@@ -5,4 +5,6 @@ package com.auginte.distribution.orientdb
  */
 trait DefaultCache[T] {
   var defaultCache: Cache[T] = new Cache[T]
+
+  type Cached = Cache[T]
 }

@@ -2,6 +2,7 @@ package com.auginte.distribution.orientdb
 
 import java.{lang => jl}
 
+import com.auginte.distribution.orientdb.CommonSql._
 import com.auginte.zooming
 import com.auginte.zooming.Grid
 import com.orientechnologies.orient.core.id.ORID
@@ -28,6 +29,9 @@ object Position {
     }
   }
 
+  /**
+   * @deprecated using Node.load
+   */
   def load(db: OrientBaseGraph, grid: Grid): Unit = {
     val noParentRID = ""
     val levelDown = 1.0 / grid.gridSize
@@ -41,7 +45,7 @@ object Position {
       """
         |SELECT $path, x, y FROM (
         |   TRAVERSE in_Parent
-        |   FROM (SELECT FROM Node where out_Parent IS NULL LIMIT 1)
+        |   FROM (SELECT FROM Node WHERE out_Parent IS NULL LIMIT 1)
         |   WHILE true
         |)
       """.stripMargin)
@@ -59,6 +63,20 @@ object Position {
         }
       }
     }
+  }
+
+  def rootNode(db: OrientBaseGraph)(implicit cache: Node.Cached = Node.defaultCache): Node = {
+    def withPersistable(persistable: OrientVertex) = cache(persistable.getRecord) match {
+      case Some(node) => node
+      case None =>
+        val node = new Node()
+        node.persisted = persistable
+        cache += persistable.getRecord -> node
+        node
+    }
+    val nodes = selectVertex(db)("SELECT FROM Node WHERE out_Parent IS NULL LIMIT 1")
+    if (nodes.nonEmpty) withPersistable(nodes.head)
+    else withPersistable(db.addVertex("class:Node", "x", Byte.box(0), "y", Byte.box(0)))
   }
 
   def absoluteIds(positions: Grid): Map[String, zooming.Node] = {

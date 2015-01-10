@@ -1,13 +1,15 @@
 package com.auginte.distribution.orientdb
 
+import com.auginte.common.Unexpected
 import com.auginte.distribution.orientdb.Representation.Creator
 import com.auginte.distribution.orientdb.{Representation => R}
 import com.auginte.zooming
 import com.auginte.zooming.NodeToNode
 import com.orientechnologies.orient.core.db.record.OIdentifiable
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
+import com.orientechnologies.orient.core.exception.OConcurrentModificationException
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
+import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 import java.{lang => jl}
 import scala.collection.JavaConversions._
 
@@ -17,7 +19,7 @@ import scala.collection.JavaConversions._
  * Persisting data to OrientDB.
  * Using cache object for links via OrientDb edges.
  */
-class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] = new Cache[Node])
+class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] = Node.defaultCache)
   extends zooming.Node(_x, _y) with Persistable[Node] {
 
 
@@ -47,17 +49,9 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
 
   override def children: List[zooming.Node] = if (isPersisted) cache(edges("in_Parent")).toList else super.children
 
-  private def edge(field: String): Option[ODocument] = {
-    val links = persistedDocument.get.field[ORidBag](field)
-    if (links == null || links.isEmpty) None
-    else Some(links.iterator().next().getRecord[ODocument])
-  }
+  private def edge(field: String): Option[ODocument] = CommonSql.edge(persistedDocument.get, field)
 
-  private def edges(field: String): Iterable[ODocument] = {
-    val links = persistedDocument.get.field[ORidBag](field)
-    if (links == null || links.isEmpty) EmptyDocumentIterable
-    else proxyIterable[OIdentifiable, ODocument](links, _.getRecord[ODocument])
-  }
+  private def edges(field: String): Iterable[ODocument] = CommonSql.edges(persistedDocument.get, field)
 
   override def getChild(x: Byte, y: Byte): Option[zooming.Node] =
     if (!isPersisted) super.getChild(x, y)
@@ -71,25 +65,30 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
   def sameNode(node: zooming.Node): zooming.Node = node
 
   override protected[auginte] def createParent()(implicit newNode: NodeToNode = sameNode): zooming.Node =
-    if (!isPersisted) super.createParent()(newNode)
-    else {
-      val parentNode = new Node(0, 0, cache)
-      val parentVertex = createVertex(Map("x" -> 0.boxed, "y" -> 0.boxed))
-      parentNode.persisted = parentVertex
-      cache += parentVertex.getRecord -> parentNode
-      persisted.get.addEdge("Parent", parentVertex)
-      newNode(parentNode)
+    persisted match {
+      case Some(persisted) =>
+        val parentNode = new Node(0, 0, cache)
+        val parentVertex = createVertex(Map("x" -> 0.boxed, "y" -> 0.boxed))
+        parentNode.persisted = parentVertex
+        reloadAnd(persisted, parentVertex){
+          persisted.addEdge("Parent", parentVertex)
+        }
+        newNode(parentNode)
+      case None => Unexpected.state(s"Creating parent node from not persisted: $this")
     }
 
   override protected[auginte] def addChild(x: Byte, y: Byte)(implicit newNode: NodeToNode = sameNode): zooming.Node =
-    if (!isPersisted) super.addChild(x, y)(newNode)
-    else {
-      val childNode = new Node(x, y, cache)
-      val childVertex = createVertex(Map("x" -> x.boxed, "y" -> y.boxed))
-      childNode.persisted = childVertex
-      cache += childVertex.getRecord -> childNode
-      childVertex.addEdge("Parent", persisted.get)
-      newNode(childNode)
+    persisted match {
+      case Some(persisted) =>
+        val childNode = new Node(x, y, cache)
+        val childVertex = createVertex(Map("x" -> x.boxed, "y" -> y.boxed))
+        childNode.persisted = childVertex
+        cache += childVertex.getRecord -> childNode
+        reloadAnd(childVertex, persisted){
+          childVertex.addEdge("Parent", persisted)
+        }
+        newNode(childNode)
+      case None => Unexpected.state(s"Creating child node from not persisted: $this")
     }
 
 
@@ -97,9 +96,14 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
   // Representation
   //
 
-  def representations(creator: Creator)(implicit cache: Representation.Cached = R.defaultCache): Iterable[Representation] =
+  override def isChildOf(distantParent: zooming.Node): Boolean = {
+    //FIXME: useCache
+    true
+  }
+
+  def representations(creator: Creator)(implicit cache: Representation.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
     persisted match {
-      case None => EmptyRepresentationIterable
+      case None => EmptyRepresentationStorageIterable
       case Some(persisted) => edges("in_Inside") map { edge =>
         cache(edge) match {
           case Some(cached) => cached
@@ -113,19 +117,21 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
   // Miscellaneous
   //
 
-  override def toString() = "{Node: x=" + x + ", y=" + y + "}"
+  override def toString() = if (isPersisted) s"{ONode: ${persisted.get}}" else "{Node: x=" + x + ", y=" + y + "}"
 }
 
 object Node extends DefaultCache[Node] {
   type Rows = jl.Iterable[ODocument]
 
-  type Cached = Cache[Node]
-
   def apply(x: Byte, y: Byte, storage: OrientBaseGraph): Node = new Node(x, y, new Cache())
+
+  def apply(vertex: OrientVertex): Node = new Node() {
+    persisted = vertex
+  }
 
   def unapply(data: Node) = Some(data.x, data.y)
 
-  def load(storage: OrientBaseGraph, rows: Rows, field: String = "rid")(cache: Cached = defaultCache): Iterable[Node] =
+  def load(storage: OrientBaseGraph, rows: Rows, field: String = "rid")(implicit cache: Cached = defaultCache): Iterable[Node] =
     iterableAsScalaIterable(rows) flatMap { row => try {
       val record = row.field[ODocument](field)
       cache(record) match {
@@ -144,5 +150,5 @@ object Node extends DefaultCache[Node] {
     } catch {
       case e: Exception => None
     }
-  }
+    }
 }

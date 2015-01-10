@@ -174,7 +174,7 @@ class PositionSpec extends UnitSpec {
           //    r1   r2   r3
           val db = newDb
           val nodeCache = new Cache[Node]
-          val representationCache = new Cache[Representation]
+          val representationCache = new Cache[RepresentationWrapper]
           val sql = execSql(db) _
           if (db.countVertices() == 0) {
             val n1 = newDbNode(db, 0, 0)
@@ -204,16 +204,16 @@ class PositionSpec extends UnitSpec {
           assert(0 === nodeCache.size)
           assert(0 === representationCache.size)
           val creator: Creator = {
-            case "Text" => new Text()
-            case "Image" => new Image()
-            case _ => new Representation()
+            case "Text" => RepresentationWrapper(new Text())
+            case "Image" => RepresentationWrapper(new Image())
+            case _ => RepresentationWrapper(new Representation())
           }
           val rows = select("SELECT @rid, x, y, in_Parent, in_Inside FROM Node")
           val nodes = Node.load(db, rows)(nodeCache)
           assert(3 === nodeCache.size)
           assert(3 === nodes.size)
           for (node <- nodes) {
-            val representations = node.representations(creator)(representationCache)
+            val representations = node.representations(creator)(representationCache).map(_.storage)
             node match {
               case Node(x, y) if x == 0 && y == 0 => // n1
                 assert(None === node.parent)
@@ -244,6 +244,14 @@ class PositionSpec extends UnitSpec {
             }
           }
           assert(4 === representationCache.size)
+      }
+      "return or create root node, if not exists" in {
+        val db = newDb
+        assert(0 === db.countVertices("Node"))
+        val root1 = Position.rootNode(db)
+        assert(1 === db.countVertices("Node"))
+        val root2 = Position.rootNode(db)
+        assert(root1.persisted.get === root2.persisted.get)
       }
     }
   }

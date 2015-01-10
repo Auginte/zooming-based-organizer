@@ -4,6 +4,7 @@ import java.{lang => jl}
 
 import com.auginte.distribution.orientdb.Representation.Creator
 import com.auginte.test.UnitSpec
+import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.tinkerpop.blueprints.impls.orient.OrientVertex
 
@@ -38,7 +39,7 @@ class RepresentationSpec extends UnitSpec {
         assert(fetchedRepresentation.getId === representation.persisted.get.getIdentity)
         assert(vertex.getIdentity === representation.persisted.get.getIdentity)
       }
-      "bind to loaded document (update wihout explicit save)" in {
+      "bind to loaded document (update without explicit save)" in {
         val db = newDb
         val representation = Representation(1.1, 2.2, 3.3)
         val crud = representation.storeTo(db)
@@ -57,6 +58,22 @@ class RepresentationSpec extends UnitSpec {
         assert(5.5 == fetched2.getProperty[Double]("y"))
         assert(6.6 == fetched2.getProperty[Double]("scale"))
       }
+      "store edge to Node" in {
+        val db = newDb
+        val node = new Node(1, 2, new Cache[Node])
+        node.storeTo(db)
+        val representation = new Representation(3, 4, 5)
+        representation.storeTo(db)
+        val nodes1 = select("SELECT x, in_Inside FROM Node")
+        assert(null == nodes1.iterator().next().field[ORidBag]("in_Inside"))
+        representation.node = node
+        val nodes2 = select("SELECT x, in_Inside FROM Node")
+        assert(1 === nodes2.iterator().next().field[ORidBag]("in_Inside").size())
+        representation.node = node
+        val nodes3 = select("SELECT x, in_Inside FROM Node")
+        assert(1 === nodes3.iterator().next().field[ORidBag]("in_Inside").size())
+        assert(1 === node.representations(representationCreator).size)
+      }
     }
     "loading from database" should {
       "bind parameters from Orient Document results" in {
@@ -68,8 +85,7 @@ class RepresentationSpec extends UnitSpec {
 
         val query = new OCommandSQL("SELECT FROM Representation WHERE scale > 4")
         val results = db.command(query).execute[jl.Iterable[OrientVertex]]()
-
-        val representations = Representation.loadAll(results, representationCreator).toList
+        val representations = Representation.loadAll(results, representationCreator).toList.map(_.storage)
         assert(2 === representations.size)
         assert(4.4 === representations(0).x)
         assert(5.5 === representations(0).y)
@@ -90,7 +106,7 @@ class RepresentationSpec extends UnitSpec {
         sql("CREATE VERTEX Representation, set x=7.7, y=8.8")
         val select = selectVertex(db) _
         val results = select("SELECT FROM Representation")
-        val representations = Representation.loadAll(results, representationCreator).toList
+        val representations = Representation.loadAll(results, representationCreator).map(_.storage).toList
 
         val precision = floatToDoublePrecision
         assert(withPrecision(4.4, representations(0).x, precision))
@@ -102,7 +118,7 @@ class RepresentationSpec extends UnitSpec {
 
         representations(1).scale = 1.23
         val results2 = select("SELECT FROM Representation WHERE scale < 4")
-        val representations2 = Representation.loadAll(results2, representationCreator).toList
+        val representations2 = Representation.loadAll(results2, representationCreator).map(_.storage).toList
         assert(withPrecision(1.23, representations2(0).scale, precision))
       }
     }
@@ -136,13 +152,13 @@ class RepresentationSpec extends UnitSpec {
         sql("CREATE VERTEX Image, set x=4.4, y=5.5, scale=6.6, path='some.jpg'")
         sql("CREATE VERTEX Text, set x=7.7, y=8.8, scale=9.9, text='hello'")
         val creator: Creator = {
-          case "Text" => new Text()
-          case "Image" => new Image()
-          case _ => new Representation()
+          case "Text" => RepresentationWrapper(new Text())
+          case "Image" => RepresentationWrapper(new Image())
+          case _ => RepresentationWrapper(new Representation())
         }
         val representations = Representation.loadAll(db.getVertices, creator).toList
         assert(3 === representations.size)
-        representations.foreach {
+        representations.map(_.storage).foreach {
           case Image(path, representation) =>
             assert("some.jpg" === path)
             assert(4.4 === representation.x)

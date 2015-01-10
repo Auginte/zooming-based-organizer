@@ -1,7 +1,10 @@
 package com.auginte.distribution
 
+import com.orientechnologies.orient.core.exception.OConcurrentModificationException
 import com.orientechnologies.orient.core.record.impl.ODocument
 import java.{lang => jl}
+
+import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
 
 /**
  * Persisting data to OreintDb database.
@@ -16,6 +19,7 @@ import java.{lang => jl}
  * So it would be easy to go from view object to database and vise versa.
  *
  *
+ * For `View objects`, using [[com.auginte.distribution.orientdb.RepresentationWrapper]]
  * For `Memory data storage`, using [[com.auginte.distribution.orientdb.Persistable]]
  * For storage in database, using [[com.orientechnologies.orient.core.record.impl.ODocument]]
  * For faster relations, using [[com.auginte.distribution.orientdb.Cache]]
@@ -24,7 +28,7 @@ package object orientdb {
 
   private[orientdb] val EmptyDocumentIterable = emptyIterable[ODocument]
 
-  private[orientdb] val EmptyRepresentationIterable = emptyIterable[Representation]
+  private[orientdb] val EmptyRepresentationStorageIterable = emptyIterable[RepresentationWrapper]
 
   private[orientdb] val EmptyNodeIterable = emptyIterable[Node]
 
@@ -45,4 +49,31 @@ package object orientdb {
       override def next(): B = f(original.next())
     }
   }
+
+  val reThrow = (e: Exception) => throw e
+
+  val defaultRetryCount = 10
+
+  def reloadAnd(vertexes: OrientVertex*)(f: => Unit)(implicit retry: Int = defaultRetryCount): Unit = try {
+    vertexes.foreach(_.reload())
+    f
+  } catch {
+    case e: OConcurrentModificationException if retry > 0 => reloadAnd(vertexes: _*)(f)(retry - 1)
+  }
+
+  def inTransaction(db: OrientBaseGraph)(databaseActions: => Unit)(implicit solve: Exception => Unit = reThrow): Unit = {
+    val transaction = db.getRawGraph.getTransaction
+    transaction.begin()
+    try {
+      databaseActions
+      transaction.commit(true)
+    } catch {
+      case e: Exception =>
+        transaction.rollback()
+        solve(e)
+    }
+  }
+
+  def debugFields(record: ODocument): String =
+    record.fieldNames().map(name => s"$name=${record.field(name)}").mkString(s"{$record>", "\t|\t", "}")
 }
