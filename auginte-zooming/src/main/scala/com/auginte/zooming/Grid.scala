@@ -1,8 +1,8 @@
 package com.auginte.zooming
 
-import scala.annotation.tailrec
+import scala.annotation.{elidable, tailrec}
+import scala.annotation.elidable.FINE
 import scala.collection.mutable
-import com.auginte.common.WithParentId
 
 /**
  * Class to ensure infinity scaling and translation.
@@ -354,6 +354,8 @@ class Grid extends Debugable {
     }
     val parentsFrom = from.selfAndParents
     val parentsTo = to.selfAndParents
+    d(s"COMMON PARENT: parentsFrom=$parentsFrom")
+    d(s"COMMON PARENT: parentsTo=$parentsTo")
     whileSame(parentsFrom, parentsTo, parentsFrom.head)
   }
 
@@ -707,6 +709,7 @@ trait Debugable {
   protected val DEBUG_MAX_I = 2000000
   private var debugI = 0
 
+  @elidable(FINE)
   def d(text: String = ""): Unit = {
     if (Debug.on) debugString(text)
     debugI += 1
