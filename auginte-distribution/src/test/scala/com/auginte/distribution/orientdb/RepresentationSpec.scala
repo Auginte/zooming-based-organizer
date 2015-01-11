@@ -6,7 +6,7 @@ import com.auginte.distribution.orientdb.Representation.Creator
 import com.auginte.test.UnitSpec
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.sql.OCommandSQL
-import com.tinkerpop.blueprints.impls.orient.OrientVertex
+import com.tinkerpop.blueprints.impls.orient.{OrientDynaElementIterable, OrientVertex}
 
 import collection.JavaConversions._
 import scala.language.implicitConversions
@@ -194,6 +194,30 @@ class RepresentationSpec extends UnitSpec {
         val divergedVertex = diverged.storage.persisted.get
         assert(textVertex.getIdentity !== divergedVertex.getIdentity)
         assert(textVertex.getRecord === divergedVertex.getRecord.field[ORidBag]("out_Refer").iterator().next())
+      }
+      "get 1st level (closest) representation sources" in {
+        val db = newDb
+        val vertices = scriptSql[OrientDynaElementIterable](db)(
+          """
+            |let derived = create vertex Text set x=1, y=2, scale=3, text="New idea"
+            |let old1 = create vertex Text set x=5, y=5, scale=1, text="Old idea 1"
+            |let old2 = create vertex Text set x=1, y=3, scale=4, text="Old idea 2"
+            |let newest = create vertex Text set x=3, y=1, scale=3, text="Even newer"
+            |let edge1 = create edge Refer from $old1 to $derived
+            |let edge2 = create edge Refer from $old2 to $derived
+            |let edge3 = create edge Refer from $derived to $newest
+            |return [$derived, $old1, $old2, $newest]
+          """.stripMargin).toList
+        val cache: Representation.Cached = new Representation.Cached
+        val creator: Creator = _ => RepresentationWrapper(new Text())
+        val derived = Representation.load(vertices(0).asInstanceOf[OrientVertex], creator)(cache)
+        val old1 = Representation.load(vertices(1).asInstanceOf[OrientVertex], creator)(cache)
+        val old2 = Representation.load(vertices(2).asInstanceOf[OrientVertex], creator)(cache)
+        val newest = Representation.load(vertices(3).asInstanceOf[OrientVertex], creator)(cache)
+        val sources = derived.sourceRepresentations(cache).toSeq
+        assert(Seq(old1, old2) === sources)
+        val derivites = derived.derivedRepresentations(cache)
+        assert(List(newest) === derivites)
       }
     }
   }

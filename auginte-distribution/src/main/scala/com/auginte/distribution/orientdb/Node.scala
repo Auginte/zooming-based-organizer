@@ -114,7 +114,7 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
     case _ => true
   } else true
 
-  def representations(creator: Creator)(implicit cache: Representation.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
+  def representations(creator: Creator)(implicit cache: R.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
     persisted match {
       case None => EmptyRepresentationStorageIterable
       case Some(persisted) => edges("in_Inside") map { edge =>
