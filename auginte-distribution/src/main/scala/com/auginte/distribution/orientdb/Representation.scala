@@ -50,7 +50,8 @@ import scala.collection.JavaConversions.iterableAsScalaIterable
 class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double = 1)
   extends Persistable[Representation]
   with NodeLink[Representation]
-  with GlobalCoordinatesWrapper {
+  with GlobalCoordinatesWrapper
+  with Cloneable {
 
   import PersistableImplicits._
 
@@ -93,6 +94,8 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
 
   override def toString = s"{Representation: x=$x, y=$y, scale=$scale}"
 
+  /** Only shallow cloning */
+  override def clone(): this.type = super.clone().asInstanceOf[this.type]
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[Representation]
 

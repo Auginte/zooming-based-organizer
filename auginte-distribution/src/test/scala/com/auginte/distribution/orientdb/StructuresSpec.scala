@@ -106,7 +106,7 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
         assert(0.9 === after.getProperty[Double]("scale"))
       }
       "suggest Representations can be attached to Nodes " in {
-        val db = Structure.createRepository(testDbName, "memory")
+        val db = newDb
         val node = db.addVertex("class:Node", "x", Byte.box(1), "y", Byte.box(2))
         val r1 = db.addVertex("class:Representation", "x", double(1.1), "y", double(2.2), "scale", double(3.3))
         val r2 = db.addVertex("class:Representation", "x", double(3), "y", double(-4), "scale", double(0.9))
@@ -114,19 +114,19 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
         r2.addEdge("Inside", node)
       }
       "create Text representation with constrains" in {
-        val db = Structure.createRepository(testDbName, "memory")
+        val db = newDb
         assert(true === schema(db).existsClass("Text"))
         assert(classMeta(db, "Text").getProperty("x").isMandatory, "Parent class fields")
         assert(classMeta(db, "Text").getProperty("text").isMandatory)
       }
       "create Image representation constrains" in {
-        val db = Structure.createRepository(testDbName, "memory")
+        val db = newDb
         assert(true === schema(db).existsClass("Image"))
         assert(classMeta(db, "Image").getProperty("x").isMandatory, "Parent class fields")
         assert(classMeta(db, "Image").getProperty("path").isMandatory)
       }
       "create Camera with View edge to Node" in {
-        val db = Structure.createRepository(testDbName, "memory")
+        val db = newDb
         assert(true === schema(db).existsClass("Camera"))
         assert(classMeta(db, "Camera").getProperty("x").isMandatory)
         assert(classMeta(db, "Camera").getProperty("y").isMandatory)
@@ -137,6 +137,16 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
         val camera2 = db.addVertex("class:Camera", "x", double(3), "y", double(-4), "scale", double(0.9))
         camera1.addEdge("View", node)
         camera2.addEdge("View", node)
+      }
+      "create Refer edge fore represenation to representation" in {
+        val db = newDb
+        assert(true === schema(db).existsClass("Refer"))
+        scriptSql[Unit](db)(
+          """
+            |let source = create vertex Text set x=0, y=0, scale=1, text="Drawing to learn easier"
+            |let idea = create vertex Text set x=50, y=50, scale=1.1, text="Prototype in Java"
+            |create edge Refer from $idea to $source
+          """.stripMargin)
       }
     }
     "old database exists" should {

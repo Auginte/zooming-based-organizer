@@ -19,7 +19,7 @@ import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientGraphNoTx}
  *  ^
  *  : Inside
  *  :
- * Representation (x, y, scale)
+ * Representation (x, y, scale) <----- Refer ----- Representation
  * }}}
  *
  * Type hierarchy:
@@ -42,6 +42,7 @@ object Structure {
     val edge = schema.getClass("E")
     val camera = createClass(schema, "Camera", vertex)
     val view = createClass(schema, "View", edge)
+    val refer = createClass(schema, "Refer", edge)
     createRawDataVertices(schema)
     ensureNodeVertexConstrains(node)
     ensureParentEdgeConstrains(parent, node)
@@ -49,6 +50,7 @@ object Structure {
     ensureInsideEdgeConstrains(inside, representation, node)
     ensureCameraVertexConstrains(camera)
     ensureViewEdgeConstrains(view, camera, node)
+
     database
   }
 
@@ -117,6 +119,12 @@ object Structure {
     removeOldProperties(view, List("in", "out"))
     view.createProperty("in", OType.LINKSET, node)
     view.createProperty("out", OType.LINK, camera)
+  }
+
+  private def ensureReferEdgeConstrains(refer: OClass, representation: OClass): Unit = {
+    removeOldProperties(refer, List("in", "out"))
+    refer.createProperty("in", OType.LINKSET, representation)
+    refer.createProperty("out", OType.LINKSET, representation)
   }
 
   private def removeOldProperties(table: OClass, properties: Seq[String]): Unit =

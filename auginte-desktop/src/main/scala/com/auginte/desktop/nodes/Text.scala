@@ -104,6 +104,8 @@ with persistable.MouseMove2D[jp] with persistable.MouseScale[jp]
   //    label
   //  }
 
+  override def cloned: this.type = clone().asInstanceOf[this.type]
+
   //
   // Operations
   //

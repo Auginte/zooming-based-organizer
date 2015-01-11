@@ -177,5 +177,24 @@ class RepresentationSpec extends UnitSpec {
         }
       }
     }
+    "using source tracking" should {
+      "duplicate representation, while keeping reference to the source" in {
+        val db = newDb
+        val textStorage = new Text("Test")
+        textStorage.representation = Representation(1.2, 3.4, 5.6)
+        textStorage.storeTo(db)
+        val text = RepresentationWrapper(textStorage)
+        val diverged = text.copyLinked
+        val divergedStorage = diverged.storage.asInstanceOf[Text]
+        assert(textStorage.text === divergedStorage.text)
+        assert(text.storage.x === diverged.storage.x)
+        assert(text.storage.y === diverged.storage.y)
+        assert(text.storage.scale === diverged.storage.scale)
+        val textVertex = text.storage.persisted.get
+        val divergedVertex = diverged.storage.persisted.get
+        assert(textVertex.getIdentity !== divergedVertex.getIdentity)
+        assert(textVertex.getRecord === divergedVertex.getRecord.field[ORidBag]("out_Refer").iterator().next())
+      }
+    }
   }
 }

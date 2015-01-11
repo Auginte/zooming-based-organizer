@@ -74,6 +74,14 @@ package object orientdb {
     }
   }
 
+  def duplicatedRecord(source: OrientVertex): OrientVertex = {
+    val className = source.getProperty[String]("@class")
+    val parameters = source.getRecord.fieldNames().map { key =>
+      List(key, source.getProperty[Object](key))
+    }.flatten.toList
+    source.getGraph.addVertex(s"class:$className", parameters: _*)
+  }
+
   def debugFields(record: ODocument): String =
     record.fieldNames().map(name => s"$name=${record.field(name)}").mkString(s"{$record>", "\t|\t", "}")
 }
