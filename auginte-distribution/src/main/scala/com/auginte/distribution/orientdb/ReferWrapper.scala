@@ -9,20 +9,24 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex
  */
 trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
 
+  type SelfRepresentation = Self with RepresentationWrapper
+
   def storage: Persistable[A]
 
-  def cloned: Self
+  def cloned: SelfRepresentation
 
-  def copyLinked(swap: Boolean = false): Self = storage.persisted match {
-    case Some(sourceData) =>
-      val duplicated = cloned
-      val targetData = duplicatedRecord(sourceData)
-      if (swap) saveReference(targetData, sourceData) else saveReference(sourceData, targetData)
-      List(sourceData, targetData).foreach(_.save())
-      duplicated.storage.persisted = targetData
-      duplicated
-    case _ => Unexpected.state(s"Duplicating not persisted element: $this")
-  }
+  def copyLinked(swap: Boolean = false)(implicit cache: R.Cached = R.defaultCache): SelfRepresentation =
+    storage.persisted match {
+      case Some(sourceData) =>
+        val duplicated = cloned
+        val targetData = duplicatedRecord(sourceData)
+        if (swap) saveReference(targetData, sourceData) else saveReference(sourceData, targetData)
+        List(sourceData, targetData).foreach(_.save())
+        duplicated.storage.persisted = targetData
+        cache += targetData.getRecord -> duplicated
+        duplicated
+      case _ => Unexpected.state(s"Duplicating not persisted element: $this")
+    }
 
   private def saveReference(source: OrientVertex, target: OrientVertex): Unit = reloadAnd(source, target) {
       target.addEdge("Refer", source)

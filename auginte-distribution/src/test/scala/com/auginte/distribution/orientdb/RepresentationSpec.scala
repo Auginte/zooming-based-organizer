@@ -224,9 +224,8 @@ class RepresentationSpec extends UnitSpec {
         val node = new Node(1, 2, new Cache[Node])
         node.storeTo(db)
         val representation = new Representation(3, 4, 5)
-        representation.node = node
         representation.storeTo(db)
-        val creator: Creator = _ => RepresentationWrapper(new Text())
+        representation.node = node
         val text = RepresentationWrapper(representation)
         val derived = text.copyLinked()
         assert(text.storage.node === derived.storage.node)

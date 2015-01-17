@@ -17,6 +17,7 @@ trait MouseTransform extends RichJPane
   with ViewWrapper
   with operations.MouseMove2D[jfxl.Pane]
   with operations.MouseMoveElement2D[jfxl.Pane]
+  with MouseRenderingConnections
 {
   mousePressed += ((e: MouseEvent) => if (!elementBeingDragged && transformationCondition(e)) createTransformed(e))
 

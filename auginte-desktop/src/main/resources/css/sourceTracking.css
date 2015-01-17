@@ -1,0 +1,5 @@
+.referLine {
+    -fx-stroke: derive(#d3f0ff, -70%);
+    -fx-stroke-dash-array: 12 2;
+    -fx-stroke-line-cap: butt;
+}

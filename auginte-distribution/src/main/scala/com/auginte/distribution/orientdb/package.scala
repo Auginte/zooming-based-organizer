@@ -109,7 +109,11 @@ package object orientdb {
       case properties => 'simple
     })
     val duplicatedVertex = duplicateSimpleFields(groupedParameters('simple))
-    withEdges(duplicatedVertex, groupedParameters('complex))
+    if (groupedParameters.contains('complex)) {
+      withEdges(duplicatedVertex, groupedParameters('complex))
+    } else {
+      duplicatedVertex
+    }
   }
 
   private def toIterable(i: OrientElementIterable[_]): Iterable[OrientVertex] =

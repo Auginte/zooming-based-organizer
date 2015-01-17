@@ -45,6 +45,7 @@ with CameraWrapper
 with GridWrapper
 with DatabaseWrapper
 with ContextMenuWrapper
+with RenderingConnections
 {
 
   val creator: Creator = {
