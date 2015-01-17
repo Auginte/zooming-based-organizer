@@ -31,6 +31,8 @@ object TestGuiHelpers {
 
     override def storage: orientdb.Representation = _data
 
+    def cloned: RepresentationWrapper = this.clone().asInstanceOf[this.type]
+
     view = _view
   }
 

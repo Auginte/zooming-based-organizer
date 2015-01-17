@@ -13,17 +13,18 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
 
   def cloned: Self
 
-  def copyLinked: Self = storage.persisted match {
+  def copyLinked(swap: Boolean = false): Self = storage.persisted match {
     case Some(sourceData) =>
       val duplicated = cloned
       val targetData = duplicatedRecord(sourceData)
-      saveReference(sourceData, targetData)
+      if (swap) saveReference(targetData, sourceData) else saveReference(sourceData, targetData)
+      List(sourceData, targetData).foreach(_.save())
       duplicated.storage.persisted = targetData
       duplicated
     case _ => Unexpected.state(s"Duplicating not persisted element: $this")
   }
 
-  private def saveReference(source: OrientVertex, target: OrientVertex): Unit = reloadAnd(source){
+  private def saveReference(source: OrientVertex, target: OrientVertex): Unit = reloadAnd(source, target) {
       target.addEdge("Refer", source)
       target.save()
     }

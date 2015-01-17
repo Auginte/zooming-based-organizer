@@ -184,7 +184,7 @@ class RepresentationSpec extends UnitSpec {
         textStorage.representation = Representation(1.2, 3.4, 5.6)
         textStorage.storeTo(db)
         val text = RepresentationWrapper(textStorage)
-        val diverged = text.copyLinked
+        val diverged = text.copyLinked()
         val divergedStorage = diverged.storage.asInstanceOf[Text]
         assert(textStorage.text === divergedStorage.text)
         assert(text.storage.x === diverged.storage.x)
@@ -218,6 +218,18 @@ class RepresentationSpec extends UnitSpec {
         assert(Seq(old1, old2) === sources)
         val derivites = derived.derivedRepresentations(cache)
         assert(List(newest) === derivites)
+      }
+      "preserve edge to Node, while duplicating" in {
+        val db = newDb
+        val node = new Node(1, 2, new Cache[Node])
+        node.storeTo(db)
+        val representation = new Representation(3, 4, 5)
+        representation.node = node
+        representation.storeTo(db)
+        val creator: Creator = _ => RepresentationWrapper(new Text())
+        val text = RepresentationWrapper(representation)
+        val derived = text.copyLinked()
+        assert(text.storage.node === derived.storage.node)
       }
     }
   }

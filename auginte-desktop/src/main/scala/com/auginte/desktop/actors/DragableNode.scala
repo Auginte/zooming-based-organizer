@@ -15,7 +15,7 @@ import com.auginte.desktop.zooming.ZoomableNode
  */
 trait DragableNode[D <: jfxs.Node] extends ViewableNode
 with MouseMove2D[D] with ZoomableNode[D] {
-  override protected def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
+  override def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
     view ! MoveElement(d, this, diffX, diffY)
   }
 }

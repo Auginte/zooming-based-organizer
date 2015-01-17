@@ -12,9 +12,9 @@ trait RepresentationWrapper
 }
 
 object RepresentationWrapper {
-  private[orientdb] def apply(f: => Representation): RepresentationWrapper = withValue(f)
+  private[auginte] def apply(f: => Representation): RepresentationWrapper = withValue(f)
 
-  private def withValue(value: Representation): RepresentationWrapper = new RepresentationWrapper {
+  private[orientdb] def withValue(value: Representation): RepresentationWrapper = new RepresentationWrapper {
     override def storage: Representation = value
 
     def cloned: RepresentationWrapper = withValue(value.clone())

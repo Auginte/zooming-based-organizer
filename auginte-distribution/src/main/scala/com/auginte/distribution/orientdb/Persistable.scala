@@ -62,7 +62,7 @@ trait Persistable[T] {
 
   protected final def isPersisted = _persistedVertex.isDefined && _persistedDocument.isDefined
 
-  protected[orientdb] def persisted_=(vertex: OrientVertex): Unit = {
+  protected[auginte] def persisted_=(vertex: OrientVertex): Unit = {
     _persistedVertex = Some(vertex)
     _persistedDocument = Some(vertex.getRecord)
   }

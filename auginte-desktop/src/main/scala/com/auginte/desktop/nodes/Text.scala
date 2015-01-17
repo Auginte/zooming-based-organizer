@@ -3,7 +3,8 @@ package com.auginte.desktop.nodes
 import javafx.scene.layout.{Pane => jp}
 import javafx.scene.{text => jfxt, control => jfxc}
 
-import com.auginte.desktop.persistable.ViewWrapper
+import com.auginte.common.Unexpected
+import com.auginte.desktop.persistable.{MouseTransform, ViewWrapper}
 import com.auginte.desktop.rich.RichJPane
 import com.auginte.distribution.orientdb.{GlobalCoordinatesWrapper, RepresentationWrapper}
 import com.auginte.distribution.{orientdb => o}
@@ -19,6 +20,7 @@ import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}
 class Text extends Node
 with RepresentationWrapper with ViewWrapper
 with persistable.MouseMove2D[jp] with persistable.MouseScale[jp]
+with MouseTransform
 {
   private var _data = new o.Text()
 
@@ -104,7 +106,14 @@ with persistable.MouseMove2D[jp] with persistable.MouseScale[jp]
   //    label
   //  }
 
-  override def cloned: this.type = clone().asInstanceOf[this.type]
+  override def cloned: Text = {
+    val newElement = new Text()
+    newElement.text = this.text
+    newElement.storage.persisted = this.storage.persisted.getOrElse(Unexpected.state(s"Clone without persisted $this"))
+    newElement.view = view.getOrElse(Unexpected.state(s"Cloning from without view $this"))
+    newElement.updateDbToCached()
+    newElement
+  }
 
   //
   // Operations

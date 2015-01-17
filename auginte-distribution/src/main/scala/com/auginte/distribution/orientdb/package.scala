@@ -1,10 +1,16 @@
 package com.auginte.distribution
 
+import com.auginte.common.Unexpected
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException
 import com.orientechnologies.orient.core.record.impl.ODocument
 import java.{lang => jl}
+import com.tinkerpop.blueprints.Element
 
-import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
+import scala.collection.JavaConversions._
+
+import com.tinkerpop.blueprints.impls.orient.{OrientElementIterable, OrientBaseGraph, OrientVertex}
+
+import scala.language.implicitConversions
 
 /**
  * Persisting data to OreintDb database.
@@ -74,13 +80,46 @@ package object orientdb {
     }
   }
 
-  def duplicatedRecord(source: OrientVertex): OrientVertex = {
-    val className = source.getProperty[String]("@class")
-    val parameters = source.getRecord.fieldNames().map { key =>
-      List(key, source.getProperty[Object](key))
-    }.flatten.toList
-    source.getGraph.addVertex(s"class:$className", parameters: _*)
+  def duplicatedRecord(source: OrientVertex)(implicit ignoreEdges: List[String] = List("Refer")): OrientVertex = {
+    def duplicateSimpleFields(parameters: Array[List[Object]]) = {
+      val className = source.getProperty[String]("@class")
+      source.getGraph.addVertex(s"class:$className", parameters.flatten: _*)
+    }
+
+    def withEdges(target: OrientVertex, parameters: Array[List[Object]]): OrientVertex = {
+      val edge = "(.+)_(.+)".r
+      parameters.foreach {
+        case List(key: String, edges: OrientElementIterable[_]) => key match {
+          case edge("out", name) if !ignoreEdges.contains(name) =>
+            toIterable(edges).foreach(linked => target.addEdge(name, linked))
+          case edge("in", name) if !ignoreEdges.contains(name)=>
+            toIterable(edges).foreach(linked => linked.addEdge(name, target))
+          case _ => Unexpected.state(s"Not in-out edge: $key: $edges")
+        }
+        case other => Unexpected.state(s"Not complex property: $other")
+      }
+      target
+    }
+
+    val ignoredFields = ignoreEdges.map(name => List(s"in_$name", s"out_$name")).flatten
+    val usefulFields = source.getRecord.fieldNames().filterNot(ignoredFields.contains)
+    val allParameters = usefulFields.map(key => List(key, source.getProperty[Object](key)))
+    val groupedParameters = allParameters.groupBy(_(1) match {
+      case edges: OrientElementIterable[_] => 'complex
+      case properties => 'simple
+    })
+    val duplicatedVertex = duplicateSimpleFields(groupedParameters('simple))
+    withEdges(duplicatedVertex, groupedParameters('complex))
   }
+
+  private def toIterable(i: OrientElementIterable[_]): Iterable[OrientVertex] =
+    new Iterable[OrientVertex] {
+      override def iterator: Iterator[OrientVertex] = i.iterator().flatMap {
+        case v: OrientVertex => Some(v)
+        case _ => None
+      }
+    }
+
 
   def debugFields(record: ODocument): String =
     record.fieldNames().map(name => s"$name=${record.field(name)}").mkString(s"{$record>", "\t|\t", "}")

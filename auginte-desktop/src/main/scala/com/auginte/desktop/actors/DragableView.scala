@@ -19,7 +19,7 @@ with MouseMove2D[D] with KeyboardMove2D[D]
 with ZoomableCamera[D] {
   protected val keyboardDragStep = -15.0
 
-  override protected def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
+  override def saveDraggedPosition(diffX: Double, diffY: Double): Unit = {
     view ! MoveView(this, diffX, diffY)
   }
 }
