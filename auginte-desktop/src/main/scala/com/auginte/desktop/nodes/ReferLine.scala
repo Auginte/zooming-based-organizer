@@ -4,9 +4,7 @@ import javafx.scene.shape.Line
 
 class ReferLine extends Line {
   type Position2D = (Double, Double)
-  
-  getStyleClass.add("referLine")
-  
+
   def start: Position2D = (getStartX, getStartY)
   def end: Position2D = (getEndX, getEndY)
   
@@ -18,5 +16,4 @@ class ReferLine extends Line {
     setEndX(xy._1)
     setEndY(xy._2)
   }
-  
 }

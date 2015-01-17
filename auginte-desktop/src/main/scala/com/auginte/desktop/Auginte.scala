@@ -40,7 +40,6 @@ object Auginte extends JFXApp {
   }
   view1.stylesheets add "css/view.css"
   view1.stylesheets add "css/controls.css"
-  view1.stylesheets add "css/sourceTracking.css"
   view1.getStyleClass.add("view")
 
   val loadingFromDatabase = new Thread {
