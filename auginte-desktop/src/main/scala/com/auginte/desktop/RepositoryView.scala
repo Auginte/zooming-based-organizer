@@ -26,6 +26,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
 import scalafx.Includes._
 import scalafx.animation.Timeline
 import scalafx.event.ActionEvent
+import javafx.scene.DepthTest
 import scalafx.scene.control.Label
 import scalafx.scene.input.MouseEvent
 import scalafx.util.Duration
@@ -166,6 +167,8 @@ with ContextMenuWrapper
     loading.layoutX <== width / 2 - loading.width / 2
     loading.layoutY <== height / 2 - loading.height / 2
   }
+
+  def renderError(error: String): Unit = loading.text = error
 
 
   //

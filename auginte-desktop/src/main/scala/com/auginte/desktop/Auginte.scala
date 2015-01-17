@@ -8,6 +8,7 @@ import com.auginte.distribution.orientdb.{Position, Cache}
 import com.auginte.zooming.Grid
 import com.auginte.distribution.{orientdb => o}
 import com.auginte.{zooming => z}
+import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal
 import com.auginte.distribution.orientdb.Camera
 import scalafx.application.JFXApp
@@ -42,7 +43,7 @@ object Auginte extends JFXApp {
   view1.getStyleClass.add("view")
 
   val loadingFromDatabase = new Thread {
-    override def run(): Unit = {
+    override def run(): Unit = try {
       println("Connecting...")
       val storage = new OrientDbStorage("localhost/augintetests", "remote", "root", "kramtauauginte")
       val db = storage.db
@@ -57,6 +58,8 @@ object Auginte extends JFXApp {
       println("Grid replaced. Loading elements...")
       view1.loadElements(db)
       println("Elements loaded")
+    } catch {
+      case e: OIOException => view1.renderError("Cannot connect to database")
     }
   }
 
