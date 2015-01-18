@@ -130,4 +130,4 @@ exec "$JAVACMD" \
      -Dprog.home="${PROG_HOME}" \
      -Dprog.version="${PROG_VERSION}" \
      -splash:"${PROG_HOME}/res/splash.gif" \
-     {{{MAIN_CLASS}}} "$@"
+     {{{MAIN_CLASS}}} "$@" >> ../logs/errors.log 2>&1

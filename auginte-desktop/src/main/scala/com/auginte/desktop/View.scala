@@ -41,6 +41,7 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
   private var repositoryPath: Option[String] = None
 
 
+
   //
   // Infinity zooming and refresh
   //

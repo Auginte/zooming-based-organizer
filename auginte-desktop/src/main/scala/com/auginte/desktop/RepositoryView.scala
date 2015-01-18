@@ -6,6 +6,7 @@ import javafx.animation.KeyFrame
 import javafx.scene.layout.{Pane => jp}
 
 import com.auginte.common.SoftwareVersion
+import com.auginte.common.settings.GlobalSettings
 import com.auginte.desktop.nodes.MouseFocusable
 import com.auginte.desktop.operations.{ContextMenu, ContextMenuWrapper}
 import com.auginte.desktop.persistable._
@@ -18,6 +19,7 @@ import com.auginte.distribution.{orientdb => o}
 import com.auginte.desktop.{nodes => n}
 import com.auginte.{zooming => z}
 import javafx.{scene => jfxs}
+import com.orientechnologies.common.exception.OException
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
@@ -47,6 +49,7 @@ with DatabaseWrapper
 with ContextMenuWrapper
 with RenderingConnections
 {
+  private var loadingElements: Boolean = true
 
   val creator: Creator = {
     case "Text" => new n.Text()
@@ -63,14 +66,13 @@ with RenderingConnections
       jfxKeyFrame2sfx(new KeyFrame(
         Duration(10),
         (e: ActionEvent) =>
-          if (grid.isDefined && db.isDefined && camera.isDefined) absoluteToCachedCoordinates() else renderLoading()
+          if (!loading) absoluteToCachedCoordinates() else renderLoading()
       ))
     )
   }
   grid2absoluteCron.play()
 
   def absoluteToCachedCoordinates(): Unit = {
-    loading.visible = false
     val zoomableElements = d.getChildren.iterator().flatMap({
       case r: GuiRepresentation => Some(r)
       case _ => None
@@ -124,7 +126,7 @@ with RenderingConnections
     case None => Unit
   }
 
-  def loadElements(db: OrientBaseGraph): Unit = {
+  private def loadElements(db: OrientBaseGraph): Unit = {
     def select(sql: String) = new OSQLSynchQuery[ODocument](sql)
     def addRepresentations(representations: Iterable[RepresentationWrapper]): Unit = {
       ODatabaseRecordThreadLocal.INSTANCE.set(db.getRawGraph)
@@ -154,22 +156,51 @@ with RenderingConnections
   // Loading
   //
 
-  val loading = new Label("Loading database...")
-  d.getChildren.add(loading)
+  private def loading = loadingElements || grid.isEmpty || db.isEmpty || camera.isEmpty
+
+  def load(settings: GlobalSettings): Unit = {
+    val loadingFromDatabase = new Thread {
+      override def run(): Unit = try {
+        val gs = settings.graphRepository
+        val graphDatabase = Structure.createRepository(gs.name, gs.connection, gs.user, gs.password)
+        ODatabaseRecordThreadLocal.INSTANCE.set(graphDatabase.getRawGraph)
+        db = graphDatabase
+        camera = Camera.mainCamera(graphDatabase)
+        val newGrid = new Grid(Position.rootNode(graphDatabase))
+        grid = newGrid
+        loadElements(graphDatabase)
+        Platform.runLater(absoluteToCachedCoordinates())
+        loadingElements = false
+        Platform.runLater(loadingLabel.visible = false)
+      } catch {
+        case e: OException => renderError("Cannot open database. Others are using it?")
+      }
+    }
+    loadingFromDatabase.start()
+  }
+
+  val loadingLabel = new Label("Loading database...")
+  d.getChildren.add(loadingLabel)
 
   private var angle = 0
 
-  def renderLoading(): Unit = {
-    loading.rotate <== angle
+  def renderLoading(): Unit = if (loadingElements) {
+    loadingLabel.rotate <== angle
     angle = angle + 1
     if (angle > 360) {
       angle = angle - 360
     }
-    loading.layoutX <== width / 2 - loading.width / 2
-    loading.layoutY <== height / 2 - loading.height / 2
+    loadingLabel.layoutX <== width / 2 - loadingLabel.width / 2
+    loadingLabel.layoutY <== height / 2 - loadingLabel.height / 2
+  } else {
+    loadingLabel.rotate <== 0
   }
 
-  def renderError(error: String): Unit = loading.text = error
+  def renderError(error: String): Unit = Platform.runLater{
+    loadingLabel.styleClass.add("error")
+    loadingLabel.text = error
+    loadingElements = false
+  }
 
 
   //

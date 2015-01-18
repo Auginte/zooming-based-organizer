@@ -8,7 +8,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
 trait DatabaseWrapper {
   private var _db: Option[OrientBaseGraph] = None
 
-  def db = _db
+  protected def db = _db
 
-  def db_=(db: OrientBaseGraph): Unit = _db = Some(db)
+  protected def db_=(db: OrientBaseGraph): Unit = _db = Some(db)
 }

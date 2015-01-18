@@ -10,6 +10,7 @@
 
 -keep,allowshrinking class com.auginte.distribution.exceptions.**
 -keep class com.auginte.common.SoftwareVersion
+-keep class com.auginte.common.settings.GlobalSettings
 
 -keepclasseswithmembers public class * {
     public static void main(java.lang.String[]);

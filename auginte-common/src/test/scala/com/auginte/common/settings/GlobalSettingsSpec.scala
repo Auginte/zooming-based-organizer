@@ -29,6 +29,7 @@ class GlobalSettingsSpec extends UnitSpec {
         assert(graphDir === preferences.get("GraphRepository.name", ""))
         assert("admin" === preferences.get("GraphRepository.user", ""))
         assert("admin" === preferences.get("GraphRepository.password", ""))
+        settings.clear()
       }
     }
     "have settings already saved" should {
@@ -45,6 +46,7 @@ class GlobalSettingsSpec extends UnitSpec {
         assert("localhost/augintetests" === repository.name)
         assert("root" === repository.user)
         assert("secret" === repository.password)
+        settings.clear()
       }
       "save graph repository settings from object notation " in {
         val settings = new GlobalSettings
@@ -56,6 +58,7 @@ class GlobalSettingsSpec extends UnitSpec {
         assert(updated.name === preferences.get("GraphRepository.name", ""))
         assert(updated.user === preferences.get("GraphRepository.user", ""))
         assert(updated.password === preferences.get("GraphRepository.password", ""))
+        settings.clear()
       }
       "output current settings as string" in {
         val settings = new GlobalSettings
@@ -64,6 +67,7 @@ class GlobalSettingsSpec extends UnitSpec {
         settings.graphRepository = new GraphRepository("memory", "test", "foo", "bar")
         val expected = "{GraphRepository: connection=memory, name=test, user=foo, password=bar}"
         assert(expected === settings.toString)
+        settings.clear()
       }
     }
   }

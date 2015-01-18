@@ -2,6 +2,11 @@
     -fx-text-fill: #d3f0ff;
     -fx-background-color: transparent;
 }
+.error {
+    -fx-text-fill: #ffd3d3;
+    -fx-background-color: transparent;
+}
+
 .label:hover {
     -fx-text-fill: derive(#d3f0ff, 10%);
     -fx-background-color: derive(#101b20, 5%);
