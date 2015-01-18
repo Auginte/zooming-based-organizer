@@ -1,4 +1,4 @@
-.contextMenu {
+.contextMenu, .helpWindow {
     -fx-text-fill: derive(#d3f0ff, 20%);
     -fx-background-color: derive(#101b20, 10%);
 }

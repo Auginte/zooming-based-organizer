@@ -1,8 +1,6 @@
 package com.auginte.desktop.operations
 
 import com.auginte.desktop.HaveOperations
-import com.auginte.desktop.actors.Container
-import com.auginte.desktop.events.ShowContextMenu
 import com.auginte.desktop.rich.RichNode
 
 import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}

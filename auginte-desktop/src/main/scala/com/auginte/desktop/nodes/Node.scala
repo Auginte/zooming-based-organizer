@@ -4,10 +4,9 @@ import javafx.scene.{layout => jfxl}
 
 import com.auginte.common.Unexpected
 import com.auginte.desktop.HaveOperations
-import com.auginte.desktop.events.ShowContextMenu
 import com.auginte.desktop.operations.ContextMenuWrapper
 import com.auginte.desktop.persistable.{Container, View, ViewWrapper}
-import com.auginte.desktop.rich.{RichJPane, RichNode}
+import com.auginte.desktop.rich.RichJPane
 import com.auginte.distribution.orientdb.RepresentationWrapper
 
 import scalafx.event.ActionEvent
@@ -31,7 +30,7 @@ with HaveOperations
   }
 
   override def operations: Operations = Map(
-    "Delte" -> ((e: ActionEvent) => remove())
+    "Delete" -> ((e: ActionEvent) => remove())
   )
 
   protected def remove(): Unit = view match {

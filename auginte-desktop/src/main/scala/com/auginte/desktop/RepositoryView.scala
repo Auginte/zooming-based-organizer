@@ -7,7 +7,7 @@ import javafx.scene.layout.{Pane => jp}
 
 import com.auginte.common.SoftwareVersion
 import com.auginte.common.settings.GlobalSettings
-import com.auginte.desktop.nodes.MouseFocusable
+import com.auginte.desktop.nodes.{HelpWrapper, MouseFocusable}
 import com.auginte.desktop.operations.{ContextMenu, ContextMenuWrapper}
 import com.auginte.desktop.persistable._
 import com.auginte.desktop.rich.RichSPane
@@ -30,7 +30,7 @@ import scalafx.animation.Timeline
 import scalafx.event.ActionEvent
 import javafx.scene.DepthTest
 import scalafx.scene.control.Label
-import scalafx.scene.input.MouseEvent
+import scalafx.scene.input.{KeyCode, KeyEvent, MouseEvent}
 import scalafx.util.Duration
 import scala.collection.JavaConversions._
 import scalafx.application.Platform
@@ -48,6 +48,7 @@ with GridWrapper
 with DatabaseWrapper
 with ContextMenuWrapper
 with RenderingConnections
+with HelpWrapper
 {
   private var loadingElements: Boolean = true
 
@@ -177,6 +178,7 @@ with RenderingConnections
       }
     }
     loadingFromDatabase.start()
+    showHelpWindow()
   }
 
   val loadingLabel = new Label("Loading database...")
@@ -191,9 +193,10 @@ with RenderingConnections
       angle = angle - 360
     }
     loadingLabel.layoutX <== width / 2 - loadingLabel.width / 2
-    loadingLabel.layoutY <== height / 2 - loadingLabel.height / 2
+    loadingLabel.layoutY <== height / 4 * 3 - loadingLabel.height / 2
   } else {
     loadingLabel.rotate <== 0
+    loadingLabel.layoutY <== height / 4 * 3 - loadingLabel.height / 2
   }
 
   def renderError(error: String): Unit = Platform.runLater{
@@ -209,7 +212,8 @@ with RenderingConnections
 
   override def operations: Operations = Map(
     "Exit" -> ((e: ActionEvent) => Auginte.quit()),
-    "Feedback" -> ((e: ActionEvent) => feedback())
+    "Feedback" -> ((e: ActionEvent) => feedback()),
+    "Help" -> ((e: ActionEvent) => showHelpWindow())
   )
 
   private def feedback(): Unit = {
