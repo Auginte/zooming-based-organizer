@@ -42,6 +42,15 @@ Installing globally on Linux
     auginte
 
 
+Connect to other database
+-------------------------
+
+    Auginte is using OrientDB database to store data.
+    To connect to your own database, execute program with parameters. For example:
+
+        ./bin/auginte --dbConnection=remote --dbName=localhost/auginte --dbUser=root --dbPassword=secret
+
+
 Author
 ------
 

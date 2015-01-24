@@ -23,6 +23,26 @@ class GraphRepository(val connection: String, val name: String, val user: String
     set(preferences, "password", password)
   }
 
+  /**
+   * Returns copy with updated parameters.
+   *
+   * {{{
+   *  withCommandlineInput(
+   *    Map("dbConnection" -> "remote", "dbName" -> "localhost/auginte", "dbUser" -> "admin", "dbPassword" -> "admin")
+   *  )
+   * }}}
+   */
+  def updatedWith(input: collection.Map[String, String]): GraphRepository = {
+    var (connectionValue, nameValue, userValue, passwordValue) = (connection, name, user, password)
+    input.foreach{
+      case (key, value) if key == "dbConnection" => connectionValue = value
+      case (key, value) if key == "dbName" => nameValue = value
+      case (key, value) if key == "dbUser" => userValue = value
+      case (key, value) if key == "dbPassword" => passwordValue = value
+    }
+    new GraphRepository(connectionValue, nameValue, userValue, passwordValue)
+  }
+
   override def toString: String =
     s"{GraphRepository: connection=$connection, name=$name, user=$user, password=$password}"
 }

@@ -46,6 +46,7 @@ object Auginte extends JFXApp {
   }
 
   val settings = new GlobalSettings
+  settings.graphRepository = settings.graphRepository.updatedWith(parameters.named)
   view1.load(settings)
 
   val splash = SplashScreen.getSplashScreen
