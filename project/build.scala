@@ -36,6 +36,10 @@ object build extends sbt.Build {
     scalacOptions in(Compile, doc) += "-groups"
   )
 
+  val fixForEncryptedFileSystems = Seq(
+    scalacOptions ++= Seq("-Xmax-classfile-name", "100")
+  )
+
 
   val packCustomSettings = Seq(
 	  packExtraClasspath := Map("auginte" -> Seq("${JAVA_HOME}/jre/lib/jfxrt.jar", "%JAVA_HOME%\\lib\\jfxrt.jar")),
@@ -46,7 +50,8 @@ object build extends sbt.Build {
   val customTasks = Seq(CustomTasks.deployTask)
 
   // Project
-  lazy val allSettings = buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings ++ customTasks
+  lazy val allSettings = buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings ++ customTasks ++
+    fixForEncryptedFileSystems
   lazy val withAssembly = allSettings ++ assemblySettings
 
   lazy val root = Project(
