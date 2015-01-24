@@ -54,6 +54,7 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
   with Cloneable {
 
   import PersistableImplicits._
+  import Representation._
 
   override protected[orientdb] def tableName: String = "Representation"
 
@@ -90,6 +91,13 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
   def remove(): Unit = persisted match {
     case Some(persisted) => persisted.remove()
     case _ => Unit
+  }
+
+
+  def storeTo(storage: OrientBaseGraph, wrapper: RepresentationWrapper)(implicit cache: Cached = defaultCache): OrientVertex = {
+    val vertex = super.storeTo(storage)
+    cache += vertex.getRecord -> wrapper
+    vertex
   }
 
   override def toString = s"{Representation: x=$x, y=$y, scale=$scale}"

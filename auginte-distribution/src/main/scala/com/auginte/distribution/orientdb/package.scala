@@ -36,6 +36,8 @@ package object orientdb {
 
   private[orientdb] val EmptyRepresentationStorageIterable = emptyIterable[RepresentationWrapper]
 
+  private[orientdb] val EmptyDistantRepresentationIterable = emptyIterable[ReferConnection]
+
   private[orientdb] val EmptyNodeIterable = emptyIterable[Node]
 
   private def emptyIterable[A] = new Iterable[A] {

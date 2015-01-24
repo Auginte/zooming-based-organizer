@@ -4,7 +4,7 @@ import com.auginte.common.Unexpected
 
 import scalafx.scene.input.{KeyEvent, MouseEvent}
 import com.auginte.desktop.rich.RichJPane
-import com.auginte.distribution.orientdb.RepresentationWrapper
+import com.auginte.distribution.orientdb.{ReferWrapper, ReferConnection, RepresentationWrapper}
 import scala.language.reflectiveCalls
 
 /**
@@ -26,6 +26,7 @@ with ViewWrapper {
 
   mouseDragged += ((e: MouseEvent) => hideAllReferConnections())
 
+  //TODO: update on view zoom
   scrolled += refreshConnectionPositions
 
 
@@ -37,11 +38,15 @@ with ViewWrapper {
   }
 
   private def renderAllReferConnections(): Unit = inView { v =>
-    for (source <- filerNodes(sourceRepresentations())) {
-      v.renderConnection(center(this), center(source))
+    for (source <- distantSourceRepresentations()) source match {
+      case VisualReferConnection(to, from, distance) =>
+        v.renderConnection(center(from), center(to), opacity(distance))
+      case _ => Unit
     }
-    for (derived <- filerNodes(derivedRepresentations())) {
-      v.renderConnection(center(derived), center(this))
+    for (source <- distantDerivedRepresentations()) source match {
+      case VisualReferConnection(from, to, distance) =>
+        v.renderConnection(center(from), center(to), opacity(distance) / 3)
+      case _ => Unit
     }
     connectionBeingRendered = true
   }
@@ -60,6 +65,10 @@ with ViewWrapper {
     case e: RichJPane => Some(e)
     case _ => None
   }
+
+  private def opacity(distance: Double, max: Double = ReferWrapper.defaultDepth) = inBounds((max - distance) / max, 1)
+
+  private def inBounds(value: Double, max: Double) = if (value < max) value else max
 
   private def center(node: RichJPane) = (node.getLayoutX + (node.getWidth / 2), node.getLayoutY + (node.getHeight / 2))
 

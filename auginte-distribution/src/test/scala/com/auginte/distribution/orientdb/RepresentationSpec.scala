@@ -216,8 +216,54 @@ class RepresentationSpec extends UnitSpec {
         val newest = Representation.load(vertices(3).asInstanceOf[OrientVertex], creator)(cache)
         val sources = derived.sourceRepresentations(cache).toSeq
         assert(Seq(old1, old2) === sources)
-        val derivites = derived.derivedRepresentations(cache)
-        assert(List(newest) === derivites)
+        val derives = derived.derivedRepresentations(cache)
+        assert(List(newest) === derives)
+      }
+      "get edges from derived to first source, while calculating distance" in {
+        val db = newDb
+        val vertices = scriptSql[OrientDynaElementIterable](db)(
+          """
+            |let source6 = create vertex Text set x=1, y=1, scale=1, text="BarCamp"
+            |let source5 = create vertex Text set x=2, y=2, scale=2, text="Neringa hotel"
+            |let source4 = create vertex Text set x=3, y=3, scale=3, text="Creating own startup"
+            |let source3 = create vertex Text set x=4, y=4, scale=4, text="Founder is best suited to create"
+            |let source2 = create vertex Text set x=5, y=5, scale=5, text="Solve programmer's personal itch"
+            |let source1 = create vertex Text set x=6, y=6, scale=6, text="Learning"
+            |let derived = create vertex Text set x=7, y=7, scale=7, text="Auginte"
+            |let edge1 = create edge Refer from $derived to $source1
+            |let edge2 = create edge Refer from $source1 to $source2
+            |let edge3 = create edge Refer from $source2 to $source3
+            |let edge4 = create edge Refer from $source3 to $source4
+            |let edge5 = create edge Refer from $source4 to $source5
+            |let edge6 = create edge Refer from $source5 to $source6
+            |return [$derived, $source1, $source2, $source3, $source4, $source5, $source6]
+          """.stripMargin).toList
+        val cache: Representation.Cached = new Representation.Cached
+        val creator: Creator = _ => RepresentationWrapper(new Text())
+        val maxDepth = 10
+        val derived = Representation.load(vertices(0).asInstanceOf[OrientVertex], creator)(cache)
+        val source1 = Representation.load(vertices(1).asInstanceOf[OrientVertex], creator)(cache)
+        val source2 = Representation.load(vertices(2).asInstanceOf[OrientVertex], creator)(cache)
+        val source3 = Representation.load(vertices(3).asInstanceOf[OrientVertex], creator)(cache)
+        val source4 = Representation.load(vertices(4).asInstanceOf[OrientVertex], creator)(cache)
+        val source5 = Representation.load(vertices(5).asInstanceOf[OrientVertex], creator)(cache)
+        val source6 = Representation.load(vertices(6).asInstanceOf[OrientVertex], creator)(cache)
+        val connection = derived.distantSourceRepresentations(maxDepth)(cache).toList
+        assert(source1 === connection(0).to)
+        assert(source2 === connection(1).to)
+        assert(source3 === connection(2).to)
+        assert(source4 === connection(3).to)
+        assert(source5 === connection(4).to)
+        assert(source6 === connection(5).to)
+        assert(derived === connection(0).from)
+        assert(source1 === connection(1).from)
+        assert(source2 === connection(2).from)
+        assert(source3 === connection(3).from)
+        assert(source4 === connection(4).from)
+        assert(source5 === connection(5).from)
+        for (distance <- 1 to 5) {
+          assert(distance === connection(distance - 1).distance)
+        }
       }
       "preserve edge to Node, while duplicating" in {
         val db = newDb

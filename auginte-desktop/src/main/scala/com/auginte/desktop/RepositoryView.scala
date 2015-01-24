@@ -111,8 +111,7 @@ with HelpWrapper
     case Some(db) =>
       ODatabaseRecordThreadLocal.INSTANCE.set(db.getRawGraph)
       val representation = data.storage.representation
-      representation.storeTo(db)
-      representation.node = cameraNode
+      representation.storeTo(db, data)
     case None => throw new RuntimeException(s"No database to store: $data")
   }
 
