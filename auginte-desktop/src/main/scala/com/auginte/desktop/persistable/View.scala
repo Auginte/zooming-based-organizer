@@ -137,7 +137,6 @@ trait View
     val (pivotX, pivotY) = elementsPivot(element)
     element.setScaleX(absolute.scale)
     element.setScaleY(absolute.scale)
-    element.setScaleZ(absolute.scale)
     element.setLayoutX(absolute.x - pivotX)
     element.setLayoutY(absolute.y - pivotY)
   }
