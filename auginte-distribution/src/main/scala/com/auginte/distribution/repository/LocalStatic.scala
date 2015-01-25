@@ -93,7 +93,7 @@ class LocalStatic extends Repository {
           tagName match {
             case "description" => decoded match {
               case Description(version, _, _) if version <= supportedFormatVersion => true
-              case Description(version, _, _) => error(UnsupportedVersion(version, supportedFormatVersion))
+              case Description(version, _, _) => true //error(UnsupportedVersion(version, supportedFormatVersion))
               case e => error(UnsupportedStructure(Description.getClass, e))
             }
             case "nodes" => decoded match {
