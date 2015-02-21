@@ -1,7 +1,7 @@
 import sbtassembly.Plugin.AssemblyKeys.assembly
 
 // Use from main project
-// mainClass in(Compile, run) := Some("com.auginte.desktop.MainGui")
+mainClass in(Compile, run) := Some("com.auginte.desktop.Auginte")
 
 // Replaced by ScalaFx
 //libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10.0"
