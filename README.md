@@ -23,6 +23,8 @@ assembly
 scct:test
 gen-idea
 project
+fastOptJS
+fullOptJS
 ```
 
 Deployment

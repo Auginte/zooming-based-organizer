@@ -9,12 +9,13 @@ import sbt._
 import sbtassembly.Plugin._
 import xerial.sbt.Pack._
 import java.{io => jio}
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 
 object build extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
   val buildVersion      = ProjectProperties.getProperty("version", default="0.0.1-SNAPSHOT")
-  val buildScalaVersion = "2.11.2"
+  val buildScalaVersion = "2.11.6"
   val buildMainClass = "com.auginte.desktop.Auginte"
 
   // Custom properties (also accessable from source)
@@ -48,6 +49,17 @@ object build extends sbt.Build {
   )
 
   val customTasks = Seq(CustomTasks.deployTask)
+
+  val scalaJsSettings = Seq(
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % "0.8.0",
+      "com.lihaoyi" %%% "utest" % "0.3.0" % "test"
+    ),
+    jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
+    libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.3",
+    persistLauncher := true,
+    mainClass := Some("example.DragableElements")
+  )
 
   // Project
   lazy val allSettings = buildSettings ++ scalaDocSettings ++ packAutoSettings ++ packCustomSettings ++ customTasks ++
@@ -88,6 +100,11 @@ object build extends sbt.Build {
   lazy val auginteCommon = Project(id = "auginte-common",
     settings = allSettings,
     base = file("auginte-common"))
+
+  lazy val auginteJs = Project(id = "auginte-js",
+    settings = buildSettings  ++ scalaJsSettings,
+    base = file("auginte-js")
+  )
 }
 
 object ProjectProperties {

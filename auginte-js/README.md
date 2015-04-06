@@ -1,10 +1,11 @@
-Simple scalaJs example
-======================
+Auginte JavaScript part
+=======================
 
 Useful commands
 ---------------
 
 ```
+project auginte-js
 ~fastOptJS
 test
 fullOptJS
