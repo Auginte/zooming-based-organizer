@@ -1,8 +1,9 @@
 package example
 
+import example.communication.{Ajaj, Saved}
 import example.events.Event._
 import example.events._
-import example.helpers.{Absolute, Proxy, Dom}
+import example.helpers.{DomLogger, Absolute, Proxy, Dom}
 import example.logic.{elements, view}
 import example.state._
 import example.state.selected.Selectable
@@ -10,16 +11,33 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom
-import scala.scalajs.js
 import scala.language.postfixOps
+import scala.scalajs.js
 import js.Dynamic.{global => g}
+import prickle._
+import scala.util.{Failure, Success}
 
 /**
  * Plane with functions to add, zoom and drag elements and plane itself.
+ * 
+ * @param serialisedState JSON picled State object
+ * @param storage meta data for relation with persistance storage
  */
-object DragableElements {
+class DragableElements(serialisedState: String = "", storage: Storage = Storage()) extends DomLogger with Ajaj {
 
-  val defaultState = State(Camera(), Container(), Selectable(), Creation())
+  //
+  // Loading
+  //
+
+  private val defaultState = State(Camera(), Container(), Selectable(), Creation(), storage)
+
+  val initialState = if (serialisedState.length == 0) defaultState else load(serialisedState) match {
+    case Success(loadedState) =>
+      loadedState.withStorage(storage)
+    case Failure(error) =>
+      log(s"Not loaded: ${error.getMessage}. Input: $serialisedState")
+      defaultState
+  }
 
   //
   // High level logic (Interacting with React events)
@@ -72,7 +90,7 @@ object DragableElements {
     //
 
     def wheel(e: ReactWheelEvent): Unit = {
-      val coefficient = 530
+      val coefficient = 100
       val difference = 1 + (e.nativeEvent.deltaY / coefficient)
       val elementsAreaPos = Absolute.getAbsolute(Dom.findView(e.target))
       preventDefault(e) (view.Zooming.updateScale(difference, Position(e.clientX, e.clientY) - elementsAreaPos))
@@ -117,6 +135,15 @@ object DragableElements {
     }
 
     //
+    // Saving
+    //
+
+    def save()(implicit state: State = $.state): Unit = persist(state) {
+      case (res, Success(saved)) if saved.success => redirect(saved.storage)
+      case (res, Failure(error)) => log(s"Not saved: ${error.getMessage}. Response: ${res.responseText}")
+    }
+
+    //
     // Utilties
     //
 
@@ -139,6 +166,8 @@ object DragableElements {
     }
   }
 
+  private def load(jsonData: String) = Unpickle[State].fromString(jsonData)
+
   /**
    * Passing events to Backend
    */
@@ -156,7 +185,7 @@ object DragableElements {
   // Front end: HTML events passing to backend
   //
   val render = ReactComponentB[Unit]("Page")
-    .initialState(defaultState)
+    .initialState(initialState)
     .backend(new Backend(_))
     .render { (P, S, B) =>
 
@@ -165,9 +194,15 @@ object DragableElements {
         ^.onSubmit ==> B.addElement,
         <.input(
           ^.onChange ==> B.saveName,
-          ^.value := S.creation.name
+          ^.value := S.creation.name,
+          ^.`class` := "new-name"
         ),
-        <.button("Add element")
+        <.button("Add"),
+        <.button(
+          "Save",
+          ^.onClick --> B.save,
+          ^.`type` := "button"
+        )
       ),
       <.div(
         S.container.elements map {

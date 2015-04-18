@@ -57,6 +57,7 @@ object build extends sbt.Build {
     ),
     jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
     libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.3",
+    libraryDependencies += "com.github.benhutchison" %%% "prickle" % "1.1.4",
     persistLauncher := true,
     mainClass := Some("example.DragableElements")
   )

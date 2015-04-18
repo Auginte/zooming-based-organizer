@@ -7,7 +7,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 object build extends sbt.Build {
 
   lazy val root = Project("root", file(".")).settings(
-    name := "Example",
+    name := "auginte-js",
 
     version := "0.2.0",
 
@@ -18,6 +18,8 @@ object build extends sbt.Build {
     persistLauncher in Test := false,
 
     scalacOptions ++= Seq("-feature"),
+
+    scalacOptions ++= Seq("-Xmax-classfile-name", "100"),
 
     testFrameworks += new TestFramework("utest.runner.Framework"),
 
@@ -43,7 +45,12 @@ object build extends sbt.Build {
 //    libraryDependencies += "com.github.japgolly.scalajs-react" %%% "ext-monocle" % "0.8.3",
 
     // Extra features
-    libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.3"
+    libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.3",
+
+    libraryDependencies += "com.github.benhutchison" %%% "prickle" % "1.1.4",
+
+    persistLauncher := true,
+    mainClass := Some("example.DragableElements")
   )
 
   // Use local version of plugin (for transition between bug fixes)
