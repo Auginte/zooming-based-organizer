@@ -1,6 +1,7 @@
 package com.auginte.scalajs.logic.view
 
-import com.auginte.scalajs.state.{T, Position}
+import com.auginte.scalajs.state.T
+import com.auginte.scalajs.state.persistable.Position
 import scala.language.postfixOps
 
 /**

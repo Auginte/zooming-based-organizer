@@ -6,6 +6,8 @@ import com.auginte.scalajs.events.Event.{TouchCancel, TouchEnd, TouchMove, Touch
 import com.auginte.scalajs.helpers.{Dom, Proxy, Absolute, DomLogger}
 import com.auginte.scalajs.logic.elements.Dragging
 import com.auginte.scalajs.logic.view.Zooming
+import com.auginte.scalajs.state.State
+import com.auginte.scalajs.state.persistable._
 import com.auginte.scalajs.state.selected.Selectable
 import com.auginte.scalajs.state._
 import Event._
@@ -31,11 +33,11 @@ class DragableElements(serialisedState: String = "", storage: Storage = Storage(
   // Loading
   //
 
-  private val defaultState = State(Camera(), Container(), Selectable(), Creation(), storage)
+  private val defaultState = State(Persistable(Camera(), Container(), Selectable(), Storage()), Creation())
 
-  val initialState = if (serialisedState.length == 0) defaultState else load(serialisedState) match {
+  val initialState: State = if (serialisedState.length == 0) defaultState else load(serialisedState) match {
     case Success(loadedState) =>
-      loadedState.withStorage(storage)
+      State(loadedState.withStorage(storage), defaultState.creation)
     case Failure(error) =>
       log(s"Not loaded: ${error.getMessage}. Input: $serialisedState")
       defaultState
@@ -57,7 +59,7 @@ class DragableElements(serialisedState: String = "", storage: Storage = Storage(
 
     def addElement(e: ReactEvent) = preventDefault(e) { currentState =>
       currentState inCreation (_ resetName) inContainer { container =>
-        container withNewElement state.Element (
+        container withNewElement persistable.Element (
           container.nextId,
           currentState.creation.name,
           0,
@@ -140,13 +142,13 @@ class DragableElements(serialisedState: String = "", storage: Storage = Storage(
     // Saving
     //
 
-    def save()(implicit state: State = $.state): Unit = persist(state) {
+    def save()(implicit state: Persistable = $.state.persistable): Unit = persist(state) {
       case (res, Success(saved)) if saved.success => redirect(saved.storage)
       case (res, Failure(error)) => log(s"Not saved: ${error.getMessage}. Response: ${res.responseText}")
     }
 
     //
-    // Utilties
+    // Utilities
     //
 
     private def selectedElement(e: ReactMouseEvent): Option[Element] = {
@@ -168,7 +170,7 @@ class DragableElements(serialisedState: String = "", storage: Storage = Storage(
     }
   }
 
-  private def load(jsonData: String) = Unpickle[State].fromString(jsonData)
+  private def load(jsonData: String) = Unpickle[Persistable].fromString(jsonData)
 
   /**
    * Passing events to Backend

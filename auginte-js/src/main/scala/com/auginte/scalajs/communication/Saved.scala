@@ -1,6 +1,6 @@
 package com.auginte.scalajs.communication
 
-import com.auginte.scalajs.state.Storage
+import com.auginte.scalajs.state.persistable.Storage
 
 /**
  * Wrapper for backend response

@@ -1,4 +1,6 @@
-package com.auginte.scalajs.state
+package com.auginte.scalajs.state.persistable
+
+import com.auginte.scalajs.state._
 
 /**
  * Data structure to store Elements

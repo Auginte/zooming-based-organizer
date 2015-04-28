@@ -1,7 +1,7 @@
 package com.auginte.scalajs.helpers
 
 import com.auginte.scalajs.events.ScreenPosition
-import com.auginte.scalajs.state.Position
+import com.auginte.scalajs.state.persistable.Position
 import org.scalajs.dom
 import scala.annotation.tailrec
 

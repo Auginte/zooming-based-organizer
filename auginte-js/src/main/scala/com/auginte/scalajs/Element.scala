@@ -2,7 +2,7 @@ package com.auginte.scalajs
 
 import com.auginte.scalajs.events.PointerEvent
 import com.auginte.scalajs.helpers.Proxy
-import com.auginte.scalajs.state.Camera
+import com.auginte.scalajs.state.persistable.{Element, Camera}
 import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.ReactComponentB
 import japgolly.scalajs.react.vdom.prefix_<^._
@@ -11,7 +11,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
  * Object representing dragable element
  */
 object Element {
-  val render = ReactComponentB[Proxy[PointerEvent, state.Element, Camera]]("Element")
+  val render = ReactComponentB[Proxy[PointerEvent, Element, Camera]]("Element")
   .stateless
   .noBackend
   .render { (P, S, B) =>

@@ -2,6 +2,7 @@ package com.auginte.scalajs.logic.view
 
 import com.auginte.scalajs.events.ScreenPosition
 import com.auginte.scalajs.state._
+import com.auginte.scalajs.state.persistable.{Position, Camera}
 
 import scala.language.postfixOps
 

@@ -1,6 +1,6 @@
 package com.auginte.scalajs
 
-import com.auginte.scalajs.state.Storage
+import com.auginte.scalajs.state.persistable.Storage
 import japgolly.scalajs.react.React
 import scala.scalajs.js
 import org.scalajs.dom

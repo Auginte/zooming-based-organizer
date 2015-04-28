@@ -1,4 +1,4 @@
-package com.auginte.scalajs.state
+package com.auginte.scalajs.state.persistable
 
 /**
  * Meta data about state relation to persistent storage.

@@ -1,7 +1,7 @@
 package com.auginte.scalajs.helpers
 
 import com.auginte.scalajs.CSSOMView
-import com.auginte.scalajs.state.Position
+import com.auginte.scalajs.state.persistable.Position
 import org.scalajs.dom
 
 /**
