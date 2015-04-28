@@ -13,6 +13,12 @@ Development Environment
  * SCCT (0.2) http://mtkopone.github.io/scct/
  * IntelliJ IDEA (13): http://www.jetbrains.com/idea/
 
+For JavaFx, `JAVA_HOME` must be available as environment variable. E.g.
+
+```
+    export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+```
+
 Useful SBT commands
 -------------------
 
