@@ -11,6 +11,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 object SidebarItems extends SimpleComponent[EventProxy]("SidebarItems") {
   def generate(P: EventProxy): prefix_<^.ReactTag = {
     <.div(
+      ^.ref := componentName,
       ^.`class` := "sidebar-items",
       <.button(
         "Save",

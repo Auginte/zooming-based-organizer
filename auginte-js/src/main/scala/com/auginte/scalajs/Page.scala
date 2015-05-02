@@ -6,7 +6,7 @@ import com.auginte.scalajs.events.Event.{TouchCancel, TouchEnd, TouchMove, Touch
 import com.auginte.scalajs.helpers._
 import com.auginte.scalajs.logic.elements.Dragging
 import com.auginte.scalajs.logic.view.Zooming
-import com.auginte.scalajs.proxy.{SidebarProxy, CameraProxy, EventProxy}
+import com.auginte.scalajs.proxy.{CreationProxy, SidebarProxy, CameraProxy, EventProxy}
 import com.auginte.scalajs.state.State
 import com.auginte.scalajs.state.persistable._
 import com.auginte.scalajs.state.selected.Selectable
@@ -21,7 +21,7 @@ import scala.scalajs.js
 import js.Dynamic.{global => g}
 import prickle._
 import scala.util.{Failure, Success}
-import com.auginte.scalajs.events.logic.{Event => LogicEvent, ToggleSidebar, Save}
+import com.auginte.scalajs.events.logic.{Event => LogicEvent, SaveName, Add, ToggleSidebar, Save}
 
 /**
  * Plane with functions to add, zoom and drag elements and plane itself.
@@ -35,7 +35,7 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
   // Loading
   //
 
-  private val defaultState = State(Persistable(Camera(), Container(), Selectable(), storage), Creation(), Menu())
+  private val defaultState = State(Persistable(Camera(), Container(), Selectable(), storage), state.Creation(), Menu())
 
   val initialState: State = if (serialisedState.length == 0) defaultState else load(serialisedState) match {
     case Success(loadedState) =>
@@ -57,20 +57,32 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
     // Adding new elements
     //
 
-    def saveName(e: ReactEventI) = m(_ inCreation(_ withName e.target.value))
-
-    def addElement(e: ReactEvent) = preventDefault(e) { currentState =>
-      currentState inCreation (_ resetName) inContainer { container =>
-        container withNewElement persistable.Element (
-          container.nextId,
-          currentState.creation.name,
-          0,
-          initialTop + initialHeight * container.elements.size,
-          initialWidth,
-          initialHeight
-        )
+    def creationProxy() = new CreationProxy($.state.creation) {
+      override def receive(event: LogicEvent)(context: ReactEvent): Unit = event match {
+        case e: Add => addElement(context)
+        case SaveName(name) => saveName(name)
+        case _ =>
       }
+
+      private def addElement(e: ReactEvent) = preventDefault(e) { currentState =>
+        currentState inCreation (_ resetName) inContainer { container =>
+          container withNewElement persistable.Element (
+            container.nextId,
+            currentState.creation.name,
+            0,
+            initialTop + initialHeight * container.elements.size,
+            initialWidth,
+            initialHeight
+          )
+        }
+      }
+
+      private def saveName(name: String) = m(_ inCreation(_ withName name))
     }
+
+
+
+
 
     //
     // Dragging elements
@@ -208,17 +220,9 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
     .render { (P, S, B) =>
 
     <.div(
-      Sidebar.r(B.sidebarProxy()),
+      Sidebar.generate(B.sidebarProxy()),
+      Creation.generate(B.creationProxy()),
       <.div(
-        <.form(
-          ^.onSubmit ==> B.addElement,
-          <.input(
-            ^.onChange ==> B.saveName,
-            ^.value := S.creation.name,
-            ^.`class` := "new-name"
-          ),
-          <.button("Add")
-        ),
         <.div(
           S.container.elements map {
             case (id, element) => Element.render.withKey(id)(CameraEventsProxy(element, S.camera, B))

@@ -1,15 +1,15 @@
 package com.auginte.scalajs
 
 import com.auginte.scalajs.proxy.EventProxy
-import japgolly.scalajs.react.ReactComponentB
+import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 /**
  * Helper for stateless, backend delegating React component
  */
-abstract class SimpleComponent[A <: EventProxy](val name: String) {
+abstract class SimpleComponent[A <: EventProxy](val componentName: String) {
 
-  def build = ReactComponentB[A](name)
+  def build = ReactComponentB[A](componentName)
     .stateless
     .noBackend
     .render ((P, _, _) => generate(P))
@@ -18,4 +18,6 @@ abstract class SimpleComponent[A <: EventProxy](val name: String) {
   def r = build
 
   def generate(P: A): ReactTag
+  
+  protected final def inputEvent(action: ReactEventI => Unit)(event: ReactEventI): Unit = action(event)
 }
