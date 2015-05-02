@@ -1,11 +1,12 @@
 package com.auginte.scalajs
 
 import com.auginte.scalajs.communication.Ajaj
-import com.auginte.scalajs.events.{event, PointerEvent, ClientPosition, Event}
+import com.auginte.scalajs.events._
 import com.auginte.scalajs.events.Event.{TouchCancel, TouchEnd, TouchMove, TouchStart}
-import com.auginte.scalajs.helpers.{Dom, Proxy, Absolute, DomLogger}
+import com.auginte.scalajs.helpers._
 import com.auginte.scalajs.logic.elements.Dragging
 import com.auginte.scalajs.logic.view.Zooming
+import com.auginte.scalajs.proxy.{SidebarProxy, CameraProxy, EventProxy}
 import com.auginte.scalajs.state.State
 import com.auginte.scalajs.state.persistable._
 import com.auginte.scalajs.state.selected.Selectable
@@ -20,6 +21,7 @@ import scala.scalajs.js
 import js.Dynamic.{global => g}
 import prickle._
 import scala.util.{Failure, Success}
+import com.auginte.scalajs.events.logic.{Event => LogicEvent, ToggleSidebar, Save}
 
 /**
  * Plane with functions to add, zoom and drag elements and plane itself.
@@ -27,17 +29,17 @@ import scala.util.{Failure, Success}
  * @param serialisedState JSON picled State object
  * @param storage meta data for relation with persistance storage
  */
-class DragableElements(serialisedState: String = "", storage: Storage = Storage()) extends DomLogger with Ajaj {
+class Page(serialisedState: String = "", storage: Storage = Storage()) extends DomLogger with Ajaj {
 
   //
   // Loading
   //
 
-  private val defaultState = State(Persistable(Camera(), Container(), Selectable(), Storage()), Creation())
+  private val defaultState = State(Persistable(Camera(), Container(), Selectable(), storage), Creation(), Menu())
 
   val initialState: State = if (serialisedState.length == 0) defaultState else load(serialisedState) match {
     case Success(loadedState) =>
-      State(loadedState.withStorage(storage), defaultState.creation)
+      State(loadedState.withStorage(storage), defaultState.creation, defaultState.menu)
     case Failure(error) =>
       log(s"Not loaded: ${error.getMessage}. Input: $serialisedState")
       defaultState
@@ -139,6 +141,18 @@ class DragableElements(serialisedState: String = "", storage: Storage = Storage(
     }
 
     //
+    // Sidebar
+    //
+
+    def sidebarProxy() = new SidebarProxy($.state.menu) {
+      override def receive(event: LogicEvent)(context: ReactEvent): Unit = event match {
+        case e: Save => save()
+        case e: ToggleSidebar => preventDefault(context)(_.inMenu(_.toggleExpanded))
+        case _ =>
+      }
+    }
+
+    //
     // Saving
     //
 
@@ -175,7 +189,7 @@ class DragableElements(serialisedState: String = "", storage: Storage = Storage(
   /**
    * Passing events to Backend
    */
-  case class EventsProxy(element: Element, camera: Camera, B: Backend) extends Proxy[PointerEvent, Element, Camera] {
+  case class CameraEventsProxy(element: Element, camera: Camera, B: Backend) extends CameraProxy[PointerEvent, Element, Camera] {
     override def receive(reactEvent: PointerEvent)(implicit sender: Element): Unit = event(reactEvent) match {
       case MouseDown(e) => B.beginDrag(reactEvent)
       case e: TouchStart if e.touchEvent.touches.length > 0 => B.touch(reactEvent)
@@ -194,34 +208,32 @@ class DragableElements(serialisedState: String = "", storage: Storage = Storage(
     .render { (P, S, B) =>
 
     <.div(
-      <.form(
-        ^.onSubmit ==> B.addElement,
-        <.input(
-          ^.onChange ==> B.saveName,
-          ^.value := S.creation.name,
-          ^.`class` := "new-name"
-        ),
-        <.button("Add"),
-        <.button(
-          "Save",
-          ^.onClick --> B.save,
-          ^.`type` := "button"
-        )
-      ),
+      Sidebar.r(B.sidebarProxy()),
       <.div(
-        S.container.elements map {
-          case (id, element) => Element.render.withKey(id)(EventsProxy(element, S.camera, B))
-        }
-      ),
-      ^.onMouseDown ==> B.beginDrag,
-      ^.onMouseUp ==> B.endDrag,
-      ^.onMouseMove ==> B.drag,
-      Attr("onWheel") ==> B.wheel,
-      ^.onTouchStart ==> B.touch,
-      ^.onTouchMove ==> B.touch,
-      ^.onTouchEnd ==> B.touch,
-      ^.onTouchCancel ==> B.touch,
-      ^.`class` := "area"
+        <.form(
+          ^.onSubmit ==> B.addElement,
+          <.input(
+            ^.onChange ==> B.saveName,
+            ^.value := S.creation.name,
+            ^.`class` := "new-name"
+          ),
+          <.button("Add")
+        ),
+        <.div(
+          S.container.elements map {
+            case (id, element) => Element.render.withKey(id)(CameraEventsProxy(element, S.camera, B))
+          }
+        ),
+        ^.onMouseDown ==> B.beginDrag,
+        ^.onMouseUp ==> B.endDrag,
+        ^.onMouseMove ==> B.drag,
+        Attr("onWheel") ==> B.wheel,
+        ^.onTouchStart ==> B.touch,
+        ^.onTouchMove ==> B.touch,
+        ^.onTouchEnd ==> B.touch,
+        ^.onTouchCancel ==> B.touch,
+        ^.`class` := "area"
+      )
     )
   }
   .buildU

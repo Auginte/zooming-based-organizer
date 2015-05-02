@@ -25,7 +25,19 @@ body {
     max-width: 300px;
     overflow: hidden;
     position: relative;
+    margin-left: 100px;
 }
 .new-name {
     width: 180px;
+}
+.sidebar {
+    width: 100px;
+    float: left;
+    border: 1px solid gray;
+}
+.sidebar .expanded .sidebar-items {
+    display: block;
+}
+.sidebar .collapsed .sidebar-items {
+    display: none;
 }

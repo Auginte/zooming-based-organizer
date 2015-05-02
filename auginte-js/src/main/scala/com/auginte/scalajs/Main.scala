@@ -24,7 +24,7 @@ object Main extends js.JSApp {
     val auginteHash = getDynamic(g.auginteHash, "")
     val auginteId = getDynamic(g.auginteId, -1)
 
-    val engine = new DragableElements(auginteInput, Storage(auginteId, auginteHash))
+    val engine = new Page(auginteInput, Storage(auginteId, auginteHash))
 
     React.initializeTouchEvents(shouldUseTouch = true)
     React.render(engine.render(), dom.document.getElementById("container"))

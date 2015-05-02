@@ -6,7 +6,7 @@ import com.auginte.scalajs.state.selected.Selectable
 /**
  * High level state data structure aggregating decoupled parts
  */
-case class State(persistable: Persistable, creation: Creation) {
+case class State(persistable: Persistable, creation: Creation, menu: Menu) {
 
   def inPersistable(converter: Persistable => Persistable) = copy(persistable = converter(persistable))
 
@@ -17,6 +17,8 @@ case class State(persistable: Persistable, creation: Creation) {
   def inSelected(converter: Selectable => Selectable) = inPersistable(_ copy(selected = converter(selected)))
 
   def inCreation(converter: Creation => Creation) = copy(creation = converter(creation))
+
+  def inMenu(converter: Menu => Menu) = copy(menu = converter(menu))
 
   def inStorage(converter: Storage => Storage) = inPersistable(_ copy(storage = converter(storage)))
 
