@@ -21,8 +21,8 @@ object View extends SimpleComponent[ViewProxy]("View") {
       ^.onMouseUp ==> P.mouseReceive(mouse.DragEnd),
       Attr("onWheel") ==> P.wheelReceive(mouse.Wheel),
       ^.onTouchStart ==> P.touchReceive(touch.DragBegin),
-      ^.onTouchMove ==> P.touchReceive(touch.DragBegin),
-      ^.onTouchEnd ==> P.touchReceive(touch.DragBegin),
-      ^.onTouchCancel ==> P.touchReceive(touch.DragBegin)
+      ^.onTouchMove ==> P.touchReceive(touch.Drag),
+      ^.onTouchEnd ==> P.touchReceive(touch.DragEnd),
+      ^.onTouchCancel ==> P.touchReceive(touch.DragCancel)
     )
 }

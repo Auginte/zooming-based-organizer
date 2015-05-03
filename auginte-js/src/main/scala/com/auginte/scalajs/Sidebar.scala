@@ -15,6 +15,7 @@ object Sidebar extends SimpleComponent[SidebarProxy]("Sidebar") {
     <.div(
       ^.`class` := "sidebar",
       <.button(
+        ^.`class` := "btn btn-context",
         if (P.state.exapnded) "<" else ">",
         ^.`class` := s"toggle $visibilityClass",
         ^.onClick ==> P.receive(ToggleSidebar())

@@ -50,7 +50,7 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
   // High level logic (Interacting with React events)
   //
   sealed class Backend(val $: BackendScope[Unit, State]) extends helpers.Backend[State] {
-    val initialTop = 40
+    val initialTop = 0
     val initialHeight = 20
     val initialWidth = 50
 
@@ -89,7 +89,7 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
 
       val mouseDragging: Actions = {
         case ElementEvent(mouse.Drag(e), _, _) =>  dragActive(e)
-        case mouse.DragBegin(e) => selectedElement(e) match {
+        case mouse.DragBegin(e) => selectedElement(e.target) match {
           case Some(element) => Dragging.begin(element, e)
           case None => logic.view.Dragging.begin(e)
         }
@@ -98,11 +98,16 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
       }
 
       val touchDragging: Actions = {
-        case touch.DragBegin(e) if e.touches.length == 1 =>
-          logic.view.Dragging.begin(synthetic(e).changedTouches(0))
+        case touch.DragBegin(e) if e.touches.length == 1 => selectedElement(e.target) match {
+          case Some(element) => touchDragBegin(element, synthetic(e))
+          case None => logic.view.Dragging.begin(synthetic(e).touches(0))
+        }
         case ElementEvent(touch.DragBegin(e), element, _) if e.touches.length == 1 =>
-          logic.elements.Dragging.begin(element, synthetic(e).touches(0))
+          touchDragBegin(element, synthetic(e))
       }
+
+      private def touchDragBegin(element: Element, e: SyntheticTouchEvent): T =
+        logic.elements.Dragging.begin(element, e.touches(0))
 
       private def dragActive(e: PointerEvent): T =
         logic.view.Dragging.drag(e) andThen logic.elements.Dragging.drag(e)
@@ -144,14 +149,20 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
       //
 
       val finishActions: Actions = {
-        case touch.DragEnd(e) =>
-          logic.view.Zooming.saveZoom andThen
-            logic.view.Dragging.end(synthetic(e).changedTouches(0)) andThen
-            logic.elements.Dragging.end(synthetic(e).changedTouches(0))
-        case touch.DragCancel(_) =>
-          logic.view.Zooming.cancel andThen
-            logic.view.Dragging.cancel andThen
-            logic.elements.Dragging.cancel
+        case touch.DragEnd(e) => finisiDrag(synthetic(e))
+        case touch.DragCancel(e) => cancelDrag
+      }
+
+      private def finisiDrag(e: SyntheticTouchEvent): T = {
+        logic.view.Zooming.saveZoom andThen
+          logic.view.Dragging.end(e.changedTouches(0)) andThen
+          logic.elements.Dragging.end(e.changedTouches(0))
+        }
+
+      private def cancelDrag: T = {
+        logic.view.Zooming.cancel andThen
+          logic.view.Dragging.cancel andThen
+          logic.elements.Dragging.cancel
       }
 
       //
@@ -188,9 +199,9 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
     // Utilities
     //
 
-    private def selectedElement(e: ReactMouseEvent): Option[Element] = {
+    private def selectedElement(target: dom.Node): Option[Element] = {
       val elements = $.state.container.elements
-      Dom.getData(e.target, "element-id") map(_.toInt) match {
+      Dom.getData(target, "element-id") map(_.toInt) match {
         case Some(id: Id)  if elements.contains(id) => Some(elements(id))
         case _ => None
       }
@@ -219,8 +230,13 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
     .render { (P, S, B) =>
 
     <.div(
-      Sidebar.generate(B.sidebarProxy()),
-      Creation.generate(B.creationProxy()),
+      <.nav(
+        <.div(
+          ^.`class` := "main-nav",
+          Sidebar.generate(B.sidebarProxy()),
+          Creation.generate(B.creationProxy())
+        )
+      ),
       View.generate(B.viewProxy)
     )
   }
