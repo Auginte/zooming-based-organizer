@@ -1,5 +1,6 @@
 package com.auginte.scalajs.helpers
 
+import com.auginte.scalajs.state.T
 import japgolly.scalajs.react._
 
 /**
@@ -17,6 +18,12 @@ trait Backend[S] {
       e.preventDefault()
     }
     m(converter)
+  }
+
+  def consume(e: ReactEvent)(converter: T) = {
+    if (!isInput(e.target.localName) && e.cancelable) {
+      e.preventDefault()
+    }
   }
 
   private def isInput(tagName: String) = tagName.toLowerCase match {

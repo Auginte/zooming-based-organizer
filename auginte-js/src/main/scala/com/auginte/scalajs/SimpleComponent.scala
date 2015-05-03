@@ -18,6 +18,5 @@ abstract class SimpleComponent[A <: EventProxy](val componentName: String) {
   def r = build
 
   def generate(P: A): ReactTag
-  
-  protected final def inputEvent(action: ReactEventI => Unit)(event: ReactEventI): Unit = action(event)
+
 }

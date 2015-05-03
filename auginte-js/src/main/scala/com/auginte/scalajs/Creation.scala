@@ -16,7 +16,7 @@ object Creation extends SimpleComponent[CreationProxy]("Creation") {
       ^.ref := componentName,
       ^.onSubmit ==> P.receive(Add()),
       <.input(
-        ^.onChange ==> inputEvent { e => P.receive(SaveName(e.target.value))(e) },
+        ^.onChange ==> P.inputReceive(e => SaveName(e.target.value)),
         ^.value := P.state.name,
         ^.`class` := "new-name"
       ),
