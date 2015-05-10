@@ -1,0 +1,67 @@
+@mainColor: #101b20;
+@dark1: lighten(#101b20, 20%);
+@light1: lighten(#101b20, 90%);
+@navigationSize: 50px;
+#container {
+  .area {
+    overflow: hidden;
+    position: relative;
+    background: @light1;
+    color: @dark1;
+    border: 1px solid @dark1;
+    height: 32px;
+
+    .dragable {
+      position: absolute;
+      left: 0;
+      right: 0;
+      display: inline;
+      cursor: grab;
+    }
+
+    .noselect {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  }
+
+  .area {
+    @media screen and (min-height: 100px) { height: 50px; }
+    @media screen and (min-height: 150px) { height: 100px; }
+    @media screen and (min-height: 200px) { height: 150px; }
+    @media screen and (min-height: 240px) { height: 190px; }
+    @media screen and (min-height: 320px) { height: 270px; }
+    @media screen and (min-height: 360px) { height: 310px; }
+    @media screen and (min-height: 400px) { height: 350px; }
+    @media screen and (min-height: 480px) { height: 430px; }
+    @media screen and (min-height: 540px) { height: 490px; }
+    @media screen and (min-height: 600px) { height: 550px; }
+    @media screen and (min-height: 640px) { height: 590px; }
+    @media screen and (min-height: 720px) { height: 670px; }
+    @media screen and (min-height: 768px) { height: 718px; }
+    @media screen and (min-height: 800px) { height: 750px; }
+    @media screen and (min-height: 854px) { height: 804px; }
+    @media screen and (min-height: 900px) { height: 850px; }
+    @media screen and (min-height: 960px) { height: 910px; }
+    @media screen and (min-height: 1024px) { height: 974px; }
+    @media screen and (min-height: 1050px) { height: 1000px; }
+    @media screen and (min-height: 1080px) { height: 1030px; }
+    @media screen and (min-height: 1136px) { height: 1086px; }
+    @media screen and (min-height: 1200px) { height: 1150px; }
+    @media screen and (min-height: 1280px) { height: 1230px; }
+    @media screen and (min-height: 1366px) { height: 1316px; }
+    @media screen and (min-height: 1440px) { height: 1390px; }
+    @media screen and (min-height: 1536px) { height: 1486px; }
+    @media screen and (min-height: 1600px) { height: 1550px; }
+    @media screen and (min-height: 1680px) { height: 1630px; }
+    @media screen and (min-height: 1700px) { height: 1650px; }
+    @media screen and (min-height: 1800px) { height: 1750px; }
+    @media screen and (min-height: 1920px) { height: 1870px; }
+    @media screen and (min-height: 2048px) { height: 1998px; }
+    @media screen and (min-height: 2560px) { height: 2510px; }
+    @media screen and (min-height: 2880px) { height: 2830px; }
+  }
+}

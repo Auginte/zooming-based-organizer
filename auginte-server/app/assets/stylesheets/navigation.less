@@ -1,0 +1,147 @@
+@mainColor: #101b20;
+@dark1: lighten(#101b20, 20%);
+@dark2: lighten(@dark1, 1%);
+@dark3: lighten(@dark1, 4%);
+@light1: lighten(#101b20, 90%);
+@light2: lighten(@light1, 1%);
+@light3: lighten(@light1, 4%);
+@parring1: 5px;
+@parring2: 25px;
+@parring3: 50px;
+#container {
+  background: @light1;
+  color: @dark1;
+
+  nav {
+    background: @mainColor;
+
+    button {
+      background: @dark1;
+      color: @light1;
+      border: 1px solid @dark3;
+    }
+
+    .sidebar {
+      display: inline;
+      float: left;
+
+      .collapsed {
+        .sidebar-items {
+          display: none;
+        }
+      }
+      .expanded {
+        .sidebar-items {
+          background: @dark2;
+          color: @light2;
+          display: block;
+          position: fixed;
+          overflow-y: auto;
+          width: 200px;
+          border: 1px solid @light1;
+          z-index: 200;
+
+          button {
+            display: block;
+            width: 99%;
+          }
+
+          button:hover {
+            background: @dark3;
+            color: @light3;
+          }
+        }
+      }
+    }
+
+    .main-nav {
+      display: inline;
+      text-align: center;
+
+      .input-bar {
+
+        margin: auto;
+
+        .btn-context, .btn-add {
+          width: 10%;
+        }
+        .input-field {
+          width: 70%;
+          display: inline;
+        }
+
+        @media screen and (min-width: 320px) {
+          width: 320px;
+
+          .btn-context, .btn-add {
+            width: 30px;
+          }
+
+          .input-field {
+            width: 235px;
+          }
+        }
+        @media screen and (min-width: 640px) {
+          width: 640px;
+          padding-top: @parring1;
+          padding-bottom: @parring1;
+
+          .btn-context, .btn-add {
+            margin-left: @parring1;
+            margin-right: @parring1;
+            padding-left: @parring1;
+            padding-right: @parring1;
+          }
+
+          .input-field {
+            width: 555px;
+          }
+        }
+
+        @media screen and (min-width: 720px) {
+          .btn-add {
+            padding-left: @parring2;
+            padding-right: @parring2;
+          }
+
+          @media screen and (min-width: 1024px) {
+            .btn-add {
+              padding-left: @parring3;
+              padding-right: @parring3;
+            }
+          }
+        }
+
+        :after {
+          clear: both;
+        }
+      }
+    }
+  }
+
+  .short {
+    display: inline;
+  }
+  .long {
+    display: none;
+  }
+  .longest {
+    display: none;
+  }
+  @media screen and (min-width: 320px) {
+    .short {
+      display: none;
+    }
+    .long {
+      display: inline;
+    }
+  }
+  @media screen and (min-width: 640px) {
+    .long {
+      display: none;
+    }
+    .longest {
+      display: inline;
+    }
+  }
+}

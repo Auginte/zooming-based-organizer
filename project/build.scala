@@ -10,6 +10,16 @@ import sbtassembly.Plugin._
 import xerial.sbt.Pack._
 import java.{io => jio}
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import playscalajs.ScalaJSPlay
+import playscalajs.ScalaJSPlay.autoImport._
+import org.scalajs.sbtplugin.ScalaJSPlugin
+import playscalajs.PlayScalaJS.autoImport._
+import com.typesafe.sbt.web.Import._
+import com.typesafe.sbt.gzip.Import._
+import play.PlayScala
+import sbt.Project.projectToRef
+import com.typesafe.sbt.web.SbtWeb
+import com.typesafe.sbt.less.Import._
 
 object build extends sbt.Build {
   val buildName = "auginte"
@@ -51,15 +61,7 @@ object build extends sbt.Build {
   val customTasks = Seq(CustomTasks.deployTask)
 
   val scalaJsSettings = Seq(
-    libraryDependencies ++= Seq(
-      "org.scala-js" %%% "scalajs-dom" % "0.8.0",
-      "com.lihaoyi" %%% "utest" % "0.3.0" % "test"
-    ),
-    jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
-    libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.3",
-    libraryDependencies += "com.github.benhutchison" %%% "prickle" % "1.1.4",
-    persistLauncher := true,
-    mainClass := Some("example.DragableElements")
+
   )
 
   // Project
@@ -102,10 +104,55 @@ object build extends sbt.Build {
     settings = allSettings,
     base = file("auginte-common"))
 
-  lazy val auginteJs = Project(id = "auginte-js",
-    settings = buildSettings  ++ scalaJsSettings,
-    base = file("auginte-js")
-  )
+  lazy val clients = Seq(auginteJs)
+
+  lazy val auginteServer = (project in file("auginte-server")).settings(
+    name := "auginte-server",
+    scalaVersion := buildScalaVersion,
+    scalaJSProjects := clients,
+    pipelineStages := Seq(scalaJSProd, gzip),
+    libraryDependencies ++= Seq(
+      "com.vmunier" %% "play-scalajs-scripts" % "0.2.1",
+      "org.webjars" % "jquery" % "1.11.1"
+    ),
+    includeFilter in (Assets, LessKeys.less) := "*.less"
+  ).enablePlugins(PlayScala).
+    enablePlugins(SbtWeb).
+    aggregate(clients.map(projectToRef): _*).
+    dependsOn(auginteSharedJvm)
+
+  lazy val auginteJs = (project in file("auginte-js")).settings(
+    name := "auginte-js",
+    scalaVersion := buildScalaVersion,
+    persistLauncher := true,
+    persistLauncher in Test := false,
+    sourceMapsDirectories += auginteSharedJs.base / "..",
+    unmanagedSourceDirectories in Compile := Seq((scalaSource in Compile).value),
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % "0.8.0",
+      "com.lihaoyi" %%% "utest" % "0.3.0" % "test",
+      "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.3",
+      "com.github.benhutchison" %%% "prickle" % "1.1.4"
+    ),
+    jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
+    persistLauncher := true,
+    mainClass := Some("example.DragableElements")
+  ).enablePlugins(ScalaJSPlugin, ScalaJSPlay).
+    dependsOn(auginteSharedJs)
+
+  lazy val auginteShared = (crossProject.crossType(CrossType.Pure) in file("auginte-shared")).
+    settings(
+      name := "auginte-shared",
+      scalaVersion := buildScalaVersion
+    ).
+    jsConfigure(_ enablePlugins ScalaJSPlay).
+    jsSettings(sourceMapsBase := baseDirectory.value / "..")
+
+  lazy val auginteSharedJvm = auginteShared.jvm
+  lazy val auginteSharedJs = auginteShared.js
+
+  // loads the Play project at sbt startup
+  onLoad in Global := (Command.process("project auginteServer", _: State)) compose (onLoad in Global).value
 }
 
 object ProjectProperties {
@@ -228,7 +275,7 @@ object Proguard {
       writer.println(s"-libraryjars $libraryJar")
     }
     writer.println()
-    for (line <- io.Source.fromFile(template.path).getLines()) {
+    for (line <- scala.io.Source.fromFile(template.path).getLines()) {
       writer.println(line)
     }
     writer.close()
