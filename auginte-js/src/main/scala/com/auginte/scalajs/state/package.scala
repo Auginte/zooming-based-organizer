@@ -6,9 +6,7 @@ import com.auginte.scalajs.events.logic.Event
  * Data structures to store sate and do simple data manipulation
  */
 package object state {
-  type CameraId = Int
-
-  val viewId: Id = -1
+  import com.auginte.shared
 
   /**
    * Transforming GUI state object
@@ -16,9 +14,4 @@ package object state {
   type T = State => State
 
   type Actions = PartialFunction[Event, T]
-
-  type Tr[A] = A => A
-
-  type Id = Int
-
 }

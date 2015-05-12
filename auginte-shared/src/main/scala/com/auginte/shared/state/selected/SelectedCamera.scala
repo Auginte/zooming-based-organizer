@@ -1,6 +1,6 @@
-package com.auginte.scalajs.state.selected
+package com.auginte.shared.state.selected
 
-import com.auginte.scalajs.state.CameraId
+import com.auginte.shared.state.CameraId
 
 case class SelectedCamera(cameraId: Option[CameraId] = None, movable: MovableCamera = MovableCamera(), zoomable: ZoomableCamera = ZoomableCamera()) {
   private val defaultCamera = 1

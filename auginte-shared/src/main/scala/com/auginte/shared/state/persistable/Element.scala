@@ -1,4 +1,4 @@
-package com.auginte.scalajs.state.persistable
+package com.auginte.shared.state.persistable
 
 /**
  * Data structure representing independent data element

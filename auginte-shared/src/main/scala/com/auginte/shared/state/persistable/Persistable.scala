@@ -1,6 +1,6 @@
-package com.auginte.scalajs.state.persistable
+package com.auginte.shared.state.persistable
 
-import com.auginte.scalajs.state.selected.Selectable
+import com.auginte.shared.state.selected.Selectable
 
 case class Persistable(camera: Camera, container: Container, selected: Selectable, storage: Storage) {
   def inCamera(converter: Camera => Camera) = copy(camera = converter(camera))

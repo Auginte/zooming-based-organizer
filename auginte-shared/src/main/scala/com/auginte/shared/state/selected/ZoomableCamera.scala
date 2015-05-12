@@ -1,6 +1,6 @@
-package com.auginte.scalajs.state.selected
+package com.auginte.shared.state.selected
 
-import com.auginte.scalajs.state.persistable.Position
+import com.auginte.shared.state.persistable.Position
 
 case class ZoomableCamera(last: Position = Position(), lastDistance: Double = -1, currentDistance: Double = -1) extends Selected {
   private val noScale = -1

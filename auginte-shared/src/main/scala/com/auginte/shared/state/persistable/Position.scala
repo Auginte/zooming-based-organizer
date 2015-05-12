@@ -1,4 +1,4 @@
-package com.auginte.scalajs.state.persistable
+package com.auginte.shared.state.persistable
 
 /**
  * 2D position in the plane

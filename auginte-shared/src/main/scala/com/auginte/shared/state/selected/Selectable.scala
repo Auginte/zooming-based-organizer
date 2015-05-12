@@ -1,4 +1,4 @@
-package com.auginte.scalajs.state.selected
+package com.auginte.shared.state.selected
 
 case class Selectable(elements: SelectedElements = SelectedElements(), camera: SelectedCamera = SelectedCamera()) {
   def inElements(converter: SelectedElements => SelectedElements) = copy(elements = converter(elements))

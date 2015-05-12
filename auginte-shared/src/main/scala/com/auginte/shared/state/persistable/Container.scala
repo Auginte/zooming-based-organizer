@@ -1,6 +1,6 @@
-package com.auginte.scalajs.state.persistable
+package com.auginte.shared.state.persistable
 
-import com.auginte.scalajs.state._
+import com.auginte.shared.state.Id
 
 /**
  * Data structure to store Elements

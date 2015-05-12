@@ -1,7 +1,7 @@
 package com.auginte.scalajs.communication
 
 import com.auginte.scalajs.jshelpers.URIHelper
-import com.auginte.scalajs.state.persistable.{Persistable, Storage}
+import com.auginte.shared.state.persistable.{Persistable, Storage}
 import org.scalajs.dom
 import org.scalajs.dom.ext.Ajax
 import org.scalajs.dom.raw.XMLHttpRequest

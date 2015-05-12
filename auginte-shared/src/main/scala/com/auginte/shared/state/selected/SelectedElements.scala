@@ -1,7 +1,7 @@
-package com.auginte.scalajs.state.selected
+package com.auginte.shared.state.selected
 
-import com.auginte.scalajs.state.persistable.{Position, Container}
-import com.auginte.scalajs.state.Id
+import com.auginte.shared.state.Id
+import com.auginte.shared.state.persistable.{Position, Container}
 
 case class SelectedElements(id: Option[Id] = None, last: Position = Position()) extends Selected {
   def withSelected(id: Id) = copy(id = Some(id))

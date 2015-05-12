@@ -1,7 +1,7 @@
 package com.auginte.scalajs.state
 
-import com.auginte.scalajs.state.persistable.{Persistable, Storage, Container, Camera}
-import com.auginte.scalajs.state.selected.Selectable
+import com.auginte.shared.state.persistable.{Persistable, Camera, Storage, Container}
+import com.auginte.shared.state.selected.Selectable
 
 /**
  * High level state data structure aggregating decoupled parts

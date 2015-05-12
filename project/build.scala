@@ -4,6 +4,7 @@ import java.util.{Date, Properties}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import sbt.Keys._
+import sbt.Keys._
 import sbt.Process
 import sbt._
 import sbtassembly.Plugin._
@@ -106,6 +107,8 @@ object build extends sbt.Build {
 
   lazy val clients = Seq(auginteJs)
 
+  val orientDbVersionServer = "2.0.8"
+
   lazy val auginteServer = (project in file("auginte-server")).settings(
     name := "auginte-server",
     scalaVersion := buildScalaVersion,
@@ -113,13 +116,17 @@ object build extends sbt.Build {
     pipelineStages := Seq(scalaJSProd, gzip),
     libraryDependencies ++= Seq(
       "com.vmunier" %% "play-scalajs-scripts" % "0.2.1",
-      "org.webjars" % "jquery" % "1.11.1"
+      "org.webjars" % "jquery" % "1.11.1",
+      "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
+      "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer,
+      "com.tinkerpop.blueprints" % "blueprints-core" % orientDbVersionServer,
+      "com.github.benhutchison" %% "prickle" % "1.1.5"
     ),
     includeFilter in (Assets, LessKeys.less) := "*.less"
   ).enablePlugins(PlayScala).
     enablePlugins(SbtWeb).
     aggregate(clients.map(projectToRef): _*).
-    dependsOn(auginteSharedJvm)
+    dependsOn(auginteShared.jvm)
 
   lazy val auginteJs = (project in file("auginte-js")).settings(
     name := "auginte-js",
@@ -132,13 +139,13 @@ object build extends sbt.Build {
       "org.scala-js" %%% "scalajs-dom" % "0.8.0",
       "com.lihaoyi" %%% "utest" % "0.3.0" % "test",
       "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.3",
-      "com.github.benhutchison" %%% "prickle" % "1.1.4"
+      "com.github.benhutchison" %%% "prickle" % "1.1.5"
     ),
     jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
     persistLauncher := true,
     mainClass := Some("example.DragableElements")
   ).enablePlugins(ScalaJSPlugin, ScalaJSPlay).
-    dependsOn(auginteSharedJs)
+    dependsOn(auginteShared.js)
 
   lazy val auginteShared = (crossProject.crossType(CrossType.Pure) in file("auginte-shared")).
     settings(

@@ -3,7 +3,7 @@ package com.auginte.scalajs.proxy
 import com.auginte.scalajs.events.logic
 import com.auginte.scalajs.events.logic.{ElementEvent, Event}
 import com.auginte.scalajs.state.{Actions, T, State}
-import com.auginte.scalajs.state.persistable.{Camera, Persistable}
+import com.auginte.shared.state.persistable.{Persistable, Camera}
 import japgolly.scalajs.react.ReactEvent
 import japgolly.scalajs.react.vdom.ReactTag
 

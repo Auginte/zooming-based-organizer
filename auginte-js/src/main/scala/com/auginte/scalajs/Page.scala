@@ -9,8 +9,9 @@ import com.auginte.scalajs.logic.elements.Dragging
 import com.auginte.scalajs.logic.view.Zooming
 import com.auginte.scalajs.proxy._
 import com.auginte.scalajs.state.State
-import com.auginte.scalajs.state.persistable._
-import com.auginte.scalajs.state.selected.Selectable
+import com.auginte.shared.state.persistable._
+import com.auginte.shared.state.{Id, persistable}
+import com.auginte.shared.state.selected.Selectable
 import com.auginte.scalajs.state._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._

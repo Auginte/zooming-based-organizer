@@ -9,4 +9,4 @@ GET     /                           controllers.com.auginte.server.Application.i
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 # To be implemented
-POST   /demo/save                   controllers.com.auginte.server.Application.store
+POST   /demo/save/                  controllers.com.auginte.server.Application.store
