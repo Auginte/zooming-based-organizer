@@ -3,10 +3,10 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.com.auginte.server.Application.index
+GET     /                           com.auginte.server.controllers.Application.index
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 # To be implemented
-POST   /demo/save/                  controllers.com.auginte.server.Application.store
+POST   /demo/save/*hash             com.auginte.server.controllers.Application.store(hash)

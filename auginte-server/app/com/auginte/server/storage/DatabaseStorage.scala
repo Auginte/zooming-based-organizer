@@ -1,10 +1,15 @@
 package com.auginte.server.storage
 
+import java.security.MessageDigest
+
 import com.auginte.shared.state.persistable.{Storage, Element, Camera, Persistable}
 import com.orientechnologies.orient.core.metadata.schema.{OClass, OSchema, OType}
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientGraphNoTx}
+import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTimeZone, DateTime}
 import play.api.{Configuration, Play}
+
+import scala.util.Random
 
 object DatabaseStorage {
   def connection(config: Configuration): Option[OrientGraphNoTx] = {
@@ -88,5 +93,8 @@ object DatabaseStorage {
     "y", Int.box(y)
   )
 
+  def newHash = Random.alphanumeric.take(64).mkString("")
+
   private def now = new DateTime(DateTimeZone.UTC).toString()
+
 }
