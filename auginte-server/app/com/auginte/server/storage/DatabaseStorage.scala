@@ -1,27 +1,35 @@
 package com.auginte.server.storage
 
-import java.security.MessageDigest
-
-import com.auginte.shared.state.persistable.{Storage, Element, Camera, Persistable}
+import com.auginte.shared.state.Id
+import com.auginte.shared.state.persistable._
+import com.auginte.shared.state.selected.Selectable
+import com.orientechnologies.orient.core.command.traverse.OTraverse
+import com.orientechnologies.orient.core.command.{OCommandContext, OCommandPredicate}
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.metadata.schema.{OClass, OSchema, OType}
+import com.orientechnologies.orient.core.record.ORecord
+import com.orientechnologies.orient.core.record.impl.ODocument
+import com.tinkerpop.blueprints.Direction
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientGraphNoTx}
-import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTimeZone, DateTime}
-import play.api.{Configuration, Play}
-
+import play.api.Configuration
 import scala.util.Random
+import scala.collection.JavaConversions._
 
 object DatabaseStorage {
-  def connection(config: Configuration): Option[OrientGraphNoTx] = {
+  type DB = OrientGraphNoTx
+  type Vertex = OrientVertex
+
+  def connection(config: Configuration): Option[DB] = {
     for (
       dbPath <- config.getString("orientdb.path");
       dbName <- config.getString("orientdb.db.main");
       dbUser <- config.getString("orientdb.user");
       dbPassword <- config.getString("orientdb.password")
-    ) yield new OrientGraphNoTx(s"$dbPath/$dbName", dbUser, dbPassword)
+    ) yield new DB(s"$dbPath/$dbName", dbUser, dbPassword)
   }
 
-  def storeToDb(db: OrientGraphNoTx, persistable: Persistable) = {
+  def storeToDb(db: DB, persistable: Persistable) = {
     prepareStructure(db)
     val user = storeUser(db, persistable.storage)
     val camera = storeCamera(db, persistable.camera)
@@ -33,7 +41,7 @@ object DatabaseStorage {
     user
   }
 
-  private def prepareStructure(db: OrientGraphNoTx): Unit = {
+  private def prepareStructure(db: DB): Unit = {
     val schema = db.getRawGraph.getMetadata.getSchema
     val vertex = schema.getClass("V")
     val edge = schema.getClass("E")
@@ -62,7 +70,7 @@ object DatabaseStorage {
     if (schema.existsClass(name)) schema.getClass(name).setSuperClass(parent)
     else schema.createClass(name, parent)
 
-  private def storeCamera(db: OrientGraphNoTx, camera: Camera): OrientVertex = db.addVertex(
+  private def storeCamera(db: DB, camera: Camera): Vertex = db.addVertex(
     "class:Camera",
     "x", Double.box(camera.x),
     "y", Double.box(camera.y),
@@ -70,9 +78,9 @@ object DatabaseStorage {
     "created", now
   )
 
-  private def storeElement(db: OrientGraphNoTx, element: Element): OrientVertex = db.addVertex(
+  private def storeElement(db: DB, element: Element): Vertex = db.addVertex(
     "class:Element",
-    "key", Int.box(element.id),
+    "key", element.id,
     "text", element.text,
     "x", Double.box(element.x),
     "y", Double.box(element.y),
@@ -81,13 +89,13 @@ object DatabaseStorage {
     "created", now
   )
 
-  private def storeUser(db: OrientGraphNoTx, storage: Storage): OrientVertex = db.addVertex(
+  private def storeUser(db: DB, storage: Storage): Vertex = db.addVertex(
     "class:User",
     "hash", storage.hash,
     "created", now
   )
 
-  private def storeNode(db: OrientGraphNoTx, x: Int = 0, y: Int = 0): OrientVertex = db.addVertex(
+  private def storeNode(db: DB, x: Int = 0, y: Int = 0): Vertex = db.addVertex(
     "class:Node",
     "x", Int.box(x),
     "y", Int.box(y)
@@ -97,4 +105,34 @@ object DatabaseStorage {
 
   private def now = new DateTime(DateTimeZone.UTC).toString()
 
+  def laodUser(db: DB, id: String, hash: String): Option[Vertex] = {
+    val user = db.getVertex(id)
+    if (user != null && user.getProperty[String]("hash") == hash) {
+        Some(user)
+    } else None
+  }
+  
+  def generatePersistable(user: Vertex): Persistable = {
+    val hash = user.getProperty[String]("hash")
+    var camera = Camera()
+    var elements: Map[Id, Element] = Map()
+    for (element <- new OTraverse().fields("out_Owns", "out_View", "in_Inside", "out", "in").target(user).iterator()) {
+      val record = element.getRecord[ODocument]
+      record.getClassName match {
+        case "Camera" => camera = Camera(record.field[Double]("x"), record.field[Double]("y"), record.field[Double]("scale"))
+        case "Element" =>
+          val converted = Element(
+            record.getIdentity.toString,
+            record.field[String]("text"),
+            record.field[Double]("x"),
+            record.field[Double]("y"),
+            record.field[Double]("width"),
+            record.field[Double]("height")
+          )
+          elements = elements + (converted.id -> converted)
+        case _ => // Ignore User, Node and edges
+      }
+    }
+    new Persistable(camera, Container(elements), Selectable(), Storage(user.getId.toString, hash))
+  }
 }

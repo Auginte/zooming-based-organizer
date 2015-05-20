@@ -69,7 +69,7 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
       private def addElement(e: ReactEvent) = preventDefault(e) { currentState =>
         currentState inCreation (_ resetName) inContainer { container =>
           container withNewElement persistable.Element (
-            container.nextId,
+            container.nextId.toString,
             currentState.creation.name,
             0,
             initialTop + initialHeight * container.elements.size,
@@ -202,8 +202,8 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
 
     private def selectedElement(target: dom.Node): Option[Element] = {
       val elements = $.state.container.elements
-      Dom.getData(target, "element-id") map(_.toInt) match {
-        case Some(id: Id)  if elements.contains(id) => Some(elements(id))
+      Dom.getData(target, "element-id") map(_.toString) match {
+        case Some(id: Id) if elements.contains(id) => Some(elements(id))
         case _ => None
       }
     }

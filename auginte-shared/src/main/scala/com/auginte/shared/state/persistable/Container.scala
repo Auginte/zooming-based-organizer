@@ -6,7 +6,7 @@ import com.auginte.shared.state.Id
  * Data structure to store Elements
  */
 case class Container(elements: Map[Id, Element] = Map(), nextId: Int = 0) {
-  def withNewElement(element: Element) = copy(elements = elements.updated(element.id, element), nextId = element.id + 1)
+  def withNewElement(element: Element) = copy(elements = elements.updated(element.id, element), nextId = nextId + 1)
 
   def moved(elementId: Option[Id], difference: Position) = elementId match {
     case Some(id) if elements.contains(id) =>

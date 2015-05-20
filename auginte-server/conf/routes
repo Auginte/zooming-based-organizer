@@ -5,8 +5,11 @@
 # Home page
 GET     /                           com.auginte.server.controllers.Application.index
 
-# Map static resources from the /public folder to the /assets URL path
+# Assets
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
-# To be implemented
-POST   /demo/save/*hash             com.auginte.server.controllers.Application.store(hash)
+# Saving
+POST   /demo/save/:hash             com.auginte.server.controllers.Application.store(hash)
+
+# Loading
+GET   /demo/load/:id/:hash         com.auginte.server.controllers.Application.load(id, hash)

@@ -1,4 +1,4 @@
-@(newHash: String)
+@(newHash: String, id: String = "", serialised: String = "")
 
 @main("Auginte") {
 <div id="container">
@@ -25,7 +25,9 @@
 </div>
 
 <script type="text/javascript">
-    var auginteHash = '@newHash';
+  var auginteInput = '@Html(serialised)';
+  var auginteHash = '@newHash';
+  var auginteId = '@id';
 </script>
 
 <script type="text/javascript" src="http://fb.me/react-with-addons-0.12.1.js"></script>

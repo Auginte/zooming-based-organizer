@@ -14,7 +14,7 @@ import js.Dynamic.{global => g}
  *  <script type="text/javascript">
  *    var auginteInput = '{"#id": "15", "camera": ...}';
  *    var auginteHash = '832a5408e9ae19fb62777046c802d56d';
- *    var auginteId = 123;
+ *    var auginteId = '123';
  *  </script>
  * }}
  */
@@ -22,7 +22,7 @@ object Main extends js.JSApp {
   def main(): Unit = {
     val auginteInput = getDynamic(g.auginteInput, "")
     val auginteHash = getDynamic(g.auginteHash, "")
-    val auginteId = getDynamic(g.auginteId, -1)
+    val auginteId = getDynamic(g.auginteId, "")
 
     val engine = new Page(auginteInput, Storage(auginteId, auginteHash))
 
