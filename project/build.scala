@@ -116,7 +116,7 @@ object build extends sbt.Build {
     pipelineStages := Seq(scalaJSProd, gzip),
     libraryDependencies ++= Seq(
       "com.vmunier" %% "play-scalajs-scripts" % "0.2.1",
-      "org.webjars" % "jquery" % "1.11.1",
+      "org.webjars.bower" % "react" % "0.13.3",
       "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
       "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer,
       "com.tinkerpop.blueprints" % "blueprints-core" % orientDbVersionServer,

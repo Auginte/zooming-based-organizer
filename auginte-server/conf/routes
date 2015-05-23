@@ -6,6 +6,8 @@
 GET     /                           com.auginte.server.controllers.Application.index
 
 # Assets
+GET     /favicon.ico                controllers.Assets.at(path="/public", file="icons/favicon.ico")
+GET     /apple-touch-icon.png       controllers.Assets.at(path="/public", file="icons/apple-touch-icon.png")
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 # Saving
