@@ -105,7 +105,7 @@ object build extends sbt.Build {
     name := "auginte-distribution",
     scalaVersion := buildScalaVersion,
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play-json" % "2.3.3",
+      "com.typesafe.play" %% "play-json" % "2.3.7",
       "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
       "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer
     )
