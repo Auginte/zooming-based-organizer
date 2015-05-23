@@ -4,7 +4,6 @@ import java.util.{Date, Properties}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import sbt.Keys._
-import sbt.Keys._
 import sbt.Process
 import sbt._
 import sbtassembly.Plugin._
@@ -32,6 +31,7 @@ object build extends sbt.Build {
   // Custom properties (also accessable from source)
 
   // Settings
+
 
   lazy val buildSettings = Seq (
     organization := buildOrganization,
@@ -70,44 +70,69 @@ object build extends sbt.Build {
     fixForEncryptedFileSystems
   lazy val withAssembly = allSettings ++ assemblySettings
 
-  lazy val root = Project(
-    id = "auginte",
-    base = file(".")
-  ) aggregate(
-    auginteDesktop,
-    auginteZooming,
-    auginteTransformation,
-    auginteDistribution,
-    auginteCommon
+  lazy val auginte = (project in file(".")).
+    settings(
+      name := "auginte",
+      scalaVersion := buildScalaVersion
+    ).
+    aggregate(
+      auginteDesktop,
+      auginteZooming,
+      auginteTransformation,
+      auginteDistribution,
+      auginteCommon
     )
 
-  lazy val auginteZooming = Project(id = "auginte-zooming",
-    base = file("auginte-zooming"),
-    settings = allSettings
-  ) dependsOn auginteCommon dependsOn (auginteCommon % "test->test")
 
-  lazy val auginteTransformation = Project(id = "auginte-transformation",
-    settings = allSettings,
-    base = file("auginte-transformation")
-  ) dependsOn auginteCommon dependsOn (auginteCommon % "test->test")
+  lazy val auginteZooming = (project in file("auginte-zooming"))
+    .settings(
+      name := "auginte-zooming",
+      scalaVersion := buildScalaVersion
+    ).
+    dependsOn(auginteCommon).
+    dependsOn(auginteCommon % "test->test")
 
-  lazy val auginteDistribution = Project(id = "auginte-distribution",
-    settings = allSettings,
-    base = file("auginte-distribution")
-  ) dependsOn auginteZooming dependsOn auginteTransformation dependsOn (auginteZooming % "test->test") dependsOn (auginteCommon % "test->test")
+  lazy val auginteTransformation = (project in file("auginte-transformation")).
+    settings(
+      name := "auginte-transformation",
+      scalaVersion := buildScalaVersion
+    ).
+    dependsOn(auginteCommon).
+    dependsOn(auginteCommon % "test->test")
 
-  lazy val auginteDesktop = Project(id = "auginte-desktop",
-    settings = withAssembly,
-    base = file("auginte-desktop")
-  ) dependsOn auginteDistribution dependsOn(auginteCommon % "test->test")
+  lazy val auginteDistribution = (project in file("auginte-distribution")).
+    settings(
+    name := "auginte-distribution",
+    scalaVersion := buildScalaVersion,
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % "2.3.3",
+      "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
+      "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer
+    )
+  ).
+    dependsOn(auginteZooming).
+    dependsOn(auginteTransformation).
+    dependsOn(auginteZooming % "test->test").
+    dependsOn(auginteCommon % "test->test")
 
-  lazy val auginteCommon = Project(id = "auginte-common",
-    settings = allSettings,
-    base = file("auginte-common"))
+  lazy val auginteDesktop = (project in file("auginte-desktop")).
+    settings(
+      name := "auginte-desktop",
+      scalaVersion := buildScalaVersion
+    ).
+    dependsOn(auginteDistribution).
+    dependsOn(auginteDistribution % "test->test").
+    dependsOn(auginteCommon % "test->test")
+
+  lazy val auginteCommon = (project in file("auginte-common"))
+    .settings(
+      name := "auginte-common",
+      scalaVersion := buildScalaVersion
+    )
 
   lazy val clients = Seq(auginteJs)
 
-  val orientDbVersionServer = "2.0.8"
+  val orientDbVersionServer = "2.0.9"
 
   lazy val auginteServer = (project in file("auginte-server")).settings(
     name := "auginte-server",
@@ -119,7 +144,6 @@ object build extends sbt.Build {
       "org.webjars.bower" % "react" % "0.13.3",
       "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
       "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer,
-      "com.tinkerpop.blueprints" % "blueprints-core" % orientDbVersionServer,
       "com.github.benhutchison" %% "prickle" % "1.1.5"
     ),
     includeFilter in (Assets, LessKeys.less) := "*.less"

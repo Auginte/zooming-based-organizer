@@ -17,6 +17,8 @@ import collection.JavaConversions._
 import scala.language.implicitConversions
 import TestDbHelpers._
 
+import scala.util.Random
+
 /**
  * Unit test for [[com.auginte.distribution.orientdb.Structure]]
  *
@@ -212,7 +214,7 @@ class StructuresSpec extends UnitSpec with StructuresSpecHelpers{
 }
 
 trait StructuresSpecHelpers {
-  def testDbName = s"test${System.currentTimeMillis()}"
+  def testDbName = s"test${System.currentTimeMillis()}${Random.nextString(5)}"
 
   def schema(db: OrientBaseGraph) = db.getRawGraph.getMetadata.getSchema
 

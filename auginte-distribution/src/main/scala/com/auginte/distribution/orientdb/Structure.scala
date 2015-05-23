@@ -33,6 +33,7 @@ object Structure {
   def createRepository(path: String, connectionType: String = "plocal",
                        user: String = "admin", password: String = "admin"): OrientBaseGraph = {
     val database = new OrientGraphNoTx(s"$connectionType:$path", user, password)
+    database.setUseLightweightEdges(true)
     val schema = database.getRawGraph.getMetadata.getSchema
     val node = createdNodeVertex(schema)
     val parent = createdParentEdge(schema)

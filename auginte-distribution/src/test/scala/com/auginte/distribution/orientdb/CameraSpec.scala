@@ -42,7 +42,7 @@ class CameraSpec extends UnitSpec {
         val cameraVertex = db.addVertex("class:Camera", defaults: _*)
         val camera = Camera(cameraVertex)
         assert(nodeVertex === camera.node.persisted.get)
-        assert(false === select("SELECT first(out('View')).x AS x FROM Camera").iterator().hasNext)
+        assert(0 == select("SELECT first(out('View')) FROM Camera").iterator().next.fields())
         camera.node = node
         assert(nodeVertex === camera.node.persisted.get)
         assert(1 === select("SELECT first(out('View')).x AS x FROM Camera").toList.head.field[Byte]("x"))
