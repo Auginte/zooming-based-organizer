@@ -73,6 +73,7 @@ object build extends sbt.Build {
   lazy val auginte = (project in file(".")).
     settings(
       name := "auginte",
+      version := buildVersion,
       scalaVersion := buildScalaVersion
     ).
     aggregate(
@@ -87,6 +88,7 @@ object build extends sbt.Build {
   lazy val auginteZooming = (project in file("auginte-zooming"))
     .settings(
       name := "auginte-zooming",
+      version := buildVersion,
       scalaVersion := buildScalaVersion
     ).
     dependsOn(auginteCommon).
@@ -95,6 +97,7 @@ object build extends sbt.Build {
   lazy val auginteTransformation = (project in file("auginte-transformation")).
     settings(
       name := "auginte-transformation",
+      version := buildVersion,
       scalaVersion := buildScalaVersion
     ).
     dependsOn(auginteCommon).
@@ -103,6 +106,7 @@ object build extends sbt.Build {
   lazy val auginteDistribution = (project in file("auginte-distribution")).
     settings(
     name := "auginte-distribution",
+    version := buildVersion,
     scalaVersion := buildScalaVersion,
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % "2.3.9",
@@ -118,6 +122,7 @@ object build extends sbt.Build {
   lazy val auginteDesktop = (project in file("auginte-desktop")).
     settings(
       name := "auginte-desktop",
+      version := buildVersion,
       scalaVersion := buildScalaVersion
     ).
     dependsOn(auginteDistribution).
@@ -127,6 +132,7 @@ object build extends sbt.Build {
   lazy val auginteCommon = (project in file("auginte-common"))
     .settings(
       name := "auginte-common",
+      version := buildVersion,
       scalaVersion := buildScalaVersion
     )
 
@@ -136,6 +142,7 @@ object build extends sbt.Build {
 
   lazy val auginteServer = (project in file("auginte-server")).settings(
     name := "auginte-server",
+    version := buildVersion,
     scalaVersion := buildScalaVersion,
     scalaJSProjects := clients,
     pipelineStages := Seq(scalaJSProd, gzip),
@@ -154,6 +161,7 @@ object build extends sbt.Build {
 
   lazy val auginteJs = (project in file("auginte-js")).settings(
     name := "auginte-js",
+    version := buildVersion,
     scalaVersion := buildScalaVersion,
     persistLauncher := true,
     persistLauncher in Test := false,
@@ -174,6 +182,7 @@ object build extends sbt.Build {
   lazy val auginteShared = (crossProject.crossType(CrossType.Pure) in file("auginte-shared")).
     settings(
       name := "auginte-shared",
+      version := buildVersion,
       scalaVersion := buildScalaVersion
     ).
     jsConfigure(_ enablePlugins ScalaJSPlay).
