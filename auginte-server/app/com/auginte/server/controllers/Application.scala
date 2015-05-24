@@ -7,6 +7,7 @@ import play.api.mvc._
 import prickle._
 import play.api.Play
 import play.api.Play.current
+import play.api.Logger
 
 import scala.util.{Failure, Success}
 
@@ -49,19 +50,27 @@ object Application extends Controller {
             }
           } catch {
             case e: Exception =>
-              //FIXME: debugging
-              val config = Play.application.configuration
-              println("FAILED TO CONNECT WITH:")
-              println(config.getString("orientdb.path"))
-              println(config.getString("orientdb.db.main"))
-              println(config.getString("orientdb.user"))
-              println(config.getString("orientdb.password"))
+              logDatabaseLoginContext(e)
               InternalServerError("Cannot connect to database")
           }
         case Failure(error) => BadRequest("Malformed data: " + error.getMessage)
       }
       case None => BadRequest("No data sent")
     }
+  }
+
+  private def logDatabaseLoginContext(e: Throwable): Unit = {
+    val config = Play.application.configuration
+    val hashedPassword = config.getString("orientdb.password").getOrElse("").replaceAll(".", "*")
+    val context =
+      s"""
+         |Cannot connect to database. Tried:
+         |orientdb.path=${config.getString("orientdb.path")}
+         |orientdb.db.main=${config.getString("orientdb.db.main")}
+         |orientdb.user=${config.getString("orientdb.user")}
+         |orientdb.password(obfuscated)=$hashedPassword
+        """.stripMargin
+      Logger.error(context, e)
   }
 
   private def withDB[A](online: DB => A)(implicit failure: A = InternalServerError("Cannot connect to database")): A = {
