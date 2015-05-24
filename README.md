@@ -11,7 +11,7 @@ Development Environment
  * SBT (0.13.0): http://www.scala-sbt.org/
  * ScalaTest (2.10): http://www.scalatest.org/
  * SCCT (0.2) http://mtkopone.github.io/scct/
- * IntelliJ IDEA (13): http://www.jetbrains.com/idea/
+ * IntelliJ IDEA (14): http://www.jetbrains.com/idea/
 
 For JavaFx, `JAVA_HOME` must be available as environment variable. E.g.
 
@@ -26,8 +26,6 @@ Useful SBT commands
 run
 test
 assembly
-scct:test
-gen-idea
 project
 fastOptJS
 fullOptJS
@@ -35,6 +33,8 @@ fullOptJS
 
 Deployment
 ----------
+
+Deploy JavaFx application locally
 
 ```
 deploy
@@ -46,6 +46,11 @@ Coding standard
 ---------------
 
  * http://docs.scala-lang.org/style/
+
+Jenkins integration
+--------------------
+
+http://docs.openstack.org/infra/jenkins-job-builder/publishers.html
 
 Known Issues
 ------------
