@@ -5,14 +5,14 @@ import org.scalatest.WordSpec
 /**
  * Testing, if saving of elements works
  */
-class SavingSpec extends WordSpec with DebugHelper with BrowserHelper {
+class SavingSpec extends WordSpec with DebugHelper with BrowserHelper with ReactHelper {
   "For minimal functionality I " should {
     "be able to save my work" when {
       "go to home page" in {
         driver.navigate().to(baseUrl)
       }
       "wait for GUI to load" in {
-        waitXpath("""//div[@data-reactid=".0"]""")
+        waitForReact()
         val loaded = element("input.form-control.input-field").getAttribute("placeholder")
         assert(loaded === "New element")
       }
@@ -33,6 +33,9 @@ class SavingSpec extends WordSpec with DebugHelper with BrowserHelper {
       }
       "still see saved element" in {
         assert(waitVisible("span.dragable").getText === "Test")
+      }
+      "close browser" in {
+        driver.quit()
       }
     }
   }

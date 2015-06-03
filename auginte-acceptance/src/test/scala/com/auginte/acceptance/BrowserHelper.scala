@@ -16,35 +16,27 @@ trait BrowserHelper extends DebugHelper {
   type Browser = WebDriver with JavascriptExecutor with FindsById with FindsByClassName with FindsByLinkText with FindsByName with FindsByCssSelector with FindsByTagName with FindsByXPath with HasInputDevices with HasCapabilities
 
   lazy val driver = sys.props.get("webDriver") match {
-    case Some("chrome") | Some("chromium") =>
+    case Some("phantomJs") => new PhantomJSDriver
+    case _ => // Some("chrome") | Some("chromium")
       val driverUrl = sys.props.getOrElse("driverUrl", default = "http://127.0.0.1:9515")
       val driverPath = sys.props.getOrElse("chromePath", default = "/usr/bin/chromium-browser")
       System.setProperty("webdriver.chrome.driver", driverPath)
       val capabilities = DesiredCapabilities.chrome()
       new RemoteWebDriver(new URL(driverUrl), capabilities)
-    case _ => new PhantomJSDriver
   }
 
   lazy val baseUrl = sys.props.getOrElse("url", default = "http://127.0.0.1:9000")
 
   def element(cssSelector: String): WebElement = driver.findElementByCssSelector(cssSelector)
 
-  def waitXpath(selector: String, timeout: Int = 5): WebElement = {
-    try {
-      val waiting = new WebDriverWait(driver, timeout)
-      waiting.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(selector)))
-    } catch {
-      case e: Exception => debugTimeOut(); throw e
-    }
+  def waitXpath(selector: String, timeout: Int = 5): WebElement = debugException {
+    val waiting = new WebDriverWait(driver, timeout)
+    waiting.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(selector)))
   }
 
-  def waitVisible(cssSelector: String, timeout: Int = 5): WebElement = {
+  def waitVisible(cssSelector: String, timeout: Int = 5): WebElement = debugException {
     val waiting = new WebDriverWait(driver, timeout)
-    try {
-      waiting.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(cssSelector)))
-    } catch {
-      case e: Exception => debugTimeOut(); throw e
-    }
+    waiting.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(cssSelector)))
   }
 
   def waitState(cssSelector: String, timouet: Int = 5): Boolean = {
@@ -53,8 +45,14 @@ trait BrowserHelper extends DebugHelper {
   }
 
   private def debugTimeOut(): Unit = {
-    debug(driver)
+//    debug(driver)
   }
 
   def xpath(selector: String): WebElement = driver.findElementByXPath(selector)
+
+  def debugException[A](f: => A): A = try f catch {
+    case e: Exception => debugTimeOut(); throw e
+  }
+
+  def mouse = driver.getMouse
 }
