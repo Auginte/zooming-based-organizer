@@ -19,11 +19,8 @@ trait MouseHelper extends BrowserHelper {
     val reactId = element.getAttribute("data-reactid")
     cursor = center(element)
     lastElement = Some(element)
-    _.executeScript(
-      s"""
-         |var element = document.querySelector('[data-reactid="$reactId"]')
-         |React.addons.TestUtils.Simulate.mouseDown(element, {screenX: ${cursor.x}, screenY: ${cursor.y}})
-      """.stripMargin)
+    println(mosueEventScript(reactId, "mousedown", cursor))
+    _.executeScript(mosueEventScript(reactId, "mousedown", cursor))
   }
 
   def mouseMove(offsetX: Int, offsetY: Int): Unit = browserJsTest {
@@ -32,11 +29,7 @@ trait MouseHelper extends BrowserHelper {
     val element = getLastElement
     val reactId = element.getAttribute("data-reactid")
     cursor = new Point(cursor.x + offsetX, cursor.y + offsetY)
-    _.executeScript(
-      s"""
-         |var element = document.querySelector('[data-reactid="$reactId"]')
-         |React.addons.TestUtils.Simulate.mouseMove(element, {screenX: ${cursor.x}, screenY: ${cursor.y}})
-      """.stripMargin)
+    _.executeScript(mosueEventScript(reactId, "mousemove", cursor))
   }
 
 
@@ -45,20 +38,41 @@ trait MouseHelper extends BrowserHelper {
   } {
     val element = getLastElement
     val reactId = element.getAttribute("data-reactid")
-    _.executeScript(
-      s"""
-         |var element = document.querySelector('[data-reactid="$reactId"]')
-         |React.addons.TestUtils.Simulate.mouseUp(element, {screenX: ${cursor.x}, screenY: ${cursor.y}})
-      """.stripMargin)
+    _.executeScript(mosueEventScript(reactId, "mouseup", cursor))
   }
 
   def wheel(amount: Int, elementSelector: String, cursorX: Int = 0, cursorY: Int = 0) = jsOnly {
-    _.executeScript(
-      s"""
-        |var area = document.querySelector('$elementSelector')
-        |React.addons.TestUtils.Simulate.wheel(area, {nativeEvent: {deltaY: $amount}, clientX: $cursorX, clientY: $cursorY})
-      """.stripMargin)
+    _.executeScript(wheelEventScript(elementSelector, amount, new Point(cursorX, cursorY)))
   }
+
+  private def mosueEventScript(reactId: String, eventName: String, cursor: Point) =
+    s"""
+       |var element = document.querySelector('[data-reactid="$reactId"]');
+       |var mouseEvent = document.createEvent("MouseEvent");
+       |mouseEvent.initMouseEvent('$eventName', true, true, window, 1, ${cursor.x}, ${cursor.y}, ${cursor.x}, ${cursor.y}, false, false, false, false, 0, null);
+       |element.dispatchEvent(mouseEvent);
+      """.stripMargin
+
+  private def wheelEventScript(selector: String, amount: Int, cursor: Point) =
+    s"""
+       |var element = document.querySelector('$selector');
+       |var event;
+       |try {
+       |  event = new WheelEvent('wheel', {
+       |    screenX: ${cursor.x}, screenY: ${cursor.y},
+       |    clientX: ${cursor.x}, clientY: ${cursor.y},
+       |    view: window, bubbles: true, cancellable: true,
+       |    deltaY: $amount, wheelDelta: $amount, wheelDeltaY: $amount}
+       |  );
+       |} catch (e) {
+       |  event = document.createEvent('WheelEvent');
+       |  event.initWebKitWheelEvent(0, $amount, window,
+       |    ${cursor.x}, ${cursor.y}, ${cursor.x}, ${cursor.y},
+       |    false, false, false, false);
+       |  event.deltaY = $amount;
+       |}
+       |element.dispatchEvent(event);
+      """.stripMargin
 
   def center(element: WebElement) =
     new Point(element.getLocation.x + element.getSize.width / 2, element.getLocation.y + element.getSize.height / 2)
