@@ -16,13 +16,13 @@ trait BrowserHelper extends DebugHelper {
   type Browser = WebDriver with JavascriptExecutor with FindsById with FindsByClassName with FindsByLinkText with FindsByName with FindsByCssSelector with FindsByTagName with FindsByXPath with HasInputDevices with HasCapabilities
 
   lazy val driver = sys.props.get("webDriver") match {
-    case Some("phantomJs") => new PhantomJSDriver
-    case _ => // Some("chrome") | Some("chromium")
+    case Some("chrome") | Some("chromium") =>
       val driverUrl = sys.props.getOrElse("driverUrl", default = "http://127.0.0.1:9515")
       val driverPath = sys.props.getOrElse("chromePath", default = "/usr/bin/chromium-browser")
       System.setProperty("webdriver.chrome.driver", driverPath)
       val capabilities = DesiredCapabilities.chrome()
       new RemoteWebDriver(new URL(driverUrl), capabilities)
+    case _ => new PhantomJSDriver // Some("phantomJs")
   }
 
   lazy val baseUrl = sys.props.getOrElse("url", default = "http://127.0.0.1:9000")
