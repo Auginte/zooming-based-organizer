@@ -13,3 +13,8 @@ Or from code
 sys.props += "webDriver" -> "chrome"
 sys.props += "url" -> "http://demo.auginte.com"
 ```
+
+Troubleshooting
+---------------
+
+If running with `chrome`, check if `chromium-browser` is running

@@ -8,7 +8,7 @@ import org.openqa.selenium.{JavascriptExecutor, WebElement, Point}
  * Simulating mouse events.
  * If available with browser, otherwise with React Javascript
  */
-trait MouseHelper extends BrowserHelper {
+trait MouseHelper extends BrowserHelper with PositionHelper {
 
   private var cursor = new Point(0, 0)
   private var lastElement: Option[WebElement] = None
@@ -19,7 +19,6 @@ trait MouseHelper extends BrowserHelper {
     val reactId = element.getAttribute("data-reactid")
     cursor = center(element)
     lastElement = Some(element)
-    println(mosueEventScript(reactId, "mousedown", cursor))
     _.executeScript(mosueEventScript(reactId, "mousedown", cursor))
   }
 
@@ -73,9 +72,6 @@ trait MouseHelper extends BrowserHelper {
        |}
        |element.dispatchEvent(event);
       """.stripMargin
-
-  def center(element: WebElement) =
-    new Point(element.getLocation.x + element.getSize.width / 2, element.getLocation.y + element.getSize.height / 2)
 
   def rightBottom(element: WebElement) =
     new Point(element.getLocation.x + element.getSize.getWidth, element.getLocation.y + element.getSize.height)
