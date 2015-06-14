@@ -31,9 +31,9 @@
 </script>
 
 @if(play.api.Play.current.mode == play.api.Mode.Prod) {
-  <script type="text/javascript" src='@routes.Assets.at("lib/react/react-with-addons.min.js")'></script>
+  <script type="text/javascript" src='@routes.Assets.at("javascripts/custom-react-with-addons.min.js")'></script>
 } else {
-  <script type="text/javascript" src='@routes.Assets.at("lib/react/react-with-addons.js")'></script>
+  <script type="text/javascript" src='@routes.Assets.at("javascripts/custom-react-with-addons.js")'></script>
 }
 @playscalajs.html.scripts("auginte-js")
 }
