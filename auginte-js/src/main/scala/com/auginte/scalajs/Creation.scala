@@ -24,9 +24,9 @@ object Creation extends SimpleComponent[CreationProxy]("Creation") {
           Attr("placeholder") := "New element"
         ),
         <.button(
+          <.span("Add", ^.`class` := "longest"),
           <.span("+", ^.`class` := "short"),
           <.span("+", ^.`class` := "long"),
-          <.span("Add", ^.`class` := "longest"),
           ^.`class` := "btn btn-add"
         )
       )

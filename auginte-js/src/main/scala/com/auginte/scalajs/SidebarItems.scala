@@ -18,7 +18,7 @@ object SidebarItems extends SimpleComponent[EventProxy]("SidebarItems") {
         ^.onClick ==> P.receive(Save())
       ),
       <.div(
-        "Auginte v0.8.1"
+        "Auginte v0.8.2"
       )
     )
   }
