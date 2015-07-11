@@ -62,7 +62,7 @@ object DatabaseStorage {
       List("x", "y", "width", "height").foreach(element.createProperty(_, OType.DOUBLE))
       List("hash").foreach(user.createProperty(_, OType.STRING))
       List(camera, element, user).foreach(_.createProperty("created", OType.DATETIME))
-      List(camera, element, node, user, owns, view).foreach(_.setCustom("Version", "0.8.2"))
+      List(camera, element, node, user, owns, view).foreach(_.setCustom("Version", "0.8.3"))
     }
   }
 
