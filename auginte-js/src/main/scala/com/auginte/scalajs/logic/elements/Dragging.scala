@@ -1,6 +1,7 @@
 package com.auginte.scalajs.logic.elements
 
 import com.auginte.scalajs.events.ScreenPosition
+import com.auginte.scalajs.logic.Selection
 import com.auginte.scalajs.state._
 import com.auginte.shared.state.{Tr, Id}
 import com.auginte.shared.state.persistable.{Position, Camera, Element}
@@ -16,8 +17,15 @@ object Dragging {
 
   def drag(event: ScreenPosition): T = moveElement(event) andThen savePosition(event)
 
-  private def beginDrag(elementId: Id, position: ScreenPosition): T =
-    savePosition(position)(_) inSelected (_ inElements (_ withSelected elementId))
+  private def beginDrag(elementId: Id, position: ScreenPosition): T = {state =>
+    savePosition(position)(state) and
+      select(state.container.elements(elementId))
+  }
+
+  private def select(element: Element): T = {
+    _.inSelected (_ inElements (_ withSelected element.id)) and
+      Selection.selectElement(element)
+  }
 
   private def savePosition(position: ScreenPosition): T = { state =>
     state inSelected (_ inElements (_ withPosition inCamera(state, position)))

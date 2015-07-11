@@ -11,10 +11,12 @@ import japgolly.scalajs.react.vdom.prefix_<^._
  */
 object Element extends SimpleComponent[ElementProxy]("Element") {
   override def generate(P: ElementProxy): prefix_<^.ReactTag = {
+    val selected = if (P.element.selected) " selected-element" else ""
+
     <.span(
       P.element.text,
       ^.key := s"$componentName:${P.element.id}",
-      ^.`class` := "dragable noselect",
+      ^.`class` := "dragable no-text-select" + selected,
       ^.left := (P.element.x - P.camera.x) / P.camera.scale,
       ^.top := (P.element.y - P.camera.y) / P.camera.scale,
       ^.width := P.element.width / P.camera.scale,

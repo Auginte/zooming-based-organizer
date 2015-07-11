@@ -1,6 +1,8 @@
 @mainColor: #101b20;
 @dark1: lighten(#101b20, 20%);
 @light1: lighten(#101b20, 90%);
+@elementOver: darken(@light1, 2%);
+@selectedLight: darken(@light1, 4%);
 @navigationSize: 50px;
 #container {
   .area {
@@ -16,16 +18,30 @@
       left: 0;
       right: 0;
       display: inline;
-      cursor: grab;
+      cursor: context-menu;
     }
 
-    .noselect {
+    .dragable:hover {
+      background-color: @elementOver;
+    }
+
+    .selected-element, .selected-element:hover {
+      background-color: @selectedLight;
+      cursor: move;
+    }
+
+    .no-text-select {
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
     }
+  }
+
+  .selected-view {
+    background-color: @selectedLight;
+    cursor: move;
   }
 
   .area {

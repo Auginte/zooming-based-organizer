@@ -3,7 +3,7 @@ package com.auginte.shared.state.persistable
 /**
  * Data structure, representing view transformation
  */
-case class Camera(x: Double = 0, y: Double = 0, scale: Double = 1) {
+case class Camera(x: Double = 0, y: Double = 0, scale: Double = 1, selected: Boolean = true) {
   def withPosition(x: Double, y: Double) = copy(x = x, y = y)
 
   def withScale(scale: Double) = copy(scale = scale)

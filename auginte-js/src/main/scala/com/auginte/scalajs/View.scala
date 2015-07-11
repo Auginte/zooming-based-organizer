@@ -10,9 +10,11 @@ import japgolly.scalajs.react.vdom.prefix_<^._
  * Displaying elements with camera transformation
  */
 object View extends SimpleComponent[ViewProxy]("View") {
-  override def generate(P: ViewProxy): prefix_<^.ReactTag =
+  override def generate(P: ViewProxy): prefix_<^.ReactTag = {
+    val selectionClass = if (P.state.camera.selected) "selected-view" else ""
+
     <.div(
-      ^.`class` := "area",
+      ^.`class` := s"area $selectionClass",
       <.div(
         P.elements(Element.generate, P.state.camera)
       ),
@@ -25,4 +27,5 @@ object View extends SimpleComponent[ViewProxy]("View") {
       ^.onTouchEnd ==> P.touchReceive(touch.DragEnd),
       ^.onTouchCancel ==> P.touchReceive(touch.DragCancel)
     )
+  }
 }

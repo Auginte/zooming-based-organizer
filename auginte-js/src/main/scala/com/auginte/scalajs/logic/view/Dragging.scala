@@ -1,6 +1,7 @@
 package com.auginte.scalajs.logic.view
 
 import com.auginte.scalajs.events.ScreenPosition
+import com.auginte.scalajs.logic.Selection
 import com.auginte.scalajs.state._
 import com.auginte.shared.state.Tr
 import com.auginte.shared.state.persistable.{Position, Camera}
@@ -27,7 +28,7 @@ object Dragging {
 
   private def isSelected(state: State) = state.selected.camera.isSelected
 
-  private def select: T = _ inSelected (_ inCamera(_ select))
+  private def select: T = _ inSelected (_ inCamera(_ select)) and Selection.selectCamera
 
   private def deselect: T = _ inSelected (_ inCamera (_ deselect))
 

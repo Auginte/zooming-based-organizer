@@ -5,7 +5,7 @@ import org.scalatest.WordSpec
 /**
  * Testing, if element and plane can be moved using touch screen
  */
-class TouchMoveSpec extends WordSpec with DebugHelper with BrowserHelper with ReactHelper with TouchHelper {
+class TouchMoveSpec extends WordSpec with DebugHelper with BrowserHelper with ReactHelper with TouchHelper with SelectionStyleHelper {
   "For mobile functionality I " should {
     "be able to move my elements and area" when {
       "go to home page" in {
@@ -25,23 +25,29 @@ class TouchMoveSpec extends WordSpec with DebugHelper with BrowserHelper with Re
       "move element by touching" in {
         val element = waitVisible("span.dragable")
         val oldLocation = center(element)
+        elementRenderedNotSelected(element)
         touchDown(element)
+        elementRenderedSelected(element)
         touchMove(40, 50)
         touchUp()
         val newLocaltion = center(element)
         assert(oldLocation.x + 40 === newLocaltion.x)
         assert(oldLocation.y + 50 === newLocaltion.y)
+        elementRenderedStillSelected(element)
       }
       "move plane" in {
         val element = waitVisible("span.dragable")
         val oldLocation = center(element)
         val plane = waitVisible(".area")
+        viewRenderedNotSelected(plane)
         touchDown(plane)
+        viewRenderedSelected(plane)
         touchMove(60, 70)
         touchUp()
         val newLocation = center(element)
         assert(oldLocation.x + 60 === newLocation.x)
         assert(oldLocation.y + 70 === newLocation.y)
+        viewRenderedStillSelected(plane)
       }
       "close browser" in {
         driver.quit()

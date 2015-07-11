@@ -5,7 +5,7 @@ import org.scalatest.WordSpec
 /**
  * Testing, if element and plane can be moved
  */
-class MovingSpec extends WordSpec with DebugHelper with BrowserHelper with ReactHelper with MouseHelper {
+class MovingSpec extends WordSpec with DebugHelper with BrowserHelper with ReactHelper with MouseHelper with SelectionStyleHelper {
   "For main functionality I " should {
     "be able to move my elements and area" when {
       "go to home page" in {
@@ -25,23 +25,29 @@ class MovingSpec extends WordSpec with DebugHelper with BrowserHelper with React
       "move element" in {
         val element = waitVisible("span.dragable")
         val oldLocation = center(element)
+        elementRenderedNotSelected(element)
         mouseDown(element)
+        elementRenderedSelected(element)
         mouseMove(40, 50)
         mouseUp()
         val newLocaltion = center(element)
         assert(oldLocation.x + 40 === newLocaltion.x)
         assert(oldLocation.y + 50 === newLocaltion.y)
+        elementRenderedStillSelected(element)
       }
       "move plane" in {
         val element = waitVisible("span.dragable")
         val oldLocation = center(element)
         val plane = waitVisible(".area")
+        viewRenderedNotSelected(plane)
         mouseDown(plane)
+        viewRenderedSelected(plane)
         mouseMove(60, 70)
         mouseUp()
         val newLocation = center(element)
         assert(oldLocation.x + 60 === newLocation.x)
         assert(oldLocation.y + 70 === newLocation.y)
+        viewRenderedStillSelected(plane)
       }
       "close browser" in {
         driver.quit()
