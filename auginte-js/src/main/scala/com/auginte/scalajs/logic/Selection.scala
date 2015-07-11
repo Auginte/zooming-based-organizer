@@ -23,4 +23,10 @@ object Selection {
   def selectCamera: T = deselect andThen {
     _.inCamera(_.copy(selected = true))
   }
+
+  def withoutSelectedElement: T = _.inContainer(
+    container => container.copy(
+      elements = container.elements.filterNot(_._2.selected)
+    )
+  )
 }

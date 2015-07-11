@@ -41,12 +41,26 @@
           border: 1px solid @light1;
           z-index: 200;
 
-          button {
-            display: block;
-            width: 99%;
+          a {
+            background: @dark2;
+            color: @light2;
+            text-decoration: none;
           }
 
-          button:hover {
+          button, a {
+            display: block;
+            width: 99%;
+            padding-top: 0.7em;
+            padding-bottom: 0.7em;
+            font-size: 1.1em;
+          }
+
+          button:hover, a:hover {
+            background: @dark3;
+            color: @light3;
+          }
+
+          .title {
             background: @dark3;
             color: @light3;
           }

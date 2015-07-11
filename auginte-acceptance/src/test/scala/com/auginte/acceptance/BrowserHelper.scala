@@ -29,6 +29,8 @@ trait BrowserHelper extends DebugHelper {
 
   def element(cssSelector: String): WebElement = driver.findElementByCssSelector(cssSelector)
 
+  def noElement(cssSelector: String): Unit = assert(driver.findElementsByCssSelector(cssSelector).size() == 0)
+
   def waitXpath(selector: String, timeout: Int = 5): WebElement = debugException {
     val waiting = new WebDriverWait(driver, timeout)
     waiting.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(selector)))

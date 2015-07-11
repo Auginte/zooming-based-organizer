@@ -5,6 +5,7 @@ import com.auginte.scalajs.events._
 import com.auginte.scalajs.events.logic.mouse.Wheel
 import com.auginte.scalajs.events.logic.touch
 import com.auginte.scalajs.helpers._
+import com.auginte.scalajs.logic.Selection
 import com.auginte.scalajs.logic.elements.Dragging
 import com.auginte.scalajs.logic.view.Zooming
 import com.auginte.scalajs.proxy._
@@ -182,9 +183,14 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
     def sidebarProxy() = new SidebarProxy($.state.menu) {
       override def receive(event: LogicEvent)(context: ReactEvent): Unit = event match {
         case e: Save => save()
-        case e: ToggleSidebar => preventDefault(context)(_.inMenu(_.toggleExpanded))
+        case e: DeleteSelected => preventDefault(context)(Selection.withoutSelectedElement andThen toggleSidebar)
+        case e: ToggleSidebar => preventDefault(context)(toggleSidebar)
         case _ =>
       }
+
+      private def toggleSidebar: T = _.inMenu(_.toggleExpanded)
+
+      override protected def persistableState: Persistable = $.state.persistable
     }
 
     //

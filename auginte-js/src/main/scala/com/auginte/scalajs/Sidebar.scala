@@ -22,7 +22,11 @@ object Sidebar extends SimpleComponent[SidebarProxy]("Sidebar") {
       ),
       <.div(
         ^.`class` := visibilityClass,
-        SidebarItems.generate(P)
+        <.div(
+          ^.`class` := "sidebar-items",
+          SelectedOperations.generate(P.generateSelectedOperations),
+          SidebarItems.generate(P)
+        )
       )
     )
   }

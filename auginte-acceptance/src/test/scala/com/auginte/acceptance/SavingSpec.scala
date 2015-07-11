@@ -25,7 +25,7 @@ class SavingSpec extends WordSpec with DebugHelper with BrowserHelper with React
       }
       "click save" in {
         element("div.sidebar button.btn-context").click()
-        element("div.sidebar-items button").click()
+        element("div.sidebar-items button.acte-save").click()
       }
       "be redirected to new page" in {
         waitState("body")
