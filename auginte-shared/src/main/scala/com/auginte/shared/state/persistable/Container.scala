@@ -15,4 +15,6 @@ case class Container(elements: Map[Id, Element] = Map(), nextId: Int = 0) {
       copy(elements = elements.updated(id, element))
     case _ => this
   }
+
+  def elementUpdated(old: Element, updated: Element) = copy(elements = elements.updated(old.id, updated))
 }

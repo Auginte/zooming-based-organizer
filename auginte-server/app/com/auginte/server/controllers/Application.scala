@@ -1,5 +1,6 @@
 package com.auginte.server.controllers
 
+import com.auginte.server.migration.PersistableMigration
 import com.auginte.server.storage.DatabaseStorage
 import com.auginte.shared.communication.Saved
 import com.auginte.shared.state.persistable.{Storage, Persistable}
@@ -39,25 +40,32 @@ object Application extends Controller {
 
   def store(hash: String) = Action { request =>
     request.body.asFormUrlEncoded.flatMap(m => m.get("data").flatMap(m => m.headOption)) match {
-      case Some(json: String) => Unpickle[Persistable].fromString(json) match {
-        case Success(persitable) =>
-          try {
-            withDB { db =>
-              val user = DatabaseStorage.storeToDb(db, persitable.withStorage(new Storage("", hash)))
-              val id = user.getId.toString.substring(1)
-              val response = Pickle.intoString(Saved(success = true, id, hash))
-              Ok(response)
-            }
-          } catch {
-            case e: Exception =>
-              logDatabaseLoginContext(e)
-              InternalServerError("Cannot connect to database")
+      case Some(jsonData: String) => Unpickle[Persistable].fromString(jsonData) match {
+        case Success(persistable) => storePersistable(persistable, hash)
+        case Failure(_) =>
+          val migrated = PersistableMigration.migrate(jsonData)
+          Unpickle[Persistable].fromString(migrated) match {
+            case Success(persistable) => storePersistable(persistable, hash)
+            case Failure(error) => BadRequest("Malformed data: " + error.getMessage)
           }
-        case Failure(error) => BadRequest("Malformed data: " + error.getMessage)
       }
       case None => BadRequest("No data sent")
     }
   }
+
+  private def storePersistable(persistable: Persistable, hash: String) = try {
+    withDB { db =>
+      val user = DatabaseStorage.storeToDb(db, persistable.withStorage(new Storage("", hash)))
+      val id = user.getId.toString.substring(1)
+      val response = Pickle.intoString(Saved(success = true, id, hash))
+      Ok(response)
+    }
+  } catch {
+    case e: Exception =>
+      logDatabaseLoginContext(e)
+      InternalServerError("Cannot connect to database\n")
+  }
+
 
   private def logDatabaseLoginContext(e: Throwable): Unit = {
     val config = Play.application.configuration

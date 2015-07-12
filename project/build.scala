@@ -151,7 +151,8 @@ object build extends sbt.Build {
       "org.webjars.bower" % "react" % "0.13.3",
       "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
       "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer,
-      "com.github.benhutchison" %% "prickle" % "1.1.5"
+      "com.github.benhutchison" %% "prickle" % "1.1.5",
+      "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test"
     ),
     includeFilter in (Assets, LessKeys.less) := "*.less"
   ).enablePlugins(PlayScala).

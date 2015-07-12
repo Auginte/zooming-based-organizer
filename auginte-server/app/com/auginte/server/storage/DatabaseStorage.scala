@@ -5,10 +5,12 @@ import com.auginte.shared.state.persistable._
 import com.auginte.shared.state.selected.Selectable
 import com.orientechnologies.orient.core.command.traverse.OTraverse
 import com.orientechnologies.orient.core.command.{OCommandContext, OCommandPredicate}
+import com.orientechnologies.orient.core.db.ODatabase
 import com.orientechnologies.orient.core.id.ORecordId
-import com.orientechnologies.orient.core.metadata.schema.{OClass, OSchema, OType}
+import com.orientechnologies.orient.core.metadata.schema.{OProperty, OClass, OSchema, OType}
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.impl.ODocument
+import com.orientechnologies.orient.core.util.ODateHelper
 import com.tinkerpop.blueprints.Direction
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientGraphNoTx}
 import org.joda.time.{DateTimeZone, DateTime}
@@ -19,6 +21,9 @@ import scala.collection.JavaConversions._
 object DatabaseStorage {
   type DB = OrientGraphNoTx
   type Vertex = OrientVertex
+
+  private val auginteVersionKey = "AuginteVersion"
+  val javaDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
 
   def connection(config: Configuration): Option[DB] = {
     for (
@@ -54,21 +59,34 @@ object DatabaseStorage {
     val owns = newEdge("Owns")
     val view = newEdge("View")
 
-    if (camera.getCustom("Version") == "" && element.getCustom("Version") == "") {
-      List("x", "y").foreach(node.createProperty(_, OType.INTEGER))
-      List("x", "y", "scale").foreach(camera.createProperty(_, OType.DOUBLE))
-      element.createProperty("key", OType.INTEGER)
-      element.createProperty("text", OType.STRING)
-      List("x", "y", "width", "height").foreach(element.createProperty(_, OType.DOUBLE))
-      List("hash").foreach(user.createProperty(_, OType.STRING))
-      List(camera, element, user).foreach(_.createProperty("created", OType.DATETIME))
-      List(camera, element, node, user, owns, view).foreach(_.setCustom("Version", "0.8.3"))
+    db.getRawGraph.set(ODatabase.ATTRIBUTES.DATETIMEFORMAT, javaDateFormat)
+    val current = Version(element.getCustom(auginteVersionKey), "0.8.2")
+    if (current < Version("0.8.3")) {
+      List("x", "y").foreach(createProperty(node, _, OType.INTEGER).setMandatory(true))
+      List("x", "y", "scale").foreach(createProperty(camera, _, OType.DOUBLE).setMandatory(true))
+      createProperty(element, "text", OType.STRING).setMandatory(true)
+      List("x", "y", "width", "height").foreach(createProperty(element, _, OType.DOUBLE).setMandatory(true))
+      List("hash").foreach(createProperty(user, _, OType.STRING).setMandatory(true))
+      List(camera, element, user).foreach(createProperty(_, "created", OType.DATETIME).setMandatory(true))
     }
+    if (current < Version("0.8.4")) {
+      List("scale").foreach(createProperty(element, _, OType.DOUBLE))
+    }
+    List(camera, element, node, user, owns, view).foreach(_.setCustom(auginteVersionKey, "0.8.4"))
   }
 
   private def createClass(schema: OSchema, name: String, parent: OClass) =
     if (schema.existsClass(name)) schema.getClass(name).setSuperClass(parent)
     else schema.createClass(name, parent)
+
+  private def createProperty(table: OClass, name: String, rowType: OType): OProperty = {
+    val property = table.getProperty(name)
+    if (property == null) {
+      table.createProperty(name, rowType)
+    } else {
+      property.setType(rowType)
+    }
+  }
 
   private def storeCamera(db: DB, camera: Camera): Vertex = db.addVertex(
     "class:Camera",
@@ -78,16 +96,19 @@ object DatabaseStorage {
     "created", now
   )
 
-  private def storeElement(db: DB, element: Element): Vertex = db.addVertex(
-    "class:Element",
-    "key", element.id,
-    "text", element.text,
-    "x", Double.box(element.x),
-    "y", Double.box(element.y),
-    "width", Double.box(element.width),
-    "height", Double.box(element.height),
-    "created", now
-  )
+  private def storeElement(db: DB, element: Element): Vertex = {
+    db.addVertex(
+      "class:Element",
+      "key", element.id,
+      "text", element.text,
+      "x", Double.box(element.x),
+      "y", Double.box(element.y),
+      "width", Double.box(element.width),
+      "height", Double.box(element.height),
+      "scale", Double.box(element.scale),
+      "created", now
+    )
+  }
 
   private def storeUser(db: DB, storage: Storage): Vertex = db.addVertex(
     "class:User",
@@ -111,7 +132,7 @@ object DatabaseStorage {
         Some(user)
     } else None
   }
-  
+
   def generatePersistable(user: Vertex): Persistable = {
     val hash = user.getProperty[String]("hash")
     var camera = Camera()
@@ -127,7 +148,8 @@ object DatabaseStorage {
             record.field[Double]("x"),
             record.field[Double]("y"),
             record.field[Double]("width"),
-            record.field[Double]("height")
+            record.field[Double]("height"),
+            record.field[Double]("scale")
           )
           elements = elements + (converted.id -> converted)
         case _ => // Ignore User, Node and edges

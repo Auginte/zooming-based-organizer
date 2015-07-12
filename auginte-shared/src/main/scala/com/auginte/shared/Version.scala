@@ -1,5 +1,5 @@
 package com.auginte.shared
 
 object Version {
-  val textual = "0.8.3"
+  val textual = "0.8.4"
 }

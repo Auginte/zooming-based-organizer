@@ -2,6 +2,7 @@ package com.auginte.scalajs
 
 import com.auginte.scalajs.events.logic.mouse
 import com.auginte.scalajs.events.logic.touch
+import com.auginte.scalajs.logic.ElementPosition
 import com.auginte.scalajs.proxy.ElementProxy
 import japgolly.scalajs.react.vdom.{prefix_<^, Attr}
 import japgolly.scalajs.react.vdom.prefix_<^._
@@ -12,16 +13,17 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 object Element extends SimpleComponent[ElementProxy]("Element") {
   override def generate(P: ElementProxy): prefix_<^.ReactTag = {
     val selected = if (P.element.selected) " selected-element" else ""
+    val pos = ElementPosition(P.element, P.camera)
 
     <.span(
       P.element.text,
       ^.key := s"$componentName:${P.element.id}",
       ^.`class` := "dragable no-text-select" + selected,
-      ^.left := (P.element.x - P.camera.x) / P.camera.scale,
-      ^.top := (P.element.y - P.camera.y) / P.camera.scale,
-      ^.width := P.element.width / P.camera.scale,
-      ^.height := P.element.height / P.camera.scale,
-      ^.fontSize := s"${1.0 / P.camera.scale}em",
+      ^.left := pos.x,
+      ^.top := pos.y,
+      ^.width := pos.width,
+      ^.height := pos.height,
+      ^.fontSize := s"${pos.relative}em",
       ^.onMouseDown ==> P.mouseReceive(mouse.DragBegin),
       ^.onMouseMove ==> P.mouseReceive(mouse.Drag),
       ^.onMouseUp ==> P.mouseReceive(mouse.DragEnd),
