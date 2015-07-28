@@ -1,7 +1,7 @@
 package com.auginte.scalajs.logic
 
 import com.auginte.scalajs.state.T
-import com.auginte.shared.state.persistable.Element
+import com.auginte.shared.state.persistable.{Persistable, Element}
 
 object Selection {
   def selectElement(element: Element): T = deselect andThen {
@@ -29,4 +29,7 @@ object Selection {
       elements = container.elements.filterNot(_._2.selected)
     )
   )
+
+  def selectedElement(state: Persistable): Option[Element] =
+    state.container.elements.find(_._2.selected == true).map(_._2)
 }

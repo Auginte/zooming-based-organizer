@@ -11,4 +11,6 @@ case class Camera(x: Double = 0, y: Double = 0, scale: Double = 1, selected: Boo
   def moved(difference: Position) =  copy(x = x + difference.x, y = y + difference.y)
 
   def and(converter: Camera => Camera) = converter(this)
+
+  def position = Position(x, y)
 }

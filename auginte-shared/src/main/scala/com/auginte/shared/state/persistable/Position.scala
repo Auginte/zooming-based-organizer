@@ -17,4 +17,8 @@ case class Position(x: Double = 0, y: Double = 0) {
   def distance(to: Position): Double = math.sqrt((x - to.x) * (x - to.x) + (y - to.y) * (y - to.y))
 
   def center(to: Position) = Position((x + to.x) / 2.0, (y + to.y) / 2.0)
+
+  def movedX(diffX: Double) = Position(x + diffX, y)
+
+  def movedY(diffY: Double) = Position(x, y + diffY)
 }

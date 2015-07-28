@@ -5,7 +5,7 @@ import com.auginte.scalajs.events._
 import com.auginte.scalajs.events.logic.mouse.Wheel
 import com.auginte.scalajs.events.logic.touch
 import com.auginte.scalajs.helpers._
-import com.auginte.scalajs.logic.Selection
+import com.auginte.scalajs.logic.{ViewPosition, Selection}
 import com.auginte.scalajs.logic.elements.Dragging
 import com.auginte.scalajs.logic.view.Zooming
 import com.auginte.scalajs.proxy._
@@ -54,7 +54,7 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
   sealed class Backend(val $: BackendScope[Unit, State]) extends helpers.Backend[State] {
     val initialTop = 0
     val initialHeight = 20
-    val initialWidth = 50
+    val initialWidth = 100
 
     //
     // Adding new elements
@@ -68,19 +68,31 @@ class Page(serialisedState: String = "", storage: Storage = Storage()) extends D
       }
 
       private def addElement(e: ReactEvent) = preventDefault(e) { currentState =>
+        val position = newElementPosition(currentState.persistable)
+        val newElement = persistable.Element(
+          currentState.container.nextId.toString,
+          currentState.creation.name,
+          position.x,
+          position.y,
+          initialWidth,
+          initialHeight
+        )
+
         currentState inCreation (_ resetName) inContainer { container =>
-          container withNewElement persistable.Element (
-            container.nextId.toString,
-            currentState.creation.name,
-            0,
-            initialTop + initialHeight * container.elements.size,
-            initialWidth,
-            initialHeight
-          )
-        }
+          container withNewElement newElement
+        } and Selection.selectElement(newElement)
+      }
+
+      private def newElementPosition(state: Persistable): Position = Selection.selectedElement(state) match {
+        case Some(element) => Position(element.x, element.y + initialHeight)
+        case None => ViewPosition(state.camera, width, height).viewCenter.movedX(-initialWidth / 2)
       }
 
       private def saveName(name: String) = m(_ inCreation(_ withName name))
+
+      private def width = dom.document.body.clientWidth
+
+      private def height = dom.document.body.clientHeight
     }
 
     def viewProxy = new ViewProxy($.state.persistable) {
