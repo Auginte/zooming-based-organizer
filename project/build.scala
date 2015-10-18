@@ -120,6 +120,7 @@ object build extends sbt.Build {
     dependsOn(auginteCommon % "test->test")
 
   lazy val auginteDesktop = (project in file("auginte-desktop")).
+    settings(allSettings).
     settings(
       name := "auginte-desktop",
       version := buildVersion,
