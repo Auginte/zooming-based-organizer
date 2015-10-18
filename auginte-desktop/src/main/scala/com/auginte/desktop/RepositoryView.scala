@@ -73,13 +73,17 @@ with HelpWrapper
   }
   grid2absoluteCron.play()
 
-  def absoluteToCachedCoordinates(): Unit = {
-    val zoomableElements = d.getChildren.iterator().flatMap({
-      case r: GuiRepresentation => Some(r)
-      case _ => None
-    })
-    ODatabaseRecordThreadLocal.INSTANCE.set(db.get.getRawGraph)
-    absoluteToCachedCoordinates(zoomableElements)
+  def absoluteToCachedCoordinates(): Unit = db match {
+    case Some(db) =>
+      db.getRawGraph.activateOnCurrentThread()
+      val zoomableElements = d.getChildren.iterator().flatMap({
+        case r: GuiRepresentation =>
+          attachDatabaseToElement(r.storage)
+          Some(r)
+        case _ => None
+      })
+      absoluteToCachedCoordinates(zoomableElements)
+    case None => Unit
   }
 
   private def absoluteToCachedCoordinates(node: GuiRepresentation): Unit = {
@@ -109,7 +113,7 @@ with HelpWrapper
 
   private def persist(data: RepresentationWrapper, cameraNode: o.Node): Unit = db match {
     case Some(db) =>
-      ODatabaseRecordThreadLocal.INSTANCE.set(db.getRawGraph)
+      db.getRawGraph.activateOnCurrentThread()
       val representation = data.storage.representation
       representation.storeTo(db, data)
     case None => throw new RuntimeException(s"No database to store: $data")
@@ -122,14 +126,19 @@ with HelpWrapper
   //
 
   override def updateCachedToDb(): Unit = camera match {
-    case Some(camera) => camera.save()
+    case Some(camera) =>
+      attachDatabaseToElement(camera)
+      camera.save()
     case None => Unit
   }
 
   private def loadElements(db: OrientBaseGraph): Unit = {
     def select(sql: String) = new OSQLSynchQuery[ODocument](sql)
     def addRepresentations(representations: Iterable[RepresentationWrapper]): Unit = {
-      ODatabaseRecordThreadLocal.INSTANCE.set(db.getRawGraph)
+      db.getRawGraph.activateOnCurrentThread()
+      for(representation <- representations) {
+        attachDatabaseToElement(representation.storage)
+      }
       d.getChildren.addAll(representations.flatMap({
         case n: jfxs.Node => Some(n)
         case _ => None
@@ -163,7 +172,7 @@ with HelpWrapper
       override def run(): Unit = try {
         val gs = settings.graphRepository
         val graphDatabase = Structure.createRepository(gs.name, gs.connection, gs.user, gs.password)
-        ODatabaseRecordThreadLocal.INSTANCE.set(graphDatabase.getRawGraph)
+        graphDatabase.getRawGraph.activateOnCurrentThread()
         db = graphDatabase
         camera = Camera.mainCamera(graphDatabase)
         val newGrid = new Grid(Position.rootNode(graphDatabase))

@@ -138,7 +138,7 @@ object build extends sbt.Build {
 
   lazy val clients = Seq(auginteJs)
 
-  val orientDbVersionServer = "2.0.9"
+  val orientDbVersionServer = "2.1.4"
 
   lazy val auginteServer = (project in file("auginte-server")).settings(
     name := "auginte-server",
