@@ -59,22 +59,22 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
         val sql =
           s"""
           |SELECT
-          |   @rid AS to,
-          |   traversedVertex(-2).@rid AS from,
+          |   @rid AS edgeTo,
+          |   traversedVertex(-2).@rid AS edgeFrom,
           |   $depth
           |FROM (
           |   TRAVERSE $direction('Refer')
           |   FROM $sourceDocument
-          |   WHILE $depth < :maxDepth
+          |   WHILE $depth < $maxDepth
           |)
           |WHERE @this instanceof 'Representation'
           |  AND $depth > 0
         """.stripMargin
         val query = new OCommandSQL(sql.replace("\n", " "))
-        val parameters = JMap("maxDepth" -> maxDepth)
+        val parameters = JMap()
         persisted.getGraph.command(query).execute[Vertices](parameters).map { row =>
-          val from = row.getProperty[OrientVertex]("from")
-          val to = row.getProperty[OrientVertex]("to")
+          val from = row.getProperty[OrientVertex]("edgeFrom")
+          val to = row.getProperty[OrientVertex]("edgeTo")
           val distance = row.getProperty[Int]("$depth")
           cache(to.getRecord) match {
             case Some(cachedTo) => cache(from.getRecord) match {
