@@ -1,7 +1,6 @@
 package com.auginte.zooming
 
-import scala.annotation.{elidable, tailrec}
-import scala.annotation.elidable.FINE
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
@@ -56,7 +55,7 @@ import scala.collection.mutable
  *
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
-class Grid extends Debugable {
+class Grid extends GridDebug {
   private lazy val scaleLog10 = Math.log10(gridSize)
   /**
    * Distance between nodes.
@@ -103,7 +102,6 @@ class Grid extends Debugable {
     if (child == parent) (parent.x + "", parent.y + "", "1")
     else {
       require(child.isChildOf(parent), s"Not parent-child: $parent $child")
-      d(s"getCoordinates $parent - $child")
 
       type TC = TextualCoordinates
       val originalChild = child
@@ -117,7 +115,6 @@ class Grid extends Debugable {
         (format(node.x) + c._1, format(node.y) + c._2, c._3 + scale)
 
       def appended(child: Node, coordinates: TC, end: Boolean): TC = {
-        d(s" appended $child: $coordinates")
         if (end) {
           require(child eq parent, s"Not parent-child: $parent $originalChild")
           return stripped(coordinates)
@@ -154,19 +151,11 @@ class Grid extends Debugable {
     if (camera == element) {
       val cp = cameraPosition
       val ep = elementPosition
-      d(s"cameraPosition=$cameraPosition")
-      d(s"elementPosition=$elementPosition")
-      d(s"node=$element")
-      d(s" G = ${ep.x - cp.x} / ${cp.scale} x ${ep.y - cp.y} / ${cp.scale}")
       Coordinates((ep.x - cp.x) / cp.scale, (ep.y - cp.y) / cp.scale, ep.scale / cp.scale)
     } else {
-      d(s"IN $camera $cameraPosition --> $element $elementPosition")
       val betweenNodes = absoluteBetweenFirst(camera, element)
-      d(s"betweenNodes=$betweenNodes")
       val elementAtCameraLevel = elementPosition * betweenNodes.scale
-      d(s"elementAtCameraLevel=$elementAtCameraLevel")
       val elementFromCamera = (betweenNodes + elementAtCameraLevel) withScale elementAtCameraLevel.scale
-      d(s"elementFromCamera=$elementFromCamera")
       absolute(camera, cameraPosition, camera, elementFromCamera)
     }
 
@@ -179,7 +168,6 @@ class Grid extends Debugable {
    * Optimised node for camera
    */
   def getCameraNode(camera: Node, x: Double, y: Double, scale: Double): Node = {
-    d(s"Get camera node IN: $camera ($x, $y, $scale)")
     getNode(camera, x, y, scale)
   }
 
@@ -209,13 +197,10 @@ class Grid extends Debugable {
    * @return best node for relative transaltion and scaling
    */
   def getNode(parent: Node, x: Double, y: Double, scale: Double): Node = {
-    d(s"getNode $parent ${x}x${y}x$scale")
     if (needOtherNode(x, y, scale)) {
-      d(s"from $parent down ${x}x${y}x$scale")
       getNode(Position(parent, x, y, scale))
     }
     else {
-      d(s"Return $parent")
       parent
     }
   }
@@ -240,19 +225,14 @@ class Grid extends Debugable {
       case None => false
     }
     def getNodesAround(center: Node, distance: Int): Iterable[Node] = {
-      @inline def zero(a: Int, b: Int): Boolean = a == 0 && b == 0
       for (x <- -distance to distance; y <- -distance to distance) yield getNode(center, x * gridSize, y * gridSize, 0)
     }
 
     val parents = getNodesAround(from, scale)
-    d(s"from=$from")
-    for (p <- parents) d(s"PARENT: $p")
 
     val res = items.filter(element => {
       parents.exists(parent => hasParent(f(element), parent, deep))
     })
-    d(s"all=$items")
-    d(s"res=$res")
     res
   }
 
@@ -294,15 +274,10 @@ class Grid extends Debugable {
    * Absolute position between nodes from first node perspective.
    */
   private[auginte] def absoluteBetweenFirst(from: Node, to: Node): Coordinates = {
-    d(s"BTW INPUT#absoluteBetweenFirst#: $from -> $to")
     val parent = getCommonParent(from, to)
-    d(s"BTW Parent=$parent")
     val absoluteFrom = absoluteChildParent(from, parent)
-    d(s"BTW absoluteFrom=$absoluteFrom")
     val absoluteTo = absoluteChildParent(to, parent)
-    d(s"BTW absoluteTo=$absoluteTo")
     val differenceAtParent = (absoluteTo -- absoluteFrom) withScale 1
-    d(s"BTW differenceAtParent=$differenceAtParent")
     val factor = absoluteFrom.scale * gridSize
     (differenceAtParent * factor) withScale (absoluteFrom.scale / absoluteTo.scale)
   }
@@ -354,8 +329,6 @@ class Grid extends Debugable {
     }
     val parentsFrom = from.selfAndParents
     val parentsTo = to.selfAndParents
-    d(s"COMMON PARENT: parentsFrom=$parentsFrom")
-    d(s"COMMON PARENT: parentsTo=$parentsTo")
     whileSame(parentsFrom, parentsTo, parentsFrom.head)
   }
 
@@ -386,11 +359,6 @@ class Grid extends Debugable {
    */
   private[zooming] def absoluteNew(from: Node, to: Node, absoluteFirst: Coordinates): Coordinates = {
     val between = absoluteBetweenFirst(from, to)
-    d(s"NEW IN $from -> $to | $absoluteFirst")
-    val absoluteAtFirst = absoluteFirst / between.scale
-    d(s"NEW between=$between")
-    d(s"NEW sub1=${between - absoluteAtFirst}")
-    d(s"NEW sub1=${between - absoluteFirst}")
     val rez = (between - absoluteFirst) * -1 withScale (between.scale * absoluteFirst.scale)
     rez
   }
@@ -402,13 +370,8 @@ class Grid extends Debugable {
    * @see [[getCameraNode]]
    */
   private[zooming] def absolute(from: Node, to: Node, absoluteFrom: Coordinates): Coordinates = {
-    d(s"CAM: INPUT $from -> $to | $absoluteFrom")
     val between = absoluteBetweenFirst(from, to)
-    d(s"CAM: BETWEEN $between")
-    d(s"CAM: SUM ${absoluteFrom + between}")
-    d(s"CAM: DIV ${absoluteFrom.scale / between.scale}")
     val atSameLevel = (absoluteFrom - between) withScale absoluteFrom.scale
-    d(s"CAM sameLevel=$atSameLevel")
     val atNewCameraLevel = atSameLevel / between.scale
     atNewCameraLevel
   }
@@ -427,11 +390,8 @@ class Grid extends Debugable {
    */
   private def getNode(position: Position): Node = {
     val cleaned = clearTolerance(position)
-    d(s"Cleaned: $cleaned")
     val translated = getTranslatedNode(cleaned)
-    d(s"Translated: $translated")
     val scaled = getScaledNode(translated)
-    d(s"Scaled: $scaled")
     scaled.parent
   }
 
@@ -449,16 +409,13 @@ class Grid extends Debugable {
   private def clearTolerance(pos: Position): Position = {
     def clearTolerance(pos: Position, scale: Double): Position =
       if (isLarger(pos.scale * scale)) {
-        d(s"Tolerance:No need: $pos")
         pos
       } else if (isSmaller(pos.scale * scale)) {
-        d(s"Tolerance:Smaller: $pos")
         clearTolerance(pos, scale * gridSize)
       } else {
         def clear(value: Double) =
           floor(value * scale / gridSize) * gridSize / scale
 
-        d(s"Tolerance:Applying: $pos | $scale")
         Position(pos.parent, clear(pos.x), clear(pos.y), pos.scale)
       }
 
@@ -503,7 +460,7 @@ class Grid extends Debugable {
       val toCheck = new mutable.Stack[String]
       val realNodes = new mutable.Stack[Node]
       if (root.size == 1) {
-        val rootReference = root(0)
+        val rootReference = root.head
         val map = Map(rootReference.storageId -> grid.root)
         toCheck push rootReference.storageId
         realNodes push grid.root
@@ -556,21 +513,17 @@ class Grid extends Debugable {
     def diveUp(parent: Node, x: Double, y: Double, scale: Double, sign: Sign): Position = {
       @inline def sameSign(x: Double, y: Double, sign: Sign, parent: Node): Boolean =
         (x * sign._1 >= 0 && y * sign._2 >= 0) || (parent eq root)
-      d(s"DiveUp $parent | ${x}x$y s $scale")
       if (x.abs >= gridSize || y.abs >= gridSize || !sameSign(x, y, sign, parent)) {
         val _x = (x / gridSize) + parent.x
         val _y = (y / gridSize) + parent.y
-        d(s"\tdiveUp ($x/$gridSize + ${parent.x}, $y/$gridSize + ${parent.y}) = ${_x}x${_y}")
         diveUp(getParent(parent), _x, _y, scale * gridSize, sign)
       } else {
-        d(s"\tdived up $parent ${x}x$y s $scale")
         Position(parent, x, y, scale)
       }
     }
 
     def diveDown(position: Position, distance: Double): Position = {
       @inline def round8(d: Double) = (math rint d * 1E8) / 1E8
-      d(s"DiveDown $position | $distance")
       val Position(parent, x, y, scale) = position
       if (distance >= gridSize) {
         val child = getChild(parent, round8(x).toByte, round8(y).toByte)
@@ -578,26 +531,19 @@ class Grid extends Debugable {
         val _y = (y * gridSize) - (child.y * gridSize) // Higher precision
         val _distance = distance / gridSize
         val newPosition = Position(child, _x, _y, scale)
-        d(s"DiveDown NEW $newPosition (${_x}x${_y})")
         diveDown(newPosition, _distance)
       } else {
-        d(s"DiveDown SAME (${x}x$y/$distance) -> (${x}x$y/$scale")
         Position(parent, x.round, y.round, scale)
       }
     }
 
     val Position(node, x, y, scale) = position
     val sign = getSign(node)
-    d(s"sign = $sign")
     val absolute = diveUp(node, x, y, 1, sign)
     val parent = absolute.parent
-    d(s"parent = $parent")
     val (_x, _y) = (absolute.x, absolute.y)
-    d(s"absolute = ${_x}x${_y}")
     val distance = absolute.scale
-    d(s"distance = $distance (${position.parent} -> $parent")
     val translated = diveDown(Position(parent, _x, _y, scale), distance)
-    d(s"translated = $translated")
     translated
   }
 
@@ -609,24 +555,20 @@ class Grid extends Debugable {
    */
   private def getScaledNode(pos: Position): Position =
     if (isLarger(pos.scale)) {
-      d(s"Scale:Larger: $pos")
       val parent = getParent(pos.parent)
       val x = pos.x / gridSize + pos.parent.x
       val y = pos.y / gridSize + pos.parent.y
       val scale = pos.scale / gridSize
       getScaledNode(Position(parent, x, y, scale))
     } else if (isSmaller(pos.scale)) {
-      d(s"Scale:Smaller: $pos")
       val childX = floor(pos.x % gridSize).toByte
       val childY = floor(pos.y % gridSize).toByte
       val child = getChild(pos.parent, childX, childY)
-      d(s" child=$child")
       val x = (pos.x - childX) * gridSize
       val y = (pos.y - childY) * gridSize
       val scale = pos.scale * gridSize
       getScaledNode(Position(child, x, y, scale))
     } else {
-      d(s"Scale:Equal: $pos")
       pos
     }
 
@@ -652,7 +594,6 @@ class Grid extends Debugable {
     case Some(node) => node
     case None =>
       val parent = from.createParent()(newNode)
-      d(s"getParent: ${_root} -> $parent")
       _root = parent
       parent
   }
@@ -667,7 +608,6 @@ class Grid extends Debugable {
       case Some(node) => node
       case None =>
         val newChild = from.addChild(x, y)(newNode)
-        d(s"getChild: $newChild")
         newChild
 
     }
@@ -705,15 +645,8 @@ class Grid extends Debugable {
   private[auginte] def newGrid: Grid = new Grid {}
 }
 
-trait Debugable {
+trait GridDebug {
   protected val DEBUG_MAX_I = 2000000
-  private var debugI = 0
-
-  @elidable(FINE)
-  def d(text: String = ""): Unit = {
-    if (Debug.on) debugString(text)
-    debugI += 1
-  }
 
   protected def debugString(text: String) = {
     if (text.length > 0) println(text)
