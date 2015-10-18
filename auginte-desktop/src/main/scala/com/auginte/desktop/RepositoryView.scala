@@ -173,7 +173,9 @@ with HelpWrapper
         loadingElements = false
         Platform.runLater(loadingLabel.visible = false)
       } catch {
-        case e: OException => renderError("Cannot open database. Others are using it?")
+        case e: OException =>
+          System.err.println(e)
+          renderError("Cannot open database. Others are using it?")
       }
     }
     loadingFromDatabase.start()
