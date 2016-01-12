@@ -102,8 +102,8 @@ class RepresentationSpec extends UnitSpec {
         val db = newEmptyDb
         val sql = execSql(db) _
         sql("CREATE CLASS Representation EXTENDS V")
-        sql("CREATE VERTEX Representation, set x=4.4, scale=6.6")
-        sql("CREATE VERTEX Representation, set x=7.7, y=8.8")
+        sql("CREATE VERTEX Representation set x=4.4, scale=6.6")
+        sql("CREATE VERTEX Representation set x=7.7, y=8.8")
         val select = selectVertex(db) _
         val results = select("SELECT FROM Representation")
         val representations = Representation.loadAll(results, representationCreator).map(_.storage).toList
@@ -148,9 +148,9 @@ class RepresentationSpec extends UnitSpec {
       "load representation subtypes by class type" in {
         val db = newDb
         val sql = execSql(db) _
-        sql("CREATE VERTEX Representation, set x=1.1, y=2.2, scale=3.3")
-        sql("CREATE VERTEX Image, set x=4.4, y=5.5, scale=6.6, path='some.jpg'")
-        sql("CREATE VERTEX Text, set x=7.7, y=8.8, scale=9.9, text='hello'")
+        sql("CREATE VERTEX Representation set x=1.1, y=2.2, scale=3.3")
+        sql("CREATE VERTEX Image set x=4.4, y=5.5, scale=6.6, path='some.jpg'")
+        sql("CREATE VERTEX Text set x=7.7, y=8.8, scale=9.9, text='hello'")
         val creator: Creator = {
           case "Text" => RepresentationWrapper(new Text())
           case "Image" => RepresentationWrapper(new Image())

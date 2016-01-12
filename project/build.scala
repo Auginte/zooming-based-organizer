@@ -30,9 +30,6 @@ object build extends sbt.Build {
 
   // Custom properties (also accessable from source)
 
-  // Settings
-
-
   lazy val buildSettings = Seq (
     organization := buildOrganization,
     version      := buildVersion,
@@ -108,6 +105,7 @@ object build extends sbt.Build {
     name := "auginte-distribution",
     version := buildVersion,
     scalaVersion := buildScalaVersion,
+    fork := true,
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % "2.3.9",
       "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
