@@ -13,8 +13,15 @@
     -fx-background-radius: 3;
 }
 .textArea {
-    -fx-text-fill: derive(#d3f0ff, 40%);
-    -fx-background-color: derive(#101b20, 40%);
+    -fx-text-fill: black;
+    -fx-background-color: white;
     -fx-background-radius: 3;
     -fx-border-style: none;
+    -fx-font-size: 0.9em;
+}
+.textArea .scroll-bar:vertical {
+    -fx-opacity: 0;
+}
+.textArea .scroll-bar:horizontal {
+    -fx-opacity: 0;
 }

@@ -35,6 +35,7 @@ with MouseTransform
   private val enter = util.Properties.lineSeparator
   textArea.setVisible(false)
   textArea.setText(storage.text)
+  textArea.setWrapText(true)
   getChildren.addAll(label, textArea)
   updateSize(storage.text)
   private var editMode = false

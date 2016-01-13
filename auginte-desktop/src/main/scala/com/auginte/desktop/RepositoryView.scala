@@ -227,11 +227,16 @@ with HelpWrapper
   )
 
   private def feedback(): Unit = {
-    try {
-      val version = SoftwareVersion.toString
-      Desktop.getDesktop.mail(new URI(s"mailto:aurelijus@auginte.com?subject=Feedback%20$version"))
-    } catch {
-      case e: Exception => Desktop.getDesktop.browse(new URI(s"http://auginte.com/en/contact"))
+    val url = "http://auginte.com/contacts"
+    if (Desktop.isDesktopSupported) {
+      val browser = new Thread() {
+        override def run(): Unit = {
+          Desktop.getDesktop.browse(new URI(url))
+        }
+      }
+      browser.start()
+    } else {
+      println("Contact via: " + url)
     }
   }
 }
