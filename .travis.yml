@@ -12,4 +12,3 @@ cache:
 jdk:
   - oraclejdk8
   - oraclejdk7
-  - openjdk7
