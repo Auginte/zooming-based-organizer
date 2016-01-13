@@ -12,7 +12,10 @@ WARNING
 Requirements
 ------------
 
- * Java 7+ (JRE 1.7 or higher): http://www.oracle.com/technetwork/java/javase/downloads/jre7-downloads-1880261.html
+ * Oracle Java 7+ (JRE 1.7 or higher): http://www.oracle.com/technetwork/java/javase/downloads/jre7-downloads-1880261.html
+
+Lower Java version or OpenJRE does not have JavaFX.
+Support for OpenJFX is experimental.
 
 
 Running from Linux/Unix

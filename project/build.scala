@@ -109,7 +109,12 @@ object build extends sbt.Build {
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % "2.3.9",
       "com.orientechnologies" % "orientdb-core" % orientDbVersionServer,
-      "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer
+      ("com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer).
+        exclude("org.mortbay.jetty", "servlet-api").
+        exclude("commons-beanutils", "commons-beanutils-core").
+        exclude("commons-collections", "commons-collections").
+        exclude("commons-logging", "commons-logging").
+        exclude("com.esotericsoftware.minlog", "minlog")
     )
   ).
     dependsOn(auginteZooming).
@@ -118,7 +123,7 @@ object build extends sbt.Build {
     dependsOn(auginteCommon % "test->test")
 
   lazy val auginteDesktop = (project in file("auginte-desktop")).
-    settings(allSettings).
+    settings(withAssembly).
     settings(
       name := "auginte-desktop",
       version := buildVersion,
@@ -218,8 +223,9 @@ object CustomTasks {
     "<java.home>/lib/rt.jar"
   )
 
-  private val deploy = TaskKey[Unit]("deploy", "Prints 'Hello World'")
+  private val deploy = TaskKey[Unit]("deploy", "Obfuscate and pack")
 
+  /** @deprecated Released as open source, so obfuscation have no value */
   val deployTask = deploy := {
     val log = streams.value.log
     val packedTo = pack.value.getAbsolutePath

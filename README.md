@@ -10,6 +10,13 @@ Desktop and web application can be used autonomously, it was put together just t
 
 [![It is like a zooming based mind-map](http://img.youtube.com/vi/ZZ6CZLcWnTE/0.jpg)](http://www.youtube.com/watch?v=ZZ6CZLcWnTE)
 
+Installing
+==========
+
+**tldr**: Download from [releases](https://github.com/Auginte/zooming-based-organizer/releases), run with `java -jar`
+
+See [INSTALL.md](INSTALL.md) for more examples 
+
 Stability
 =========
 
@@ -61,31 +68,6 @@ fullOptJS
 
 This is multi-project build.
 
-**For not developers, running desktop application**:
-* [Install Simple Build Tool](http://www.scala-sbt.org/release/tutorial/Setup.html)
-* Clone/download this repository
-* Run inside project directory: `sbt 'project auginteDesktop' run`
-
-Deployment (of desktop application for closed source binnaries)
----------------------------------------------------------------
-
-Deploy JavaFx application locally
-
-```
-deploy
-```
-
-See results in `/auginte-desktop/target/pack`.
-
-Coding standard
----------------
-
- * http://docs.scala-lang.org/style/
-
-Jenkins integration
---------------------
-
-http://docs.openstack.org/infra/jenkins-job-builder/publishers.html
 
 Known Issues
 ------------
@@ -106,6 +88,8 @@ Useful links (for developers)
  * http://koleksiuk.github.io/blog/2013/03/29/run-and-setup-scala-with-sbt-plus-scalatest-plus-intellij-idea-12/
  * http://plugins.jetbrains.com/plugin/?idea&id=5007
  * www.cse.unt.edu/~tarau/teaching/SoftEng/scala-swing-design.pdf‎
+ * http://docs.scala-lang.org/style/
+ * http://docs.openstack.org/infra/jenkins-job-builder/publishers.html
 
 License
 -------

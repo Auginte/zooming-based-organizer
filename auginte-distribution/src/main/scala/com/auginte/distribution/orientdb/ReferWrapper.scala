@@ -2,6 +2,7 @@ package com.auginte.distribution.orientdb
 
 import com.auginte.common.Unexpected
 import com.auginte.distribution.orientdb.{Representation => R}
+import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.tinkerpop.blueprints.Vertex
 import com.tinkerpop.blueprints.impls.orient.OrientVertex
@@ -53,7 +54,7 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
 
   private def distantRepresentations(direction: String, maxDepth: Int, cache: R.Cached): Iterable[ReferConnection] =
     storage.persisted match {
-      case Some(persisted) =>
+      case Some(persisted) if persisted.getGraph != null =>
         val depth = "$depth"
         val sourceDocument: String = persisted.getIdentity.toString
         val sql =
@@ -73,18 +74,18 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
         val query = new OCommandSQL(sql.replace("\n", " "))
         val parameters = JMap()
         persisted.getGraph.command(query).execute[Vertices](parameters).map { row =>
-          val from = row.getProperty[OrientVertex]("edgeFrom")
-          val to = row.getProperty[OrientVertex]("edgeTo")
+          val from = row.getProperty[ODocument]("edgeFrom")
+          val to = row.getProperty[ODocument]("edgeTo")
           val distance = row.getProperty[Int]("$depth")
-          cache(to.getRecord) match {
-            case Some(cachedTo) => cache(from.getRecord) match {
+          cache(to) match {
+            case Some(cachedTo) => cache(from) match {
               case Some(cacheFrom) => ReferConnection(cacheFrom, cachedTo, distance)
               case None => Unexpected.state(s"Distant representation out-edge not found in cache: $to in ${cache.get}")
             }
             case None => Unexpected.state(s"Distant representation in-edge not found in cache: $to in ${cache.get}")
           }
         }
-      case None => EmptyDistantRepresentationIterable
+      case _ => EmptyDistantRepresentationIterable
     }
 
   def derivedRepresentations(implicit cache: R.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
