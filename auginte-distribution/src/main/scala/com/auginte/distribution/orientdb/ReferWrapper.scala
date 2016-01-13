@@ -73,9 +73,9 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
         """.stripMargin
         val query = new OCommandSQL(sql.replace("\n", " "))
         val parameters = JMap()
-        persisted.getGraph.command(query).execute[Vertices](parameters).map { row =>
-          val from = row.getProperty[ODocument]("edgeFrom")
-          val to = row.getProperty[ODocument]("edgeTo")
+        persisted.getGraph.command(query).execute[Vertices](parameters).map { row: Vertex =>
+          val from = getEdge(row, "edgeFrom")
+          val to = getEdge(row, "edgeTo")
           val distance = row.getProperty[Int]("$depth")
           cache(to) match {
             case Some(cachedTo) => cache(from) match {
@@ -87,6 +87,13 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
         }
       case _ => EmptyDistantRepresentationIterable
     }
+
+  // Woraround for different light edge configuration
+  private def getEdge(vertex: Vertex, edge: String): ODocument = try {
+    vertex.getProperty[ODocument](edge)
+  } catch {
+    case e: ClassCastException => vertex.getProperty[OrientVertex](edge).getRecord
+  }
 
   def derivedRepresentations(implicit cache: R.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
     storage.persisted match {
