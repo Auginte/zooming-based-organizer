@@ -174,6 +174,7 @@ with HelpWrapper
         val graphDatabase = Structure.createRepository(gs.name, gs.connection, gs.user, gs.password)
         graphDatabase.getRawGraph.activateOnCurrentThread()
         db = graphDatabase
+        Persistable.lastGraph = Some(graphDatabase)
         camera = Camera.mainCamera(graphDatabase)
         val newGrid = new Grid(Position.rootNode(graphDatabase))
         grid = newGrid
