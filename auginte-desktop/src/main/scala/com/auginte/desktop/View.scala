@@ -41,13 +41,12 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
   private var repositoryPath: Option[String] = None
 
 
-
   //
   // Infinity zooming and refresh
   //
 
   private val grid2absoluteCron = new Timeline {
-    cycleCount = Timeline.INDEFINITE
+    cycleCount = Timeline.Indefinite
     keyFrames = Seq(
       jfxKeyFrame2sfx(new KeyFrame(
         Duration(10),
@@ -57,7 +56,7 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
   }
   grid2absoluteCron.play()
 
-  def remove(element: Node): Unit = content.remove(element)
+  def remove(element: Node): Unit = children.remove(element)
 
 
   //

@@ -62,7 +62,7 @@ with HelpWrapper
   //
 
   private val grid2absoluteCron = new Timeline {
-    cycleCount = Timeline.INDEFINITE
+    cycleCount = Timeline.Indefinite
     keyFrames = Seq(
       jfxKeyFrame2sfx(new KeyFrame(
         Duration(10),

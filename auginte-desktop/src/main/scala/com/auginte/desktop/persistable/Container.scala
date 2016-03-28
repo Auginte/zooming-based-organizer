@@ -10,11 +10,11 @@ import scalafx.scene.{layout => sfxl}
 trait Container { self: sfxl.Pane =>
 
   def add(representation: RichJPane with RepresentationWrapper): Unit = {
-    content.add(representation)
+    children.add(representation)
   }
 
   def remove(representation: RepresentationWrapper): Unit = {
-    content.remove(representation)
+    children.remove(representation)
     representation.storage.remove()
   }
 }

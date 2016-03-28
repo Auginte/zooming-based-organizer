@@ -29,8 +29,8 @@ with HaveOperations {
 
 
   def showContextMenu(source: HaveOperations): Unit = {
-    if (!content.contains(contextMenu)) {
-      content.add(contextMenu)
+    if (!children.contains(contextMenu)) {
+      children.add(contextMenu)
     }
     layoutContextMenu(contextMenu)
     contextMenu.showContent(source.operations)

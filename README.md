@@ -2,8 +2,9 @@ Zooming based organiser
 =======================
 
 [![Build Status](https://secure.travis-ci.org/Auginte/zooming-based-organizer.png?branch=master)](http://travis-ci.org/Auginte/zooming-based-organizer)
+[![Build Status Develop](https://secure.travis-ci.org/Auginte/zooming-based-organizer.png?branch=develop)](http://travis-ci.org/Auginte/zooming-based-organizer)
 
-This is one of magor [Auginte tools](http://auginte.com):
+This is one of major [Auginte tools](http://auginte.com):
 Desktop and web application to help brainstorming, grouping and analysis of complex and heterogeneous information.
 
 Desktop and web application can be used autonomously, it was put together just to reuse common code easier.

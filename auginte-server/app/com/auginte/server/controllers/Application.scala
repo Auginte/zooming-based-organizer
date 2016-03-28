@@ -1,9 +1,11 @@
 package com.auginte.server.controllers
 
+import javax.inject.{Inject, Singleton}
+
 import com.auginte.server.migration.PersistableMigration
 import com.auginte.server.storage.DatabaseStorage
 import com.auginte.shared.communication.Saved
-import com.auginte.shared.state.persistable.{Storage, Persistable}
+import com.auginte.shared.state.persistable.{Persistable, Storage}
 import play.api.mvc._
 import prickle._
 import play.api.Play
@@ -12,7 +14,8 @@ import play.api.Logger
 
 import scala.util.{Failure, Success}
 
-object Application extends Controller {
+@Singleton
+class Application @Inject() extends Controller {
   type DB = DatabaseStorage.DB
 
   def index = Action {

@@ -1,7 +1,11 @@
 package com.auginte.desktop.nodes
 
 import javafx.scene.{layout => jfxl}
+
+import com.auginte.common.SoftwareVersion
 import com.auginte.desktop.rich.RichNode
+
+import scala.io.Source
 import scalafx.event.ActionEvent
 import scalafx.scene.web.WebView
 import scalafx.scene.control.Button
@@ -14,7 +18,8 @@ trait HelpWrapper extends RichNode[jfxl.Pane] {
   private val webView = new WebView {
     styleClass.add("webView")
   }
-  webView.getEngine.load(getClass.getResource("/help/QuickIntro.html").toExternalForm)
+  val helpText = Source.fromInputStream(getClass.getResourceAsStream("/help/QuickIntro.html"))
+  webView.getEngine.loadContent(helpText.mkString.replaceAll("VERSION", SoftwareVersion.toString))
 
   private val title = new sfxc.Label("Quick intro into Auginte")
 
@@ -29,9 +34,9 @@ trait HelpWrapper extends RichNode[jfxl.Pane] {
   title.prefWidth <== width - hideHelpButton.prefWidth
 
   private val helpPanel = new VBox {
-    content = List(
+    children = List(
       new HBox {
-        content = List(
+        children = List(
           title,
           hideHelpButton
         )
@@ -45,8 +50,8 @@ trait HelpWrapper extends RichNode[jfxl.Pane] {
 
 
   def showHelpWindow(): Unit = {
-    if (!content.contains(helpPanel)) {
-      content.add(helpPanel)
+    if (!children.contains(helpPanel)) {
+      children.add(helpPanel)
     }
     helpPanel.visible = true
   }

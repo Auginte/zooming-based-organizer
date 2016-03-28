@@ -7,6 +7,7 @@ import scala.scalajs.js
 /**
  * @see [[japgolly.scalajs.react.ReactTouchEvent]]
  */
+@js.native
 trait SyntheticTouchEvent extends js.Object {
   val touches: js.Array[Touch with ScreenPosition with ClientPosition] = js.native
 

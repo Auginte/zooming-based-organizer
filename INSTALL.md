@@ -12,7 +12,7 @@ Desktop version on Ubuntu 15.10
 Using Ubuntu as example, same procedure should also work on other Debian based Linux Distributions
 
 
-1. Ensure Oracle JRE 1.7+ is installed
+1. Ensure Oracle JRE 1.8+ is installed
 
 ```
 java -version

@@ -3,6 +3,7 @@ package com.auginte
 import scala.scalajs.js
 
 package object scalajs {
+  @js.native
   trait ClientRect extends js.Object {
     def left: Int = js.native
     def top: Int = js.native
@@ -10,6 +11,7 @@ package object scalajs {
     def bottom: Int = js.native
   }
 
+  @js.native
   trait CSSOMView extends js.Object {
     def getBoundingClientRect(): ClientRect = js.native
   }

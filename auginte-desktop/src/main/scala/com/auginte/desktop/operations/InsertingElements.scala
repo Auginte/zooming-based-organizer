@@ -14,13 +14,13 @@ import scalafx.scene.{input => sfxi}
  * @author Aurelijus Banelis <aurelijus@banelis.lt>
  */
 trait InsertingElements[D <: jfxs.Node] extends RichNode[D] {
-  def content: jfxc.ObservableList[jfxs.Node]
+  def children: jfxc.ObservableList[jfxs.Node]
 
   protected def createNewElement: jfxs.Node = new Label()
 
   protected def insertElement(element: jfxs.Node, x: Double, y: Double): Unit = {
     element.setTranslateX(x)
     element.setTranslateY(y)
-    content.add(element)
+    children.add(element)
   }
 }

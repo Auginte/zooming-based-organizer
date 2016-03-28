@@ -48,14 +48,14 @@ class View extends Actor {
         }
         case ImportElement(element) =>
           registerView(element)
-          Platform.runLater(representation.content.add(element))
+          Platform.runLater(representation.children.add(element))
         case InsertElement(element, x, y) =>
           registerView(element)
           element match {
             case e: ZoomableElement => representation.initializeInfinityZooming(e, x, y)
             case _ => translateNew(element, x, y)
           }
-          Platform.runLater(representation.content.add(element))
+          Platform.runLater(representation.children.add(element))
         case DeleteElement(element) => Platform.runLater(representation.remove(element))
         case MoveElement(element, node, diffX, diffY) => synchronized(representation.translate(node, diffX, diffY))
         case ElementScaled(element, node, scale) => synchronized(representation.scale(node, scale))
