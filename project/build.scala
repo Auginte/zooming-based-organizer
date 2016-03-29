@@ -172,7 +172,7 @@ object build extends sbt.Build {
     settings = Seq(
       description := "Common code for component versioning and test infrastructure",
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+        "org.scalatest" %% "scalatest" % "2.2.6" % "test"
       )
     )
   )
