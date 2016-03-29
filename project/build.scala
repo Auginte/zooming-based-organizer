@@ -28,7 +28,6 @@ object build extends sbt.Build {
       version := buildVersion,
       scalaVersion := buildScalaVersion,
       scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature"),
-      scalacOptions += "-Ylog-classpath",
       mainClass in(Compile, run) := Some(buildMainClass)
     )
 
@@ -116,7 +115,7 @@ object build extends sbt.Build {
         //"org.scalafx" %% "scalafx" % "2.2.76-R11", // JavaFX 2.2/Java 7
         "com.typesafe.akka" %% "akka-actor" % "2.3.11"
       ),
-      unmanagedJars in Compile += Attributed.blank(file(javaFxPath)),
+      unmanagedJars in (Compile, test) += Attributed.blank(file(javaFxPath)),
       packageOptions in(Compile, packageBin) += Package.ManifestAttributes("SplashScreen-Image" -> splashScreen)
     )
   )
@@ -173,7 +172,7 @@ object build extends sbt.Build {
     settings = Seq(
       description := "Common code for component versioning and test infrastructure",
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+        "org.scalatest" %% "scalatest" % "2.2.1" % "test"
       )
     )
   )
