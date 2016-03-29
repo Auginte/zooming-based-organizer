@@ -18,7 +18,7 @@ object build extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
   val buildVersion = ProjectProperties.getProperty("version", default = "0.0.1-SNAPSHOT")
-  val buildScalaVersion = "2.11.7"
+  val buildScalaVersion = "2.11.8"
   val buildMainClass = "com.auginte.desktop.Auginte"
 
   // Common settings
@@ -115,7 +115,7 @@ object build extends sbt.Build {
         //"org.scalafx" %% "scalafx" % "2.2.76-R11", // JavaFX 2.2/Java 7
         "com.typesafe.akka" %% "akka-actor" % "2.3.11"
       ),
-      unmanagedJars in (Compile, test) += Attributed.blank(file(javaFxPath)),
+      unmanagedJars in(Compile, test) += Attributed.blank(file(javaFxPath)),
       packageOptions in(Compile, packageBin) += Package.ManifestAttributes("SplashScreen-Image" -> splashScreen)
     )
   )
@@ -215,4 +215,5 @@ object build extends sbt.Build {
       case _ => default
     }
   }
+
 }

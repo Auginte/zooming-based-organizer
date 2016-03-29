@@ -10,3 +10,7 @@ cache:
 
 jdk:
   - oraclejdk8
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
