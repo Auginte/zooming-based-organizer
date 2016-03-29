@@ -28,6 +28,7 @@ object build extends sbt.Build {
       version := buildVersion,
       scalaVersion := buildScalaVersion,
       scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature"),
+      scalacOptions += "-Ylog-classpath",
       mainClass in(Compile, run) := Some(buildMainClass)
     )
 
@@ -185,6 +186,13 @@ object build extends sbt.Build {
     val environmentVariable = System.getenv("JAVA_HOME")
     if (environmentVariable != "") environmentVariable else "/usr/lib/jvm/java-8-oracle"
   }
+
+  def debugTravis(): Unit = {
+    println("Environment JAVA_HOME: " + System.getenv("JAVA_HOME"))
+    println("Final javaHomePath: " + javaHomePath)
+    println("JRE libraries: " + new File(javaHomePath + "/jre/lib").list().mkString("\n\t", "\n\t","\n"))
+  }
+  debugTravis()
 
   object ProjectProperties {
     lazy val customProperties: Option[Properties] = try {
