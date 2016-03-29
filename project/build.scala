@@ -28,7 +28,6 @@ object build extends sbt.Build {
       version := buildVersion,
       scalaVersion := buildScalaVersion,
       scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature"),
-      scalacOptions += "-Ylog-classpath",
       mainClass in(Compile, run) := Some(buildMainClass)
     )
 
@@ -116,7 +115,7 @@ object build extends sbt.Build {
         //"org.scalafx" %% "scalafx" % "2.2.76-R11", // JavaFX 2.2/Java 7
         "com.typesafe.akka" %% "akka-actor" % "2.3.11"
       ),
-      unmanagedJars in Compile += Attributed.blank(file(javaHomePath + "/jre/lib/jfxrt.jar")),
+      unmanagedJars in Compile += Attributed.blank(file(javaFxPath)),
       packageOptions in(Compile, packageBin) += Package.ManifestAttributes("SplashScreen-Image" -> splashScreen)
     )
   )
@@ -182,17 +181,18 @@ object build extends sbt.Build {
   // Utilities
   //
 
-  def javaHomePath = {
-    val environmentVariable = System.getenv("JAVA_HOME")
-    if (environmentVariable != "") environmentVariable else "/usr/lib/jvm/java-8-oracle"
+  def javaFxPath: String = {
+    val javaHome = if (System.getenv("JAVA_HOME") != "") System.getenv("JAVA_HOME") else "/usr/lib/jvm/java-8-oracle"
+    if (new File(javaHome + "/jre/lib/jfxrt.jar").exists()) javaHome + "/jre/lib/jfxrt.jar"
+    else if (new File(javaHome + "/jre/lib/ext/jfxrt.jar").exists()) javaHome + "/jre/lib/ext/jfxrt.jar"
+    else {
+      val fallback = "/usr/lib/jvm/java-8-oracle/jre/ext/jfxrt.jar"
+      println("JavaFx not found. Update JAVA_HOME.")
+      println("JAVA_HOME=" + System.getenv("JAVA_HOME"))
+      println("Fallback used: " + fallback)
+      fallback
+    }
   }
-
-  def debugTravis(): Unit = {
-    println("Environment JAVA_HOME: " + System.getenv("JAVA_HOME"))
-    println("Final javaHomePath: " + javaHomePath)
-    println("JRE libraries: " + new File(javaHomePath + "/jre/lib").list().mkString("\n\t", "\n\t","\n"))
-  }
-  debugTravis()
 
   object ProjectProperties {
     lazy val customProperties: Option[Properties] = try {
