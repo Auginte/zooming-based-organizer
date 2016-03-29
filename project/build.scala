@@ -115,7 +115,7 @@ object build extends sbt.Build {
         //"org.scalafx" %% "scalafx" % "2.2.76-R11", // JavaFX 2.2/Java 7
         "com.typesafe.akka" %% "akka-actor" % "2.3.11"
       ),
-      unmanagedJars in Compile += Attributed.blank(file(javaHome + "/jre/lib/jfxrt.jar")),
+      unmanagedJars in Compile += Attributed.blank(file(javaHomePath + "/jre/lib/jfxrt.jar")),
       packageOptions in(Compile, packageBin) += Package.ManifestAttributes("SplashScreen-Image" -> splashScreen)
     )
   )
@@ -181,7 +181,10 @@ object build extends sbt.Build {
   // Utilities
   //
 
-  def javaHome = System.getenv("JAVA_HOME")
+  def javaHomePath = {
+    val environmentVariable = System.getenv("JAVA_HOME")
+    if (environmentVariable != "") environmentVariable else "/usr/lib/jvm/java-8-oracle"
+  }
 
   object ProjectProperties {
     lazy val customProperties: Option[Properties] = try {
