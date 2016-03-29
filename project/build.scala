@@ -18,7 +18,7 @@ object build extends sbt.Build {
   val buildName = "auginte"
   val buildOrganization = "com.autinte"
   val buildVersion = ProjectProperties.getProperty("version", default = "0.0.1-SNAPSHOT")
-  val buildScalaVersion = "2.11.8"
+  val buildScalaVersion = "2.11.7"
   val buildMainClass = "com.auginte.desktop.Auginte"
 
   // Common settings
