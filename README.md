@@ -2,7 +2,7 @@ Zooming based organiser
 =======================
 
 [![Build Status](https://secure.travis-ci.org/Auginte/zooming-based-organizer.png?branch=master)](http://travis-ci.org/Auginte/zooming-based-organizer)
-[![Build Status Develop](https://secure.travis-ci.org/Auginte/zooming-based-organizer.png?branch=develop)](http://travis-ci.org/Auginte/zooming-based-organizer)
+[![Build Status Develop](https://secure.travis-ci.org/Auginte/zooming-based-organizer.png?branch=develop)](http://travis-ci.org/Auginte/zooming-based-organizer/branches)
 
 This is one of major [Auginte tools](http://auginte.com):
 Desktop and web application to help brainstorming, grouping and analysis of complex and heterogeneous information.
@@ -43,16 +43,15 @@ Current functionality and long term goals
 Development Environment
 -----------------------
 
- * Scala (2.10.2): http://www.scala-lang.org/
- * SBT (0.13.0): http://www.scala-sbt.org/
- * ScalaTest (2.10): http://www.scalatest.org/
- * SCCT (0.2) http://mtkopone.github.io/scct/
+ * Scala (2.11.8): http://www.scala-lang.org/
+ * SBT (0.13.11): http://www.scala-sbt.org/
+ * ScalaTest (2.2.6): http://www.scalatest.org/
  * IntelliJ IDEA (14): http://www.jetbrains.com/idea/
 
 For JavaFx, `JAVA_HOME` must be available as environment variable. E.g.
 
 ```
-    export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+    export JAVA_HOME=/usr/lib/jvm/java-8-oracle
 ```
 
 Useful SBT commands
