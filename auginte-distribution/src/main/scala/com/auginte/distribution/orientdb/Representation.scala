@@ -96,7 +96,7 @@ class Representation(var _x: Double = 0, var _y: Double = 0, var _scale: Double 
 
   def storeTo(storage: OrientBaseGraph, wrapper: RepresentationWrapper)(implicit cache: Cached = defaultCache): OrientVertex = {
     val vertex = super.storeTo(storage)
-    cache += vertex.getRecord -> wrapper
+    cache += vertex.getIdentity -> wrapper
     vertex
   }
 
@@ -144,7 +144,7 @@ object Representation extends DefaultCache[RepresentationWrapper] {
   def load(vertex: OrientVertex, creator: Creator)(implicit cache: Cached = defaultCache): RepresentationWrapper = {
     val wrapperByClass = creator(vertex.getRecord.getClassName)
     wrapperByClass.storage.persisted = vertex
-    cache += vertex.getRecord -> wrapperByClass
+    cache += vertex.getIdentity -> wrapperByClass
     wrapperByClass
   }
 }

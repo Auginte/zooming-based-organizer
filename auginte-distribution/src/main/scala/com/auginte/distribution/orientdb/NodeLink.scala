@@ -21,7 +21,7 @@ trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
 
   def node(implicit cache: Node.Cached = Node.defaultCache): Node = persisted match {
     case Some(persisted) => edge(nodeEdgeName) match {
-      case Some(linked) => cache(linked) match {
+      case Some(linked) => cache(linked.getIdentity) match {
         case Some(cached) => cached
         case None => wrapVertex(linked)(persisted, cache)
       }
@@ -38,7 +38,7 @@ trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
 
   private def wrapVertex(linked: ODocument)(persisted: OrientVertex, cache: Node.Cached): Node = {
     val newNode = Node(persisted.getGraph.getVertex(linked))
-    cache += newNode.persisted.get.getRecord -> newNode
+    cache += newNode.persisted.get.getIdentity -> newNode
     newNode
   }
 

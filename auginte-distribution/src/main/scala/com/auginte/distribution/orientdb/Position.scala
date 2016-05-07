@@ -66,12 +66,12 @@ object Position {
   }
 
   def rootNode(db: OrientBaseGraph)(implicit cache: Node.Cached = Node.defaultCache): Node = {
-    def withPersistable(persistable: OrientVertex) = cache(persistable.getRecord) match {
+    def withPersistable(persistable: OrientVertex) = cache(persistable.getIdentity) match {
       case Some(node) => node
       case None =>
         val node = new Node()
         node.persisted = persistable
-        cache += persistable.getRecord -> node
+        cache += persistable.getIdentity -> node
         node
     }
     val nodes = selectVertex(db)("SELECT FROM Node WHERE out_Parent IS NULL LIMIT 1")

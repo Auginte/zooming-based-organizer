@@ -1,7 +1,7 @@
 package com.auginte.distribution.orientdb
 
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
 
 /**
  * Functionality to cache relation between fetched OrientDB and Wrapper classes.
@@ -10,26 +10,26 @@ import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
  * but simulating mutable behavior by changing reverence internal reference.
  */
 class Cache[A] {
-  private var _map: Map[ODocument, A] = Map()
+  private var _map: Map[ORID, A] = Map()
 
-  def apply(key: ODocument): Option[A] = _map.get(key)
+  def apply(key: ORID): Option[A] = _map.get(key)
 
-  def apply(keys: Iterable[ODocument]): Iterable[A] = keys.flatMap(key => _map.get(key))
+  def apply(keys: Iterable[ODocument]): Iterable[A] = keys.flatMap(key => _map.get(key.getIdentity))
 
   def apply(key: Option[ODocument]): Option[A] = key match {
-    case Some(k) => apply(k)
+    case Some(k) => apply(k.getIdentity)
     case _ => None
   }
 
   def get = _map
 
-  def contains(document: ODocument) = _map.contains(document)
+  def contains(document: ODocument) = _map.contains(document.getIdentity)
 
   def size = _map.size
 
-  def +=(element: (ODocument, A)): Unit = _map = _map + element
+  def +=(element: (ORID, A)): Unit = _map = _map + element
 
-  def -=(document: ODocument): Unit = _map = _map - document
+  def -=(document: ORID): Unit = _map = _map - document
 
   def -=(wrapper: A): Unit = _map = _map.filterNot(_._2 equals wrapper)
 

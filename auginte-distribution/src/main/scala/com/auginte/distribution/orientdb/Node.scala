@@ -13,6 +13,7 @@ import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 import java.{lang => jl}
 import scala.collection.JavaConversions._
 import com.auginte.distribution.orientdb.CommonSql._
+import scala.language.implicitConversions
 
 /**
  * Representing relative position in infinity zooming,
@@ -72,7 +73,7 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
         val parentNode = new Node(0, 0, cache)
         val parentVertex = createVertex(Map("x" -> 0.boxed, "y" -> 0.boxed))
         parentNode.persisted = parentVertex
-        cache += parentVertex.getRecord -> parentNode
+        cache += parentVertex.getIdentity -> parentNode
         reloadAnd(persisted, parentVertex){
           persisted.addEdge("Parent", parentVertex)
         }
@@ -86,7 +87,7 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
         val childNode = new Node(x, y, cache)
         val childVertex = createVertex(Map("x" -> x.boxed, "y" -> y.boxed))
         childNode.persisted = childVertex
-        cache += childVertex.getRecord -> childNode
+        cache += childVertex.getIdentity -> childNode
         reloadAnd(childVertex, persisted){
           childVertex.addEdge("Parent", persisted)
         }
@@ -118,7 +119,7 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
     persisted match {
       case None => EmptyRepresentationStorageIterable
       case Some(persisted) => edges("in_Inside") map { edge =>
-        cache(edge) match {
+        cache(edge.getIdentity) match {
           case Some(cached) => cached
           case None => Representation.load(persisted.getGraph.getVertex(edge), creator)
         }
@@ -162,7 +163,7 @@ object Node extends DefaultCache[Node] {
 
   def apply(vertex: OrientVertex)(implicit cache: Cached = defaultCache): Node = new Node() {
     //FIXME: depnedency inection for cache
-    cache += vertex.getRecord -> this
+    cache += vertex.getIdentity -> this
     persisted = vertex
   }
 
@@ -171,14 +172,14 @@ object Node extends DefaultCache[Node] {
   def load(storage: OrientBaseGraph, rows: Rows, field: String = "rid")(implicit cache: Cached = defaultCache): Iterable[Node] =
     iterableAsScalaIterable(rows) flatMap { row => try {
       val record = row.field[ODocument](field)
-      cache(record) match {
+      cache(record.getIdentity) match {
         case node: Some[Node] => node
         case None => try {
           val loadedNode = new Node(record.field[Byte]("x"), record.field[Byte]("y"), cache)
           val loadedVertex = storage.getVertex(record)
           loadedNode.persisted = loadedVertex
-          cache += loadedVertex.getRecord -> loadedNode
-          val rez = Some(cache(record))
+          cache += loadedVertex.getIdentity -> loadedNode
+          val rez = Some(cache(record.getIdentity))
           Some(loadedNode)
         } catch {
           case e: Exception => None

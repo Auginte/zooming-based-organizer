@@ -30,7 +30,7 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
         if (swap) saveReference(targetData, sourceData) else saveReference(sourceData, targetData)
         List(sourceData, targetData).foreach(_.save())
         duplicated.storage.persisted = targetData
-        cache += targetData.getRecord -> duplicated
+        cache += targetData.getIdentity -> duplicated
         duplicated
       case _ => Unexpected.state(s"Duplicating not persisted element: $this")
     }
@@ -43,7 +43,7 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
   def sourceRepresentations(implicit cache: R.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
     storage.persisted match {
       case None => EmptyRepresentationStorageIterable
-      case Some(persisted) => CommonSql.edges(persisted.getRecord, "in_Refer") flatMap (cache(_))
+      case Some(persisted) => CommonSql.edges(persisted.getRecord, "in_Refer") flatMap (document => cache(document.getIdentity))
     }
 
   def distantSourceRepresentations(maxDepth: Int = defaultDepth)(implicit cache: R.Cached = R.defaultCache): Iterable[ReferConnection] =
@@ -77,8 +77,8 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
           val from = getEdge(row, "edgeFrom")
           val to = getEdge(row, "edgeTo")
           val distance = row.getProperty[Int]("$depth")
-          cache(to) match {
-            case Some(cachedTo) => cache(from) match {
+          cache(to.getIdentity) match {
+            case Some(cachedTo) => cache(from.getIdentity) match {
               case Some(cacheFrom) => ReferConnection(cacheFrom, cachedTo, distance)
               case None => Unexpected.state(s"Distant representation out-edge not found in cache: $to in ${cache.get}")
             }
@@ -98,7 +98,7 @@ trait ReferWrapper[A, Self <: ReferWrapper[A, Self]] { self: Self =>
   def derivedRepresentations(implicit cache: R.Cached = R.defaultCache): Iterable[RepresentationWrapper] =
     storage.persisted match {
       case None => EmptyRepresentationStorageIterable
-      case Some(persisted) => CommonSql.edges(persisted.getRecord, "out_Refer") flatMap (cache(_))
+      case Some(persisted) => CommonSql.edges(persisted.getRecord, "out_Refer") flatMap (document => cache(document.getIdentity))
     }
 }
 

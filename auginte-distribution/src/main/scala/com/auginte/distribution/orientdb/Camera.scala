@@ -1,7 +1,7 @@
 package com.auginte.distribution.orientdb
 
 import com.auginte.distribution.orientdb.CommonSql._
-import com.tinkerpop.blueprints.{Direction}
+import com.tinkerpop.blueprints.Direction
 import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 import scala.collection.JavaConversions._
 
@@ -54,12 +54,12 @@ object Camera extends DefaultCache[Camera] {
   def unapply(data: Camera) = Some(data.x, data.y, data.scale)
 
   def mainCamera(db: OrientBaseGraph, rootNode: Option[Node] = None)(implicit cache: Cached = defaultCache): Camera = {
-    def withPersistable(persistable: OrientVertex) = cache(persistable.getRecord) match {
+    def withPersistable(persistable: OrientVertex) = cache(persistable.getIdentity) match {
       case Some(node) => node
       case None =>
         val camera = new Camera()
         camera.persisted = persistable
-        cache += persistable.getRecord -> camera
+        cache += persistable.getIdentity -> camera
         camera
     }
     def withView(camera: Camera): Camera = {
