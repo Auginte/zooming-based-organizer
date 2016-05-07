@@ -58,7 +58,7 @@ with ViewWrapper {
 
   private def inView(f: RenderingConnections => Any): Unit = view match {
     case Some(v: RenderingConnections) => f(v)
-    case other => Unexpected.state(s"Cannot use Refer rendering, as view is $other")
+    case other => Unexpected.warning(s"Cannot use Refer rendering, as view is $other")
   }
 
   private def filerNodes(elements: Iterable[_]): Iterable[RichJPane] = elements.flatMap {

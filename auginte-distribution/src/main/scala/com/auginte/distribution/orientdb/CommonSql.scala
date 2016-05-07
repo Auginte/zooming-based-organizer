@@ -13,7 +13,7 @@ object CommonSql {
   def selectVertex(db: OrientBaseGraph)(sql: String) =
     db.command(new OCommandSQL(sql)).execute[jl.Iterable[OrientVertex]]()
 
-  def edge(document: ODocument, field: String): Option[ODocument] = {
+  def edge(document: ODocument, field: String): Option[ODocument] = try {
     val links = document.field[ORidBag](field)
     if (links == null || links.isEmpty) None
     else {
@@ -25,6 +25,10 @@ object CommonSql {
           Some(edgeRecord)
       }
     }
+  } catch {
+    case e: Exception =>
+      Console.err.println("CommonSql edge EXCEPTION: " + e.getMessage)
+      None
   }
 
   def edges(document: ODocument, field: String): Iterable[ODocument] = {

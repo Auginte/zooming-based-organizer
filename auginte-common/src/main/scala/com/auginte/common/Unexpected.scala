@@ -7,4 +7,5 @@ package com.auginte.common
  */
 object Unexpected {
   def state(message: String) = throw new AssertionError(message)
+  def warning(message: String) = Console.err.println(message)
 }

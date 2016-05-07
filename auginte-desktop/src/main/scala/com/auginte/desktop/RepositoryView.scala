@@ -74,7 +74,7 @@ with HelpWrapper
   grid2absoluteCron.play()
 
   def absoluteToCachedCoordinates(): Unit = db match {
-    case Some(db) =>
+    case Some(db) => try {
       db.getRawGraph.activateOnCurrentThread()
       val zoomableElements = d.getChildren.iterator().flatMap({
         case r: GuiRepresentation =>
@@ -83,6 +83,9 @@ with HelpWrapper
         case _ => None
       })
       absoluteToCachedCoordinates(zoomableElements)
+    } catch {
+      case e: Exception => Console.err.print("OrientDb down: " + e.getMessage)
+    }
     case None => Unit
   }
 
@@ -132,32 +135,49 @@ with HelpWrapper
     case None => Unit
   }
 
-  private def loadElements(db: OrientBaseGraph): Unit = {
+  private def loadElements(db: OrientBaseGraph)(logProgress: Double => Unit): Unit = {
+    logProgress(0)
     def select(sql: String) = new OSQLSynchQuery[ODocument](sql)
-    def addRepresentations(representations: Iterable[RepresentationWrapper]): Unit = {
+    def attachStorageToRepresentations(representations: Iterable[RepresentationWrapper]): Unit = {
       db.getRawGraph.activateOnCurrentThread()
       for(representation <- representations) {
         attachDatabaseToElement(representation.storage)
       }
-      d.getChildren.addAll(representations.flatMap({
-        case n: jfxs.Node => Some(n)
-        case _ => None
-      }))
       for(representation <- representations) {
         representation.updateDbToCached()
       }
     }
-    val rows = select("SELECT @rid FROM Node")
-    val nodes = o.Node.load(db, rows)
+    val count = db.countVertices("Node").toInt
+    logProgress(0.1)
+    val batchSize = 500
+    var nodes = List[Node]()
     val creator: Creator = {
       case "Text" => new n.Text() {
         view = RepositoryView.this
       }
       case r => throw new RuntimeException(s"Not valid representation name: $r")
     }
+    for (i <- 0 to count by batchSize) {
+      val sql = s"SELECT @rid FROM Node OFFSET $i LIMIT $batchSize"
+      val rows = select(sql)
+      val subNodes = o.Node.load(db, rows)
+      nodes = nodes ++ subNodes
+      logProgress(0.1 + (i / count.toDouble * 0.4))
+    }
+    var representations = List[RepresentationWrapper]()
+    var i = 0
     for (node <- nodes) {
-      val representations = node.representations(creator)
-      Platform.runLater(addRepresentations(representations))
+      val elements = node.representations(creator)
+      attachStorageToRepresentations(elements)
+      representations = representations ++ elements
+      logProgress(0.5 + (i / count.toDouble * 0.4))
+      i = i + 1
+    }
+    Platform.runLater {
+      d.getChildren.addAll(representations.flatMap{
+        case n: jfxs.Node => Some(n)
+        case _ => None
+      })
     }
   }
 
@@ -169,6 +189,9 @@ with HelpWrapper
 
   def load(settings: GlobalSettings): Unit = {
     val loadingFromDatabase = new Thread {
+      val showProgress: Double => Unit = { percentage =>
+        Platform.runLater(loadingLabel.text = s"Loaded: ${Math.round(percentage * 100)}%")
+      }
       override def run(): Unit = try {
         val gs = settings.graphRepository
         val graphDatabase = Structure.createRepository(gs.name, gs.connection, gs.user, gs.password)
@@ -178,7 +201,7 @@ with HelpWrapper
         camera = Camera.mainCamera(graphDatabase)
         val newGrid = new Grid(Position.rootNode(graphDatabase))
         grid = newGrid
-        loadElements(graphDatabase)
+        loadElements(graphDatabase)(showProgress)
         Platform.runLater(absoluteToCachedCoordinates())
         loadingElements = false
         Platform.runLater(loadingLabel.visible = false)
