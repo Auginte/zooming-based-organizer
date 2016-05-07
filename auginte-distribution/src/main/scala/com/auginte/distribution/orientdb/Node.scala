@@ -9,10 +9,13 @@ import com.orientechnologies.orient.core.db.record.OIdentifiable
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
+import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
 import java.{lang => jl}
+
 import scala.collection.JavaConversions._
 import com.auginte.distribution.orientdb.CommonSql._
+import com.orientechnologies.orient.core.id.ORID
+
 import scala.language.implicitConversions
 
 /**
@@ -52,13 +55,16 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
 
   override def children: List[zooming.Node] = if (isPersisted) cache(edges("in_Parent")).toList else super.children
 
-  private def edge(field: String): Option[ODocument] = CommonSql.edge(persistedDocument.get, field)
+  private def edge(field: String): Option[ORID] = CommonSql.edge(persistedDocument.get, field)
 
-  private def edges(field: String): Iterable[ODocument] = CommonSql.edges(persistedDocument.get, field)
+  private def edges(field: String): Iterable[ORID] = CommonSql.edges(persistedDocument.get, field)
 
   override def getChild(x: Byte, y: Byte): Option[zooming.Node] =
     if (!isPersisted) super.getChild(x, y)
-    else cache(edges("in_Parent").find(d => d.field[Byte]("x") == x && d.field[Byte]("y") == y))
+    else cache(edges("in_Parent")) match {
+      case children if children.nonEmpty => children.find(node => node.x == x && node.y == y)
+      case noChildren => None
+    }
 
 
   //

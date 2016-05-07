@@ -14,10 +14,10 @@ class Cache[A] {
 
   def apply(key: ORID): Option[A] = _map.get(key)
 
-  def apply(keys: Iterable[ODocument]): Iterable[A] = keys.flatMap(key => _map.get(key.getIdentity))
+  def apply(keys: Iterable[ORID]): Iterable[A] = keys.flatMap(_map.get)
 
-  def apply(key: Option[ODocument]): Option[A] = key match {
-    case Some(k) => apply(k.getIdentity)
+  def apply(key: Option[ORID]): Option[A] = key match {
+    case Some(k:ORID) => apply(k)
     case _ => None
   }
 

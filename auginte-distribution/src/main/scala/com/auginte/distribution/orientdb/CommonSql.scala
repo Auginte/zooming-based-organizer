@@ -2,28 +2,25 @@ package com.auginte.distribution.orientdb
 
 import java.{lang => jl}
 
-import com.orientechnologies.orient.core.db.record.{ORecordLazySet, OIdentifiable}
+import com.orientechnologies.orient.core.db.record.ORecordLazySet
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
-import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
+import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
 
 object CommonSql {
   def selectVertex(db: OrientBaseGraph)(sql: String) =
     db.command(new OCommandSQL(sql)).execute[jl.Iterable[OrientVertex]]()
 
-  def edge(document: ODocument, field: String): Option[ODocument] = try {
+  def edge(document: ODocument, field: String): Option[ORID] = try {
     val links = document.field[ORidBag](field)
     if (links == null || links.isEmpty) None
     else {
-      val edgeRecord = links.iterator().next().getRecord[ODocument]
-      field match {
-        case edgePattern(direction, edgeClass) if edgeRecord.getClassName == edgeClass =>
-          Some(through1EdgeClass(direction, edgeRecord))
-        case _ =>
-          Some(edgeRecord)
-      }
+      val iterator = links.rawIterator()
+      if (iterator.hasNext) Some(iterator.next().getIdentity)
+      else None
     }
   } catch {
     case e: Exception =>
@@ -31,20 +28,19 @@ object CommonSql {
       None
   }
 
-  def edges(document: ODocument, field: String): Iterable[ODocument] = {
+  def edges(document: ODocument, field: String): Iterable[ORID] = {
     val links = document.field[ORidBag](field)
-    if (links == null || links.isEmpty) EmptyDocumentIterable
-    else {
-      val edgeRecords = proxyIterable[OIdentifiable, ODocument](links, _.getRecord[ODocument])
-      field match {
-        case edgePattern(direction, edgeClass) =>
-          for (record <- edgeRecords) yield {
-            if (record.getClassName == edgeClass) record.field[ODocument](opposite(direction))
-            else record
-          }
-        case _ => edgeRecords
-      }
+    if (links == null || links.isEmpty) EmptyDocumentIterable.map(_.getIdentity)
+    else orientToScalaIterator(links)
+  }
+
+  private def orientToScalaIterator(iterable: ORidBag): Iterable[ORID] = {
+    val iterator = iterable.rawIterator()
+    var ids = List[ORID]()
+    while (iterator.hasNext) {
+      ids = iterator.next().getIdentity :: ids
     }
+    ids
   }
 
   private val edgePattern = "(in|out)_(.+)".r

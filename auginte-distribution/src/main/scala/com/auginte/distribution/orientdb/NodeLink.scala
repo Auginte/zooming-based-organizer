@@ -1,10 +1,10 @@
 package com.auginte.distribution.orientdb
 
 import com.auginte.common.Unexpected
-import com.orientechnologies.orient.core.exception.OConcurrentModificationException
-import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.{Edge, Direction}
-import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
+import com.orientechnologies.orient.core.id.ORID
+import com.tinkerpop.blueprints.impls.orient.OrientVertex
+import com.tinkerpop.blueprints.{Direction, Edge}
+
 import scala.collection.JavaConversions._
 
 
@@ -21,9 +21,9 @@ trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
 
   def node(implicit cache: Node.Cached = Node.defaultCache): Node = persisted match {
     case Some(persisted) => edge(nodeEdgeName) match {
-      case Some(linked) => cache(linked.getIdentity) match {
+      case Some(linkedId) => cache(linkedId) match {
         case Some(cached) => cached
-        case None => wrapVertex(linked)(persisted, cache)
+        case None => wrapVertex(linkedId)(persisted, cache)
       }
       case None => fallbackToRootNode(persisted)
     }
@@ -36,15 +36,15 @@ trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
     case _ => Unexpected.state(s"NodeLink with unsuported type: $nodeEdge")
   }
 
-  private def wrapVertex(linked: ODocument)(persisted: OrientVertex, cache: Node.Cached): Node = {
-    val newNode = Node(persisted.getGraph.getVertex(linked))
+  private def wrapVertex(id: ORID)(persisted: OrientVertex, cache: Node.Cached): Node = {
+    val newNode = Node(persisted.getGraph.getVertex(id))
     cache += newNode.persisted.get.getIdentity -> newNode
     newNode
   }
 
   protected def fallbackToRootNode(persisted: OrientVertex) = Position.rootNode(persisted.getGraph)
 
-  private def edge(field: String): Option[ODocument] = CommonSql.edge(persistedDocument.get, field)
+  private def edge(field: String): Option[ORID] = CommonSql.edge(persistedDocument.get, field)
 
 
   //
