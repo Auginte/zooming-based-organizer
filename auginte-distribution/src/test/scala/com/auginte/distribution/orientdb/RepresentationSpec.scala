@@ -214,8 +214,8 @@ class RepresentationSpec extends UnitSpec {
         val old1 = Representation.load(vertices(1).asInstanceOf[OrientVertex], creator)(cache)
         val old2 = Representation.load(vertices(2).asInstanceOf[OrientVertex], creator)(cache)
         val newest = Representation.load(vertices(3).asInstanceOf[OrientVertex], creator)(cache)
-        val sources = derived.sourceRepresentations(cache).toSeq
-        assert(Seq(old1, old2) === sources)
+        val sources = derived.sourceRepresentations(cache).toSet
+        assert(Set(old1, old2) === sources)
         val derives = derived.derivedRepresentations(cache)
         assert(List(newest) === derives)
       }

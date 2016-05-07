@@ -2,7 +2,7 @@ package com.auginte.distribution.orientdb
 
 import java.{lang => jl}
 
-import com.orientechnologies.orient.core.db.record.ORecordLazySet
+import com.orientechnologies.orient.core.db.record.{OIdentifiable, ORecordLazySet}
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.impl.ODocument
@@ -15,11 +15,26 @@ object CommonSql {
     db.command(new OCommandSQL(sql)).execute[jl.Iterable[OrientVertex]]()
 
   def edge(document: ODocument, field: String): Option[ORID] = try {
+    def lightEdge(id: ORID) = Some(id)
+    def intermediateTableEdge(links: ORidBag) = {
+      val edgeRecord = links.iterator().next().getRecord[ODocument]
+      field match {
+        case edgePattern(direction, edgeClass) if edgeRecord.getClassName == edgeClass =>
+          Some(through1EdgeClass(direction, edgeRecord).getIdentity)
+        case _ =>
+          Some(edgeRecord.getIdentity)
+      }
+    }
+
     val links = document.field[ORidBag](field)
     if (links == null || links.isEmpty) None
     else {
       val iterator = links.rawIterator()
-      if (iterator.hasNext) Some(iterator.next().getIdentity)
+      if (iterator.hasNext) {
+        val id = iterator.next().getIdentity
+        if (id.getClusterId == document.getIdentity.getClusterId) lightEdge(id)
+        else intermediateTableEdge(links)
+      }
       else None
     }
   } catch {
@@ -29,16 +44,26 @@ object CommonSql {
   }
 
   def edges(document: ODocument, field: String): Iterable[ORID] = {
+    def toEdge(rec: OIdentifiable): ORID = rec match {
+      case d: ODocument if d.fieldNames().toSet == Set("out", "in") =>
+        val direction = opposite(field.split("_")(0))
+        d.field[ODocument](direction).getIdentity
+      case lightEdge => lightEdge.getIdentity
+    }
+
     val links = document.field[ORidBag](field)
-    if (links == null || links.isEmpty) EmptyDocumentIterable.map(_.getIdentity)
-    else orientToScalaIterator(links)
+    if (links == null || links.isEmpty) EmptyORIDIterable
+    else {
+      val elements = orientToScalaIterator(links)
+      elements.map(toEdge)
+    }
   }
 
-  private def orientToScalaIterator(iterable: ORidBag): Iterable[ORID] = {
+  private def orientToScalaIterator(iterable: ORidBag): List[OIdentifiable] = {
     val iterator = iterable.rawIterator()
-    var ids = List[ORID]()
+    var ids = List[OIdentifiable]()
     while (iterator.hasNext) {
-      ids = iterator.next().getIdentity :: ids
+      ids = iterator.next():: ids
     }
     ids
   }

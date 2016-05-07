@@ -4,11 +4,12 @@ import com.auginte.common.Unexpected
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException
 import com.orientechnologies.orient.core.record.impl.ODocument
 import java.{lang => jl}
+
+import com.orientechnologies.orient.core.id.ORID
 import com.tinkerpop.blueprints.Element
 
 import scala.collection.JavaConversions._
-
-import com.tinkerpop.blueprints.impls.orient.{OrientElementIterable, OrientBaseGraph, OrientVertex}
+import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientElementIterable, OrientVertex}
 
 import scala.language.implicitConversions
 
@@ -33,6 +34,8 @@ import scala.language.implicitConversions
 package object orientdb {
 
   private[orientdb] val EmptyDocumentIterable = emptyIterable[ODocument]
+
+  private[orientdb] val EmptyORIDIterable = emptyIterable[ORID]
 
   private[orientdb] val EmptyRepresentationStorageIterable = emptyIterable[RepresentationWrapper]
 
