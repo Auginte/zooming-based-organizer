@@ -63,6 +63,7 @@ object build extends sbt.Build {
       "com.github.benhutchison" %% "prickle" % "1.1.5"
     ),
     scalaJSProjects := clients,
+    pipelineStages := Seq(scalaJSProd),
     includeFilter in(Assets, LessKeys.less) := "*.less"
   )
     .enablePlugins(PlayScala)
