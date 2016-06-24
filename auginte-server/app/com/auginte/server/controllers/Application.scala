@@ -7,15 +7,13 @@ import com.auginte.server.storage.DatabaseStorage
 import com.auginte.shared.communication.Saved
 import com.auginte.shared.state.persistable.{Persistable, Storage}
 import play.api.mvc._
+import play.api.{Configuration, Logger}
 import prickle._
-import play.api.Play
-import play.api.Play.current
-import play.api.Logger
 
 import scala.util.{Failure, Success}
 
 @Singleton
-class Application @Inject() extends Controller {
+class Application @Inject() (config: Configuration) extends Controller {
   type DB = DatabaseStorage.DB
 
   def index = Action {
@@ -24,7 +22,7 @@ class Application @Inject() extends Controller {
 
   def load(id: String, hash: String) = Action {
     withDB { db =>
-      DatabaseStorage.laodUser(db, s"#$id", hash) match {
+      DatabaseStorage.loadUser(db, s"#$id", hash) match {
         case Some(user) =>
           showLoaded(DatabaseStorage.generatePersistable(user))
         case None =>
@@ -56,6 +54,15 @@ class Application @Inject() extends Controller {
     }
   }
 
+  def provision = Action { request =>
+      if (request.remoteAddress == "127.0.0.1") {
+        val (ok, message) = DatabaseStorage.provision(config)
+        if (ok) Ok(message + "\n") else InternalServerError(message + "\n")
+      } else {
+        Unauthorized("Forbidden. Provisioning allowed only from local\n")
+      }
+  }
+
   private def storePersistable(persistable: Persistable, hash: String) = try {
     withDB { db =>
       val user = DatabaseStorage.storeToDb(db, persistable.withStorage(new Storage("", hash)))
@@ -71,7 +78,6 @@ class Application @Inject() extends Controller {
 
 
   private def logDatabaseLoginContext(e: Throwable): Unit = {
-    val config = Play.application.configuration
     val hashedPassword = config.getString("orientdb.password").getOrElse("").replaceAll(".", "*")
     val context =
       s"""
@@ -85,7 +91,6 @@ class Application @Inject() extends Controller {
   }
 
   private def withDB[A](online: DB => A)(implicit failure: A = InternalServerError("Cannot connect to database")): A = {
-    val config = Play.application.configuration
     DatabaseStorage.connection(config) match {
       case Some(db) => online(db)
       case None => failure

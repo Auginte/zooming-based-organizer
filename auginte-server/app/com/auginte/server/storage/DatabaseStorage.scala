@@ -3,20 +3,17 @@ package com.auginte.server.storage
 import com.auginte.shared.state.Id
 import com.auginte.shared.state.persistable._
 import com.auginte.shared.state.selected.Selectable
+import com.orientechnologies.orient.client.remote.OServerAdmin
 import com.orientechnologies.orient.core.command.traverse.OTraverse
-import com.orientechnologies.orient.core.command.{OCommandContext, OCommandPredicate}
 import com.orientechnologies.orient.core.db.ODatabase
-import com.orientechnologies.orient.core.id.ORecordId
-import com.orientechnologies.orient.core.metadata.schema.{OProperty, OClass, OSchema, OType}
-import com.orientechnologies.orient.core.record.ORecord
+import com.orientechnologies.orient.core.metadata.schema.{OClass, OProperty, OSchema, OType}
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.orientechnologies.orient.core.util.ODateHelper
-import com.tinkerpop.blueprints.Direction
-import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientGraphNoTx}
-import org.joda.time.{DateTimeZone, DateTime}
+import com.tinkerpop.blueprints.impls.orient.{OrientGraphNoTx, OrientVertex}
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Configuration
-import scala.util.Random
+
 import scala.collection.JavaConversions._
+import scala.util.{Failure, Random, Success, Try}
 
 object DatabaseStorage {
   type DB = OrientGraphNoTx
@@ -25,17 +22,50 @@ object DatabaseStorage {
   private val auginteVersionKey = "AuginteVersion"
   val javaDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
 
-  def connection(config: Configuration): Option[DB] = {
+  private case class Credentials(path: String, name: String, user: String, password: String) {
+    def toDb = new DB(s"$path/$name", user, password)
+
+    def toServerAdmin: Try[OServerAdmin] = try {
+      Success(new OServerAdmin(s"$path").connect(user, password))
+    } catch {
+      case e: Exception => Failure(e)
+    }
+  }
+
+  def connection(config: Configuration): Option[DB] = readConfig(config).map(_.toDb)
+
+  def provision(config: Configuration): (Boolean, String) = readConfig(config) match {
+    case Some(credentials) => credentials.toServerAdmin match {
+      case Success(connection) =>
+        try {
+          val databases =  connection.listDatabases()
+          if (databases.containsKey(credentials.name)) {
+            prepareStructure(credentials.toDb)
+            (true, "Database updated")
+          } else {
+            connection.createDatabase(credentials.name, "graph", "plocal")
+            prepareStructure(credentials.toDb)
+            (true, "Database created and provisioned")
+          }
+        } catch {
+          case e: Exception => (false, "Cannot create/update database: " + e.getMessage)
+        }
+      case Failure(e) => (false, "Bad database credentials: " + e.getMessage)
+    }
+    case None => (false, "Error reading database configuration")
+  }
+
+  private def readConfig(config: Configuration): Option[Credentials] = {
     for (
       dbPath <- config.getString("orientdb.path");
       dbName <- config.getString("orientdb.db.main");
       dbUser <- config.getString("orientdb.user");
       dbPassword <- config.getString("orientdb.password")
-    ) yield new DB(s"$dbPath/$dbName", dbUser, dbPassword)
+    ) yield Credentials(dbPath, dbName, dbUser, dbPassword)
   }
 
   def storeToDb(db: DB, persistable: Persistable) = {
-    prepareStructure(db)
+    db.getRawGraph.set(ODatabase.ATTRIBUTES.DATETIMEFORMAT, javaDateFormat)
     val user = storeUser(db, persistable.storage)
     val camera = storeCamera(db, persistable.camera)
     val node = storeNode(db)
@@ -76,7 +106,7 @@ object DatabaseStorage {
   }
 
   private def createClass(schema: OSchema, name: String, parent: OClass) =
-    if (schema.existsClass(name)) schema.getClass(name).setSuperClass(parent)
+    if (schema.existsClass(name)) schema.getClass(name).setSuperClasses(List(parent))
     else schema.createClass(name, parent)
 
   private def createProperty(table: OClass, name: String, rowType: OType): OProperty = {
@@ -126,7 +156,7 @@ object DatabaseStorage {
 
   private def now = new DateTime(DateTimeZone.UTC).toString()
 
-  def laodUser(db: DB, id: String, hash: String): Option[Vertex] = {
+  def loadUser(db: DB, id: String, hash: String): Option[Vertex] = {
     val user = db.getVertex(id)
     if (user != null && user.getProperty[String]("hash") == hash) {
         Some(user)

@@ -3,15 +3,18 @@
 # ~~~~
 
 # Home page
-GET     /                           com.auginte.server.controllers.Application.index
+GET     /                           @com.auginte.server.controllers.Application.index
 
 # Assets
-GET     /favicon.ico                controllers.Assets.at(path="/public", file="icons/favicon.ico")
-GET     /apple-touch-icon.png       controllers.Assets.at(path="/public", file="icons/apple-touch-icon.png")
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /favicon.ico                @controllers.Assets.at(path="/public", file="icons/favicon.ico")
+GET     /apple-touch-icon.png       @controllers.Assets.at(path="/public", file="icons/apple-touch-icon.png")
+GET     /assets/*file               @controllers.Assets.at(path="/public", file)
 
 # Saving
-POST   /demo/save/:hash             com.auginte.server.controllers.Application.store(hash)
+POST   /demo/save/:hash             @com.auginte.server.controllers.Application.store(hash)
 
 # Loading
-GET   /demo/load/:id/:hash         com.auginte.server.controllers.Application.load(id, hash)
+GET   /demo/load/:id/:hash          @com.auginte.server.controllers.Application.load(id, hash)
+
+# Provisioning from clean database
+POST   /provision                   @com.auginte.server.controllers.Application.provision

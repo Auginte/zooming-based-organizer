@@ -7,6 +7,7 @@ import com.typesafe.sbt.web.SbtWeb
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import play.sbt.PlayScala
+import play.sbt.routes.RoutesKeys._
 import playscalajs.PlayScalaJS.autoImport._
 import playscalajs.ScalaJSPlay
 import sbt.Keys._
@@ -62,6 +63,8 @@ object build extends sbt.Build {
       "com.orientechnologies" % "orientdb-graphdb" % orientDbVersionServer,
       "com.github.benhutchison" %% "prickle" % "1.1.5"
     ),
+    routesGenerator := InjectedRoutesGenerator,
+    fork in run := true,
     scalaJSProjects := clients,
     pipelineStages := Seq(scalaJSProd),
     includeFilter in(Assets, LessKeys.less) := "*.less"
