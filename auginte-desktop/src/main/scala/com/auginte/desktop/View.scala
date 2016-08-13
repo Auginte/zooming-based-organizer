@@ -45,12 +45,19 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
   // Infinity zooming and refresh
   //
 
+  @volatile var coordinatesInProgress = false
+
   private val grid2absoluteCron = new Timeline {
     cycleCount = Timeline.Indefinite
     keyFrames = Seq(
       jfxKeyFrame2sfx(new KeyFrame(
-        Duration(10),
-        (e: ActionEvent) => absoluteToCachedCoordinates()
+        Duration(40),
+        (e: ActionEvent) =>
+          if (!coordinatesInProgress) {
+            coordinatesInProgress = true
+            absoluteToCachedCoordinates()
+            coordinatesInProgress = false
+          }
       ))
     )
   }

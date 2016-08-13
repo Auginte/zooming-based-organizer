@@ -29,6 +29,9 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
 
   private[auginte] val checkParentsConsistency = false // Useful for testing, but disabled in production
 
+  private var loaded = false
+  private var cachedParent: Option[zooming.Node] = None
+
   //
   // Structure
   //
@@ -51,7 +54,19 @@ class Node(val _x: Byte = 0, val _y: Byte = 0, protected val cache: Cache[Node] 
 
   override def y: Byte = get[Byte]("y", _y)
 
-  override def parent: Option[zooming.Node] = if (isPersisted) cache(edge("out_Parent")) else super.parent
+
+  override def parent: Option[zooming.Node] = if (loaded) {
+    cachedParent
+  } else {
+    if (isPersisted) {
+      val rez = cache(edge("out_Parent"))
+      cachedParent = rez
+      if (rez.isDefined) {
+        loaded = true
+      }
+      rez
+    } else super.parent
+  }
 
   override def children: List[zooming.Node] = if (isPersisted) cache(edges("in_Parent")).toList else super.children
 

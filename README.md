@@ -78,9 +78,10 @@ Known Issues
  * After gen-idea, no compiler library found
    - Project settings -> Libraries -> *scala-library* -> Classes: Add from ~/.sbt/boot/*/scala-*
    - Project settings -> Facets -> Compiler library: Choose *scaka-library*
- * `JavaFx` runtime is only in `Oracle JRE 1.7+`, not in OpenJRE.
+ * `JavaFx` runtime is only in `Oracle JRE 1.7+`, in OpenJRE it must installed separately
    - Internet is full of [examples](https://www.digitalocean.com/community/tutorials/how-to-install-java-on-ubuntu-with-apt-get)
      how to install Oracle Java and make it as default.
+   - For Ubuntu and OpenJRE: `sudo apt-get install default-jre openjfx`  
 
 Useful links (for developers)
 -----------------------------
