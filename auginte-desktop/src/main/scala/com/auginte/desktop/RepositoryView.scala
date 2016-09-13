@@ -4,36 +4,32 @@ import java.awt.Desktop
 import java.net.URI
 import javafx.animation.KeyFrame
 import javafx.scene.layout.{Pane => jp}
+import javafx.{scene => jfxs}
 
-import com.auginte.common.SoftwareVersion
 import com.auginte.common.settings.GlobalSettings
 import com.auginte.desktop.nodes.{HelpWrapper, MouseFocusable}
-import com.auginte.desktop.operations.{ContextMenu, ContextMenuWrapper}
+import com.auginte.desktop.operations.ContextMenuWrapper
 import com.auginte.desktop.persistable._
 import com.auginte.desktop.rich.RichSPane
-import com.auginte.distribution.orientdb.Representation
-import com.auginte.distribution.orientdb.Representation.Creator
-import com.auginte.distribution.orientdb._
-import com.auginte.zooming.Grid
-import com.auginte.distribution.{orientdb => o}
 import com.auginte.desktop.{nodes => n}
+import com.auginte.distribution.orientdb.Representation.Creator
+import com.auginte.distribution.orientdb.{Representation, _}
+import com.auginte.distribution.{orientdb => o}
+import com.auginte.zooming.Grid
 import com.auginte.{zooming => z}
-import javafx.{scene => jfxs}
 import com.orientechnologies.common.exception.OException
-import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
 
+import scala.collection.JavaConversions._
 import scalafx.Includes._
 import scalafx.animation.Timeline
-import scalafx.event.ActionEvent
-import javafx.scene.DepthTest
-import scalafx.scene.control.Label
-import scalafx.scene.input.{KeyCode, KeyEvent, MouseEvent}
-import scalafx.util.Duration
-import scala.collection.JavaConversions._
 import scalafx.application.Platform
+import scalafx.event.ActionEvent
+import scalafx.scene.control.Label
+import scalafx.scene.input.MouseEvent
+import scalafx.util.Duration
 
 /**
  * Viewing data in repository
@@ -137,9 +133,9 @@ with HelpWrapper
 
   private def loadElements(db: OrientBaseGraph)(logProgress: Double => Unit): Unit = {
     logProgress(0)
+    db.getRawGraph.activateOnCurrentThread()
     def select(sql: String) = new OSQLSynchQuery[ODocument](sql)
     def attachStorageToRepresentations(representations: Iterable[RepresentationWrapper]): Unit = {
-      db.getRawGraph.activateOnCurrentThread()
       for(representation <- representations) {
         attachDatabaseToElement(representation.storage)
       }
@@ -162,8 +158,10 @@ with HelpWrapper
       val rows = select(sql)
       val subNodes = o.Node.load(db, rows)
       nodes = nodes ++ subNodes
-      logProgress(0.1 + (i / count.toDouble * 0.4))
+      logProgress(0.1 + (i / count.toDouble * 0.3))
     }
+    logProgress(0.4)
+    nodes.foreach(_.updateInMemoryRelations)
     var representations = List[RepresentationWrapper]()
     var i = 0
     for (node <- nodes) {
@@ -174,6 +172,7 @@ with HelpWrapper
       i = i + 1
     }
     Platform.runLater {
+      ThreadedDb.activateOnThisThread()
       d.getChildren.addAll(representations.flatMap{
         case n: jfxs.Node => Some(n)
         case _ => None
@@ -197,11 +196,15 @@ with HelpWrapper
         val graphDatabase = Structure.createRepository(gs.name, gs.connection, gs.user, gs.password)
         graphDatabase.getRawGraph.activateOnCurrentThread()
         db = graphDatabase
-        Persistable.lastGraph = Some(graphDatabase)
-        camera = Camera.mainCamera(graphDatabase)
+        ThreadedDb.setDefault(graphDatabase)
         val newGrid = new Grid(Position.rootNode(graphDatabase))
         grid = newGrid
         loadElements(graphDatabase)(showProgress)
+        val rootNode = newGrid.root match {
+          case n: o.Node => Some(n)
+          case _ => None
+        }
+        camera = Camera.mainCamera(graphDatabase, rootNode)
         Platform.runLater(absoluteToCachedCoordinates())
         loadingElements = false
         Platform.runLater(loadingLabel.visible = false)

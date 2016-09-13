@@ -1,9 +1,9 @@
 package com.auginte.distribution.orientdb
 
-import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.Direction
-import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientBaseGraph}
 import java.{lang => jl}
+
+import com.orientechnologies.orient.core.record.impl.ODocument
+import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientVertex}
 
 /**
  * Having link to OrientDb document, so setters and getters could be use to bind to database record.
@@ -86,13 +86,9 @@ trait Persistable[T] {
   protected def createVertex(values: Map[String, Object]): OrientVertex = {
     val graph: OrientBaseGraph = persisted.get.getGraph match {
       case validGraph if validGraph != null => validGraph
-      case invalidGraph if invalidGraph == null && Persistable.lastGraph.isDefined => Persistable.lastGraph.get
+      case invalidGraph if invalidGraph == null && ThreadedDb.getDefault.isDefined => ThreadedDb.getDefault.get
       case failed => throw new RuntimeException("OrientDB graph is null")
     }
     graph.addVertex(s"class:$tableName", values.flatten(r => List(r._1, r._2)).toSeq: _*)
   }
-}
-
-object Persistable {
-  var lastGraph: Option[OrientBaseGraph] = None
 }

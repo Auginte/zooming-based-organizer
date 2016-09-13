@@ -9,7 +9,7 @@ import scala.collection.JavaConversions._
 
 
 /**
- * Manages connection to
+ * Manages connection to Zoomming grid node
  */
 trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
 
@@ -37,12 +37,13 @@ trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
   }
 
   private def wrapVertex(id: ORID)(persisted: OrientVertex, cache: Node.Cached): Node = {
-    val newNode = Node(persisted.getGraph.getVertex(id))
+    ThreadedDb.activateOnThisThread()
+    val newNode = Node(ThreadedDb.getGraph(persisted).getVertex(id))
     cache += newNode.persisted.get.getIdentity -> newNode
     newNode
   }
 
-  protected def fallbackToRootNode(persisted: OrientVertex) = Position.rootNode(persisted.getGraph)
+  protected def fallbackToRootNode(persisted: OrientVertex) = Position.rootNode(ThreadedDb.getGraph(persisted))
 
   private def edge(field: String): Option[ORID] = CommonSql.edge(persistedDocument.get, field)
 
@@ -52,8 +53,9 @@ trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
   //
 
   override def node_=(link: Node): Unit = {
+    ThreadedDb.activateOnThisThread()
     persistedEdge(link) match {
-      case Some((from, to, edges)) => inTransaction(from.getGraph) {
+      case Some((from, to, edges)) => inTransaction(ThreadedDb.getGraph(from)) {
         removeOldEdges(edges)
         create(from, to)
       }
@@ -65,6 +67,10 @@ trait NodeLink[A] extends NodeWrapper with Persistable[A] { self: A =>
     if (persisted.isDefined && link.persisted.isDefined) {
       val from: OrientVertex = persisted.get
       val to: OrientVertex = link.persisted.get
+      if (ThreadedDb.getDefault.isDefined) {
+        from.attach(ThreadedDb.getDefault.get)
+        to.attach(ThreadedDb.getDefault.get)
+      }
       val edges = from.getEdges(nodeEdge._1, nodeEdge._2).toIterable
       Some(from, to, edges)
     } else None

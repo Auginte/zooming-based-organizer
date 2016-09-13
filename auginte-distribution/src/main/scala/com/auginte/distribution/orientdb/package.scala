@@ -1,16 +1,14 @@
 package com.auginte.distribution
 
-import com.auginte.common.Unexpected
-import com.orientechnologies.orient.core.exception.OConcurrentModificationException
-import com.orientechnologies.orient.core.record.impl.ODocument
 import java.{lang => jl}
 
+import com.auginte.common.Unexpected
+import com.orientechnologies.orient.core.exception.OConcurrentModificationException
 import com.orientechnologies.orient.core.id.ORID
-import com.tinkerpop.blueprints.Element
-
-import scala.collection.JavaConversions._
+import com.orientechnologies.orient.core.record.impl.ODocument
 import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientElementIterable, OrientVertex}
 
+import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
 /**
@@ -73,6 +71,7 @@ package object orientdb {
   }
 
   def inTransaction(db: OrientBaseGraph)(databaseActions: => Unit)(implicit solve: Exception => Unit = reThrow): Unit = {
+    ThreadedDb.activateOnThisThread()
     val transaction = db.getRawGraph.getTransaction
     transaction.begin()
     try {
@@ -88,7 +87,7 @@ package object orientdb {
   def duplicatedRecord(source: OrientVertex)(implicit ignoreEdges: List[String] = List("Refer")): OrientVertex = {
     def duplicateSimpleFields(parameters: Array[List[Object]]) = {
       val className = source.getProperty[String]("@class")
-      source.getGraph.addVertex(s"class:$className", parameters.flatten: _*)
+      ThreadedDb.getGraph(source).addVertex(s"class:$className", parameters.flatten: _*)
     }
 
     def withEdges(target: OrientVertex, parameters: Array[List[Object]]): OrientVertex = {
@@ -106,7 +105,7 @@ package object orientdb {
       target
     }
 
-    val ignoredFields = ignoreEdges.map(name => List(s"in_$name", s"out_$name")).flatten
+    val ignoredFields = ignoreEdges.flatMap(name => List(s"in_$name", s"out_$name"))
     val usefulFields = source.getRecord.fieldNames().filterNot(ignoredFields.contains)
     val allParameters = usefulFields.map(key => List(key, source.getProperty[Object](key)))
     val groupedParameters = allParameters.groupBy(_(1) match {

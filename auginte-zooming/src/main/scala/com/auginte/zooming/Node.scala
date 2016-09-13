@@ -22,7 +22,7 @@ case class Node(private val _x: Byte, private val  _y: Byte)
   def y: Byte = _y
 
   protected[zooming] def createParent()(implicit newNode: NodeToNode = sameNode): Node = {
-    val parentNode: Node = newNode(new Node(0, 0))
+    val parentNode: Node = newNode(Node(0, 0))
     _parent = Some(parentNode)
     parentNode.addChild(this)
     parentNode
@@ -31,10 +31,15 @@ case class Node(private val _x: Byte, private val  _y: Byte)
   protected[zooming] def addChild(x: Byte, y: Byte)(implicit newNode: NodeToNode = sameNode): Node = getChild(x, y) match {
     case Some(child) => child
     case None => 
-      val child = newNode(new Node(x, y))
+      val child = newNode(Node(x, y))
       child._parent = Some(this)
       addChild(child)
       child
+  }
+
+  protected def addExistingChild(child: Node): Unit ={
+    child._parent = Some(this)
+    addChild(child)
   }
 
   def getChild(x: Byte, y: Byte): Option[Node] =

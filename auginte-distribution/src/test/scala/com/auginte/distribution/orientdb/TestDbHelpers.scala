@@ -1,13 +1,15 @@
 package com.auginte.distribution.orientdb
 
+import java.{lang => jl}
+
 import com.auginte.zooming.Grid
 import com.orientechnologies.orient.core.command.script.OCommandScript
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
-import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientGraphNoTx, OrientBaseGraph}
-import java.{lang => jl}
-import collection.JavaConversions._
+import com.tinkerpop.blueprints.impls.orient.{OrientBaseGraph, OrientGraphNoTx, OrientVertex}
+
+import scala.collection.JavaConversions._
 
 /**
  * Common function over multiple database tests
@@ -17,7 +19,11 @@ object TestDbHelpers {
 
   def testDbName = s"test${System.currentTimeMillis()}"
 
-  def newDb = Structure.createRepository(testDbName, "memory")
+  def newDb = {
+    val db = Structure.createRepository(testDbName, "memory")
+    ThreadedDb.setDefault(db)
+    db
+  }
 
   def newEmptyDb = new OrientGraphNoTx(s"memory:$testDbName")
 

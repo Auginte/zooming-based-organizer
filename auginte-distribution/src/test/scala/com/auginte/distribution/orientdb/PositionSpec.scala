@@ -1,9 +1,10 @@
 package com.auginte.distribution.orientdb
 
 import com.auginte.distribution.orientdb.Representation.Creator
+import com.auginte.distribution.orientdb.TestDbHelpers._
 import com.auginte.test.UnitSpec
-import TestDbHelpers._
-import com.tinkerpop.blueprints.impls.orient.{OrientVertex, OrientDynaElementIterable}
+import com.tinkerpop.blueprints.impls.orient.{OrientDynaElementIterable, OrientVertex}
+
 import scala.collection.JavaConversions._
 
 /**
@@ -212,6 +213,7 @@ class PositionSpec extends UnitSpec {
           }
           val rows = select("SELECT @rid, x, y, in_Parent, in_Inside FROM Node")
           val nodes = Node.load(db, rows)(nodeCache)
+          nodes.foreach(_.updateInMemoryRelations(nodeCache))
           assert(3 === nodeCache.size)
           assert(3 === nodes.size)
           for (node <- nodes) {
@@ -270,7 +272,7 @@ class PositionSpec extends UnitSpec {
             |let rightEdge = create edge Parent from $right to $top
             |return [$left, $top, $right]
           """.stripMargin).toList
-        val left = Node(vertices(0).asInstanceOf[OrientVertex])
+        val left = Node(vertices.head.asInstanceOf[OrientVertex])
         val top = Node(vertices(1).asInstanceOf[OrientVertex])
         val right = Node(vertices(2).asInstanceOf[OrientVertex])
         val common = grid.getCommonParent(left, right)
