@@ -1,20 +1,19 @@
 package com.auginte.desktop.nodes
 
-import javafx.scene.layout.{Pane => jp}
-import javafx.scene.{control => jfxc, layout => jfxl, text => jfxt}
-
+import com.auginte.desktop.HaveOperations
 import com.auginte.desktop.actors.{DragableNode, ScalableElement, ViewableNode}
 import com.auginte.desktop.events._
-import com.auginte.desktop.operations.{MouseTransformable, EditableNode}
-import com.auginte.desktop.rich.{RichNode, RichJPane}
+import com.auginte.desktop.operations.{EditableNode, MouseTransformable}
+import com.auginte.desktop.rich.RichJPane
 import com.auginte.desktop.zooming.ZoomableNode
-import com.auginte.desktop.{HaveOperations, actors => act}
 import com.auginte.distribution.data.Data
 import com.auginte.transforamtion.Transformable
-
+import javafx.event.{Event, EventHandler}
+import javafx.scene.layout.{Pane => jp}
+import javafx.scene.{control => jfxc, text => jfxt}
 import scalafx.event.ActionEvent
 import scalafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent}
-import scalafx.scene.{control => sfxc}
+import javafx.scene.{input => jfxi}
 
 /**
  * Editable Label
@@ -64,25 +63,22 @@ with EditableNode {
 
   textArea.textProperty().addListener((s: String) => updateSize(s))
 
-  textArea.addEventFilter(
-    KeyEvent.KeyPressed,
-    (e: KeyEvent) => e.code match {
-      case KeyCode.ENTER => e.consume()
-      case KeyCode.SPACE => e.consume()
-      case _ => Unit
-    }
-  )
-  textArea.addEventFilter(
-    KeyEvent.KeyReleased,
-    (e: KeyEvent) => {
-      e.code match {
-        case KeyCode.ENTER if e.shiftDown => insertEnter()
-        case KeyCode.ENTER if !e.shiftDown => finishEditing(e)
-        case _ => Unit
-      }
+
+  textArea.addEventFilter(jfxi.KeyEvent.KEY_PRESSED, (e: jfxi.KeyEvent) => e.getCode match {
+    case jfxi.KeyCode.ENTER => e.consume()
+    case jfxi.KeyCode.SPACE => e.consume()
+    case _ => Unit
+  })
+
+  textArea.addEventFilter(jfxi.KeyEvent.KEY_RELEASED, (e: jfxi.KeyEvent) => e.getCode match {
+    case jfxi.KeyCode.ENTER if e.isShiftDown =>
+      insertEnter()
       e.consume()
-    }
-  )
+    case jfxi.KeyCode.ENTER if !e.isShiftDown =>
+      finishEditing(e)
+      e.consume()
+    case _ => Unit
+  })
 
   def this() = this("")
 
@@ -117,12 +113,12 @@ with EditableNode {
   // Operations
   //
 
-  def operations = Map(
+  def operations: Map[String, ActionEvent => Unit] = Map(
     "Edit" -> ((e: ActionEvent) => editable = true),
     "Delete" -> ((e: ActionEvent) => view ! DeleteElement(this))
   )
 
-  def editable = editMode
+  def editable: Boolean = editMode
 
 
   //
@@ -164,8 +160,7 @@ with EditableNode {
     textArea.insertText(textArea.getCaretPosition, enter)
   }
 
-  private def finishEditing(e: KeyEvent): Unit = {
-    e.consume()
+  private def finishEditing(e: jfxi.KeyEvent): Unit = {
     editable = false
     updateText()
     view ! EditElement(this, mode=false)

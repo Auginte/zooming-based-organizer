@@ -1,24 +1,24 @@
 package com.auginte.desktop
 
 import java.awt.SplashScreen
-import javafx.scene.image.Image
 
-import com.auginte.zooming.Grid
-
-import scalafx.application.JFXApp
-import scalafx.application.JFXApp.PrimaryStage
-import scalafx.scene._
-import scalafx.scene.control.{Label, Button}
-import scalafx.scene.layout.{HBox, BorderPane}
-import scalafx.Includes._
-import scalafx.event.ActionEvent
-import scalafx.application.Platform
-import akka.actor.{Props, ActorSystem}
-import scalafx.stage.WindowEvent
+import akka.actor.{ActorSystem, Props}
 import com.auginte.desktop.{actors => act}
+import com.auginte.zooming.Grid
+import javafx.embed.swing.JFXPanel
+import javafx.scene.image.Image
+import scalafx.Includes._
+import scalafx.application.JFXApp.PrimaryStage
+import scalafx.application.{JFXApp, Platform}
+import scalafx.scene._
+import scalafx.stage.WindowEvent
 
-object Auginte extends JFXApp {
+object Auginte extends JFXApp { app =>
   val akka = ActorSystem("auginte")
+
+  // Shortcut to initialize JavaFX, force initialization by creating JFXPanel() object
+  // (we will not use it for anything else)
+  new JFXPanel()
 
   stage = new PrimaryStage {
     title = "Auginte"
@@ -42,7 +42,7 @@ object Auginte extends JFXApp {
   stage.onCloseRequest = (e: WindowEvent) => quit()
 
   def quit(): Unit = {
-    akka.shutdown()
+    akka.terminate()
     Platform.exit()
   }
 

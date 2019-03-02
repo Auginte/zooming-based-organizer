@@ -1,16 +1,13 @@
 package com.auginte.desktop
 
 import java.awt.Desktop
-import java.io.{InputStream, File}
+import java.io.File
 import java.net.URI
-import javafx.animation.KeyFrame
-import javafx.scene.Node
-import javafx.scene.layout.{Pane => jp}
 
 import com.auginte.common.SoftwareVersion
 import com.auginte.desktop.actors.{Container, DragableView, ZoomableView}
 import com.auginte.desktop.events.{EditElement, InsertElement}
-import com.auginte.desktop.nodes.{Image, Label, MouseFocusable}
+import com.auginte.desktop.nodes.{Label, MouseFocusable}
 import com.auginte.desktop.operations._
 import com.auginte.desktop.rich.RichSPane
 import com.auginte.desktop.storage.{Loading, Saving, WithFileChooser}
@@ -18,12 +15,16 @@ import com.auginte.desktop.zooming.ZoomableCamera
 import com.auginte.distribution.data.Camera
 import com.auginte.distribution.exceptions.ImportException
 import com.auginte.distribution.repository.LocalStatic
-
-import scala.collection.immutable.{HashMap, SortedMap}
+import javafx.animation.KeyFrame
+import javafx.collections.ObservableList
+import javafx.scene.Node
+import javafx.scene.layout.{Pane => jp}
 import scalafx.Includes._
 import scalafx.animation.Timeline
 import scalafx.event.ActionEvent
 import scalafx.util.Duration
+
+import scala.collection.immutable.HashMap
 
 /**
  * JavaFX panel with Infinity zooming layout.
@@ -40,6 +41,7 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
   val repository = new LocalStatic
   private var repositoryPath: Option[String] = None
 
+  override def content: ObservableList[Node] = children
 
   //
   // Infinity zooming and refresh
@@ -109,12 +111,11 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
   }
 
   private def feedback(): Unit = {
-    try {
-      val version = SoftwareVersion.toString
-      Desktop.getDesktop.mail(new URI(s"mailto:aurelijus@auginte.com?subject=Feedback%20$version"))
-    } catch {
-      case e: Exception => Desktop.getDesktop.browse(new URI(s"http://auginte.com/en/contact"))
-    }
+    new Thread {
+      override def run() {
+        Desktop.getDesktop.browse(new URI(s"http://auginte.com/en/contact"))
+      }
+    }.start()
   }
 
   private def addElement[T <: Node](element: T): Unit =

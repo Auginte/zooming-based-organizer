@@ -167,7 +167,7 @@ with ZoomableElement {
           val pivotY = if (bound.getHeight > 0) bound.getMinY + (bound.getHeight / 2) else InitialSize.height / 2
           e.d.setScaleX(absolute.scale)
           e.d.setScaleY(absolute.scale)
-          e.d.setScaleZ(absolute.scale)
+//          e.d.setScaleZ(absolute.scale)
           e.d.setLayoutX(absolute.x - pivotX)
           e.d.setLayoutY(absolute.y - pivotY)
           e.d.setVisible(true)

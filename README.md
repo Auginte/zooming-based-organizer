@@ -4,40 +4,34 @@ Auginte
 Auginte is a tool to augment the meaning
 of complex and heterogeneous information 
 
-Development Environment
------------------------
+[![It is like a zooming based mind-map](http://img.youtube.com/vi/ZZ6CZLcWnTE/0.jpg)](http://www.youtube.com/watch?v=ZZ6CZLcWnTE)
 
- * Scala (2.10.2): http://www.scala-lang.org/
- * SBT (0.13.0): http://www.scala-sbt.org/
- * ScalaTest (2.10): http://www.scalatest.org/
- * SCCT (0.2) http://mtkopone.github.io/scct/
- * IntelliJ IDEA (13): http://www.jetbrains.com/idea/
+Running desktop application
+---------------------------
 
-Useful SBT commands
+```bash
+sbt auginteDesktop/run
+```
+
+Assuming you have [sbt](https://www.scala-sbt.org/download.html) v1.2.7+ installed.
+
+Alternatively you can run [Auginte](auginte-desktop/src/main/scala/com/auginte/desktop/Auginte.scala) with `Idea`
+
+Running tests
+-------------
+
+Only infinity zoomig is covered with tests
+```bash
+sbt test
+```
+
+Meaning of versions
 -------------------
 
-```
-run
-test
-assembly
-scct:test
-gen-idea
-project
-```
-
-Deployment
-----------
-
-```
-deploy
-```
-
-See results in `/auginte-desktop/target/pack`.
-
-Coding standard
----------------
-
- * http://docs.scala-lang.org/style/
+ * `v0.8.*` - added web version: **Maintenance discarded**: Too big memory consumption for simple event-based system
+ * `v0.7.*` - OrientDB as a storage: **Maintenance discarded**: incompatible for frequent async search/store
+ * `v0.6.4` - JSON based storage: **Retagging as `v0.9.5`**: Too keep application usable and up-to-date
+ * `v0.0.*` - `v0.5.*` – [Prototype](https://github.com/Auginte/prototype-desktop-app)
 
 Known Issues
 ------------

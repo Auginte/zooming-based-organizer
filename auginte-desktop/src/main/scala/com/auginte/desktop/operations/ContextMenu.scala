@@ -21,19 +21,19 @@ class ContextMenu extends HBox {
     onAction = (e: ActionEvent) => ContextMenu.this.visible = false
   }
 
-  content = Seq(closeButton)
+  children = Seq(closeButton)
 
   def show(): Unit = this.synchronized(visible = true)
 
   def showContent(elements: HaveOperations#Operations): Unit = {
-    content = for (element <- elements) yield new Button(element._1) {
+    children = for (element <- elements) yield new Button(element._1) {
       onAction = (e: ActionEvent) => {
         element._2(e)
         hide()
       }
     }
-    content += closeButton
-    content.get(0).requestFocus()
+    children += closeButton
+    children.get(0).requestFocus()
   }
 
   def hide(): Unit = this.synchronized(visible = false)
