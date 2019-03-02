@@ -5,11 +5,13 @@
 .label:hover {
     -fx-text-fill: derive(#d3f0ff, 10%);
     -fx-background-color: derive(#101b20, 5%);
-    -fx-background-radius: 3;
 }
 .textArea {
-    -fx-text-fill: derive(#d3f0ff, 40%);
-    -fx-background-color: derive(#101b20, 40%);
-    -fx-background-radius: 3;
+    -fx-text-fill: #000000;
+    -fx-background-color: #ffffff;
     -fx-border-style: none;
+}
+.textArea, .textArea .scroll-pane {
+    -fx-hbar-policy: never;
+    -fx-vbar-policy: never;
 }
