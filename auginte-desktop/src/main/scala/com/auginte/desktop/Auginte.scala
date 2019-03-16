@@ -7,6 +7,7 @@ import com.auginte.desktop.{actors => act}
 import com.auginte.zooming.Grid
 import javafx.embed.swing.JFXPanel
 import javafx.scene.image.Image
+import com.auginte.desktop.utilities.Config
 import scalafx.Includes._
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.application.{JFXApp, Platform}
@@ -46,9 +47,11 @@ object Auginte extends JFXApp { app =>
     Platform.exit()
   }
 
+  parameters.named.get("config-file").foreach(Config.load)
+
   val welcomeFile = "/examples/welcome.json"
-  if (parameters.raw.nonEmpty) {
-    val userFile = parameters.raw.head
+  if (parameters.unnamed.nonEmpty) {
+    val userFile = parameters.unnamed.head
     try {
       System.out.println(s"Loading user file: $userFile")
       view1.load(userFile)

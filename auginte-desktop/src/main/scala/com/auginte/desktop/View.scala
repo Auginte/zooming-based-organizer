@@ -19,11 +19,13 @@ import javafx.animation.KeyFrame
 import javafx.collections.ObservableList
 import javafx.scene.Node
 import javafx.scene.layout.{Pane => jp}
+
+import com.auginte.desktop.utilities.Logger
+
 import scalafx.Includes._
 import scalafx.animation.Timeline
 import scalafx.event.ActionEvent
 import scalafx.util.Duration
-
 import scala.collection.immutable.HashMap
 
 /**
@@ -97,7 +99,7 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
     }
   }
 
-  override def load(path: String): Unit = {
+  override def load(path: String): Unit = Logger.loadingFile {
     super.load(path)
     repositoryPath = Some(path)
     validateZoomableElementsLater()
@@ -127,7 +129,7 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
     }
   }
 
-  override protected def save(path: String): Unit = {
+  override protected def save(path: String): Unit = Logger.save {
     try {
       super.save(path)
       repositoryPath = Some(path)

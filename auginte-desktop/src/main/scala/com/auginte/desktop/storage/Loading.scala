@@ -1,11 +1,12 @@
 package com.auginte.desktop.storage
 
-import java.io.{InputStream, FileInputStream}
+import java.io.{FileInputStream, InputStream}
 import javafx.scene.{layout => jfxl}
 import javafx.{scene => jfxs}
 
 import com.auginte.desktop.events.ImportElement
 import com.auginte.desktop.nodes.Label
+import com.auginte.desktop.utilities.Logger
 import com.auginte.desktop.zooming.{UsingGrid, ZoomableElement}
 import com.auginte.distribution.data.{Camera, ImportedCamera, ImportedData}
 import com.auginte.distribution.exceptions.UnconnectedIds
@@ -59,7 +60,7 @@ with Camera with ZoomableElement {
   }
 
   protected[desktop] def loadFromStream(input: InputStream): Unit = {
-    def updateCamera(cameras: Seq[AbsoluteDistance]): Unit = {
+    def updateCamera(cameras: Seq[AbsoluteDistance]): Unit = Logger.loadingFromStream {
       val camera: AbsoluteDistance = if (cameras.nonEmpty) cameras(0) else defaultCamera
       node = camera._1
       position = camera._2

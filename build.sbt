@@ -63,6 +63,7 @@ lazy val auginteDesktop = (project in file("auginte-desktop"))
     libraryDependencies ++= javaFXModules.map( m =>
       "org.openjfx" % s"javafx-$m" % "11" classifier osName
     ),
+    libraryDependencies += "com.typesafe" % "config" % "1.3.2",
     mainClass in assembly := Some("com.auginte.desktop.Auginte"),
     assemblyMergeStrategy in assembly := {
       case "module-info.class" | "META-INF/MANIFEST.MF" => MergeStrategy.discard

@@ -20,16 +20,29 @@ Alternatively you can run [Auginte](auginte-desktop/src/main/scala/com/auginte/d
 Generating distributable binary
 -------------------------------
 
-```
+```bash
 sbt auginteDesktop/assembly
 ```
 This will generate flat `.jar` somewhere in `auginte-desktop/target/scala-2.12/`
 
 To run the application:
-```
+```bash
 java -jar auginte-desktop/target/scala-2.12/AuginteDesktop-assembly-0.9.5-SNAPSHOT.jar
 ```
 Where `0.9.5-SNAPSHOT` version may differ
+
+Command line arguments
+----------------------
+
+```
+auginte.jar [--config-file=...] [SAVED_PROJECT_PATH]
+```
+If no arguments, using default configuration and example project.
+
+For example:
+```bash
+java -jar auginte.jar --config-file=auginte-desktop/src/main/resources/example.conf path/to/saved.json
+```
 
 Running tests
 -------------
