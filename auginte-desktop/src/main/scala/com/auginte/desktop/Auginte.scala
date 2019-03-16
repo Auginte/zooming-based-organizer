@@ -47,8 +47,20 @@ object Auginte extends JFXApp { app =>
   }
 
   val welcomeFile = "/examples/welcome.json"
-  view1.loadFromStream(getClass.getResourceAsStream(welcomeFile))
-
+  if (parameters.raw.nonEmpty) {
+    val userFile = parameters.raw.head
+    try {
+      System.out.println(s"Loading user file: $userFile")
+      view1.load(userFile)
+    } catch {
+      case e: Exception =>
+        System.err.println(s"Failed to load file: $userFile: $e")
+        System.out.println("Loading default one instead")
+        view1.loadFromStream(getClass.getResourceAsStream(welcomeFile))
+    }
+  } else {
+    view1.loadFromStream(getClass.getResourceAsStream(welcomeFile))
+  }
   stage.scene = new Scene {
     root = view1
   }

@@ -87,20 +87,20 @@ with Saving[jp] with Loading[jp] with WithFileChooser {
 
   private def open(): Unit = {
     fileChooser.showOpenDialog(nonBlockingWindow) match {
-      case f: File if f.canRead => load(f.getPath)
+      case f: File if f.canRead => try {
+        load(f.getPath)
+      } catch {
+        case importException: ImportException => System.err.println(s"Import Exception: $importException")
+        case e: Exception => System.err.println(s"Other file load Exception: $e")
+      }
       case cancelled => Unit
     }
   }
 
-  override protected def load(path: String): Unit = {
-    try {
-      super.load(path)
-      repositoryPath = Some(path)
-      validateZoomableElementsLater()
-    } catch {
-      case importException: ImportException => println(s"Import Exception: $importException")
-      case e: Exception => println(s"Other Exception: $e")
-    }
+  override def load(path: String): Unit = {
+    super.load(path)
+    repositoryPath = Some(path)
+    validateZoomableElementsLater()
   }
 
   private def saveAs(e: ActionEvent, blocking: Boolean = false): Unit = {

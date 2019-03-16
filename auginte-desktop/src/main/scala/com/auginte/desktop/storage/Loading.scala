@@ -35,7 +35,7 @@ with Camera with ZoomableElement {
           }
           Some(label)
         case "ag:Text" if !map.contains(nodeId) =>
-          System.out.println("Ignoring unconnected id: ", UnconnectedIds(id, nodeId))
+          System.err.println(s"Ignoring unconnected id: ${UnconnectedIds(id, nodeId)}")
           None
         case _ => None
       }

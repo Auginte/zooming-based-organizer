@@ -126,7 +126,7 @@ class LocalStatic extends Repository {
         if (representations.contains(targetId)) {
           connectedSources = Relation(representations(targetId).get, s.parameters) :: connectedSources
         } else {
-          System.out.println("Ignoring unconnected id: ", UnconnectedIds(r.get.storageId, targetId))
+          System.err.println(s"Ignoring unconnected id in file: ${UnconnectedIds(r.get.storageId, targetId)}")
         }
       })
       r.get.sources = connectedSources
