@@ -17,6 +17,20 @@ Assuming you have [sbt](https://www.scala-sbt.org/download.html) v1.2.7+ install
 
 Alternatively you can run [Auginte](auginte-desktop/src/main/scala/com/auginte/desktop/Auginte.scala) with `Idea`
 
+Generating distributable binary
+-------------------------------
+
+```
+sbt auginteDesktop/assembly
+```
+This will generate flat `.jar` somewhere in `auginte-desktop/target/scala-2.12/`
+
+To run the application:
+```
+java -jar auginte-desktop/target/scala-2.12/AuginteDesktop-assembly-0.9.5-SNAPSHOT.jar
+```
+Where `0.9.5-SNAPSHOT` version may differ
+
 Running tests
 -------------
 

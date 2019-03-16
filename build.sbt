@@ -63,6 +63,11 @@ lazy val auginteDesktop = (project in file("auginte-desktop"))
     libraryDependencies ++= javaFXModules.map( m =>
       "org.openjfx" % s"javafx-$m" % "11" classifier osName
     ),
+    mainClass in assembly := Some("com.auginte.desktop.Auginte"),
+    assemblyMergeStrategy in assembly := {
+      case "module-info.class" | "META-INF/MANIFEST.MF" => MergeStrategy.discard
+      case x => MergeStrategy.first
+    },
     packageOptions in(Compile, packageBin) += Package.ManifestAttributes("SplashScreen-Image" -> "com/auginte/common/splash.gif")
   )
 
