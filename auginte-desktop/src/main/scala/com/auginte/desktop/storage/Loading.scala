@@ -27,17 +27,16 @@ with Camera with ZoomableElement {
   private val elementCreator =
     (data: ImportedData, map: IdToRealNode) => data match {
       case ImportedData(id, typeName, x, y, scale, nodeId, customFields, sourcePlaceholder) => typeName match {
-        case "ag:Text" if customFields.contains("text") =>
+        case "ag:Text" if customFields.contains("text") && map.contains(nodeId) =>
           val label = new Label(customFields.getOrElse("text", "")) {
             position = Distance(x, y, scale)
-            if (map.contains(nodeId)) {
-              node = map(nodeId)
-            } else {
-              throw UnconnectedIds(id, nodeId)
-            }
+            node = map(nodeId)
             sources = sourcePlaceholder
           }
           Some(label)
+        case "ag:Text" if !map.contains(nodeId) =>
+          System.out.println("Ignoring unconnected id: ", UnconnectedIds(id, nodeId))
+          None
         case _ => None
       }
       case _ => None
