@@ -1,7 +1,7 @@
 
 ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / organization := "com.auginte"
-ThisBuild / version := "0.9.5-SNAPSHOT"
+ThisBuild / version := "0.9.5"
 
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 val playJson = "com.typesafe.play" % "play-json_2.12" % "2.7.0-RC2"

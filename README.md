@@ -55,6 +55,7 @@ sbt test
 Meaning of versions
 -------------------
 
+ * `v0.9.5` - Stable version using JSON as a storage
  * `v0.8.*` - added web version: **Maintenance discarded**: Too big memory consumption for simple event-based system
  * `v0.7.*` - OrientDB as a storage: **Maintenance discarded**: incompatible for frequent async search/store
  * `v0.6.4` - JSON based storage: **Retagging as `v0.9.5`**: Too keep application usable and up-to-date
