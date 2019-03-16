@@ -22,5 +22,6 @@ trait InsertingElements[D <: jfxs.Node] extends RichNode[D] {
     element.setTranslateX(x)
     element.setTranslateY(y)
     content.add(element)
+    element.requestFocus()
   }
 }
